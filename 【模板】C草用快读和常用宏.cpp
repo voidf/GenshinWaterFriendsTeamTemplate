@@ -1,4 +1,4 @@
-// v2021.5.2 判EOF快读与分数类
+// v2021.5.22 主席树更面向对象
 #pragma GCC optimize(1)
 #pragma GCC optimize(2)
 #pragma GCC optimize(3)
@@ -58,10 +58,13 @@
 #define foreach_ex(m, wrapped_args) m wrapped_args
 #define foreach_in(e, a) for (int i = 0, elem *e = a->elems; i != a->size; i++, e++)
 
-// foreach(e in a)
-// {
-
-// }
+#define sign(_x) (_x < 0)
+#define range_4(__iter__, __from__, __to__, __step__) for (LL __iter__ = __from__; __iter__ != __to__ && sign(__to__ - __from__) == sign(__step__); __iter__ += __step__)
+#define range_3(__iter__, __from__, __to__) range_4(__iter__, __from__, __to__, 1)
+#define range_2(__iter__, __to__) range_4(__iter__, 0, __to__, 1)
+#define range_1(__iter__, __to__) range_4(__iter__, 0, 1, 1)
+#define get_range(_1, _2, _3, _4, _Func, ...) _Func
+#define range(...) get_range(__VA_ARGS__, range_4, range_3, range_2, range_1, ...)(__VA_ARGS__)
 
 #include <ext/pb_ds/tag_and_trait.hpp>
 #define _CRT_SECURE_NO_WARNINGS
@@ -77,118 +80,12 @@ using namespace std;
 typedef long long LL;
 // typedef __int128 LL;
 typedef unsigned long long ULL;
-#define SZ(x) ((int)((x).size()))
 
-template <typename T1, typename T2>
-string print_iterable(T1 begin_iter, T2 end_iter, int counter)
-{
-    bool done_something = false;
-    stringstream res;
-    res << "[";
-    for (; begin_iter != end_iter and counter; ++begin_iter)
-    {
-        done_something = true;
-        counter--;
-        res << *begin_iter << ", ";
-    }
-    string str = res.str();
-    if (done_something)
-    {
-        str.pop_back();
-        str.pop_back();
-    }
-    str += "]";
-    return str;
-}
-
-vector<int> SortIndex(int size, std::function<bool(int, int)> compare)
-{
-    vector<int> ord(size);
-    for (int i = 0; i < size; i++)
-        ord[i] = i;
-    sort(ord.begin(), ord.end(), compare);
-    return ord;
-}
-
-template <typename T>
-bool MinPlace(T &a, const T &b)
-{
-    if (a > b)
-    {
-        a = b;
-        return true;
-    }
-    return false;
-}
-
-template <typename T>
-bool MaxPlace(T &a, const T &b)
-{
-    if (a < b)
-    {
-        a = b;
-        return true;
-    }
-    return false;
-}
-
-template <typename S, typename T>
-ostream &operator<<(ostream &out, const pair<S, T> &p)
-{
-    out << "{" << p.first << ", " << p.second << "}";
-    return out;
-}
-
-template <typename T>
-ostream &operator<<(ostream &out, const vector<T> &v)
-{
-    out << "[";
-    for (int i = 0; i < (int)v.size(); i++)
-    {
-        out << v[i];
-        if (i != (int)v.size() - 1)
-            out << ", ";
-    }
-    out << "]";
-    return out;
-}
-
-template <class TH>
-void _dbg(const char *name, TH val)
-{
-    clog << name << ": " << val << endl;
-}
-template <class TH, class... TA>
-void _dbg(const char *names, TH curr_val, TA... vals)
-{
-    while (*names != ',')
-        clog << *names++;
-    clog << ": " << curr_val << ", ";
-    _dbg(names + 1, vals...);
-}
-
-#if DEBUG && !ONLINE_JUDGE
-ifstream input_from_file("input.txt");
-#define cin input_from_file
-
-#define dbg(...) _dbg(#__VA_ARGS__, __VA_ARGS__)
-#define dbg_arr(x, len) clog << #x << ": " << print_iterable(x, x + len, -1) << endl;
-#else
-#define dbg(...)
-#define dbg_arr(x, len)
-#endif
-
-///////////////////////////////////////////////////////////////////////////
-//////////////////// DO NOT TOUCH BEFORE THIS LINE ////////////////////////
-///////////////////////////////////////////////////////////////////////////
 #define pi acos(-1)
 #define M 200010
 #define endl '\n'
 #define mem(a, b) memset(a, b, sizeof(a))
-#define F(literate_val, max, step) for (literate_val = 0; literate_val != max; literate_val += step)
-#define DMIN(a, b) (a < b ? a : b)
-#define DMAX(a, b) (a > b ? a : b)
-#define DMID(l, r) ((r + l - 1) >> 1)
+
 #define INF 0x3f3f3f3f
 
 const LL mo = 19260817;
@@ -295,6 +192,50 @@ void print(T x)
 }
 // fwrite(obuf,O-obuf,1,stdout);
 
+template <typename IntegerType>
+void convert_to_string(IntegerType x, std::string &s)
+{
+    if (x < 0)
+    {
+        x = -x;
+        s.push_back('-');
+        // *O++ = '-';
+    }
+    if (x > 9)
+        convert_to_string(x / 10, s);
+    s.push_back(x % 10 + '0');
+}
+namespace std
+{
+    string to_string(__int128 x)
+    {
+        string s;
+        convert_to_string(x, s);
+        return s;
+    }
+    istream &operator>>(istream &ins, __int128 &x)
+    {
+        x = 0;
+        __int128 sgn = 1;
+        int mono = ins.get();
+        while (mono > '9' || mono < '0')
+        {
+            if (mono == '-')
+                sgn = -sgn;
+            mono = ins.get();
+        }
+        while (mono <= '9' && mono >= '0')
+        {
+            x = (x << 3) + (x << 1) + (mono ^ 0x30);
+            mono = ins.get();
+        }
+        x *= sgn;
+        ins.unget();
+        return ins;
+    }
+    ostream &operator<<(ostream &ous, __int128 &x) { return ous << to_string(x); }
+} // namespace std
+
 // LL globalsgn = 1;
 template <class T>
 inline void qr(T &n)
@@ -305,13 +246,13 @@ inline void qr(T &n)
     {
         throw "End of file!";
     }
-    T sgn = 1;
+    bool sgn = 0;
     // globalsgn = 1;
 
     while (c > '9' || c < '0')
     {
         if (c == '-')
-            sgn = -sgn;
+            sgn ^= 1;
         c = getchar();
         if (c == EOF)
         {
@@ -326,15 +267,9 @@ inline void qr(T &n)
     }
     // if (c == '-')
     //     globalsgn = -globalsgn;
-    n *= sgn;
-}
-
-inline char qrc()
-{
-    char c = getchar();
-    while (c < 'a' || c > 'z')
-        c = getchar();
-    return c;
+    // n *= sgn;
+    if (sgn)
+        n = -n;
 }
 
 inline void exgcd(LL a, LL b, LL &x, LL &y)
@@ -349,13 +284,6 @@ inline void exgcd(LL a, LL b, LL &x, LL &y)
     y -= a / b * x;
 }
 
-inline LL inv(LL a)
-{
-    LL x, y;
-    exgcd(a, mo, x, y);
-    return x >= 0 ? x : x + mo;
-}
-
 inline LL inv(LL a, LL mo)
 {
     LL x, y;
@@ -363,30 +291,15 @@ inline LL inv(LL a, LL mo)
     return x >= 0 ? x : x + mo; // 为0时无解
 }
 
-inline void MADD(LL &x, LL y) { x = x + y < mo ? x + y : x + y - mo; }
-inline void MSUB(LL &x, LL y) { x = x - y >= 0 ? x - y : x - y + mo; }
-
-inline LL power(LL a, LL n, LL mo)
+template <typename IntegerType>
+inline IntegerType power(IntegerType a, IntegerType n)
 {
-    LL res = 1;
+    IntegerType res = 1;
     while (n)
     {
         if (n & 1)
-            res = 1LL * res * a % mo;
-        a = 1LL * a * a % mo;
-        n >>= 1;
-    }
-    return res;
-}
-
-inline LL power(LL a, LL n)
-{
-    LL res = 1;
-    while (n)
-    {
-        if (n & 1)
-            res = 1LL * res * a;
-        a = 1LL * a * a;
+            res = res * a;
+        a = a * a;
         n >>= 1;
     }
     return res;
@@ -1563,6 +1476,7 @@ struct PersistentSengmentTree
     static inline int mid(int lower, int upper) { return (lower + upper) >> 1; };
 
     int cursiz = 0;
+    int l_bound_cache, r_bound_cache;
     struct Node
     {
         TYP meta;
@@ -1589,7 +1503,7 @@ struct PersistentSengmentTree
     // std::vector<Node> nodes; // 动态开点的选项
     // PersistentSengmentTree() : cursiz(0) { nodes.resize(size_elapsed); }
 
-    int build(int l_bound, int r_bound)
+    inline int _build(int l_bound, int r_bound)
     {
         int cur_num = cursiz++;
         Node &me = nodes[cur_num];
@@ -1597,13 +1511,20 @@ struct PersistentSengmentTree
         if (r_bound > l_bound)
         {
             int m = mid(l_bound, r_bound);
-            me.l = build(l_bound, m);
-            me.r = build(m + 1, r_bound);
+            me.l = _build(l_bound, m);
+            me.r = _build(m + 1, r_bound);
         }
         return cur_num;
     }
 
-    int update(int l_bound, int r_bound, TYP &&new_x, int before, TYP &&updval)
+    void build(int _n)
+    {
+        headers[h_pointer++] = _build(1, _n);
+        l_bound_cache = 1 - 1;
+        r_bound_cache = _n - 1;
+    }
+
+    inline int _update(int l_bound, int r_bound, int pos, int before, TYP &&updval)
     {
         int cur_num = cursiz++;
         nodes[cur_num] = nodes[before];
@@ -1615,36 +1536,55 @@ struct PersistentSengmentTree
         if (l_bound < r_bound)
         {
             int m = mid(l_bound, r_bound);
-            if (new_x <= m) // 值域线段树，落在哪边就往哪边走
-                me.l = update(l_bound, m, new_x, me.l, updval);
+            if (pos <= m) // 值域线段树，落在哪边就往哪边走
+                me.l = _update(l_bound, m, pos, me.l, updval);
             else
-                me.r = update(m + 1, r_bound, new_x, me.r, updval);
+                me.r = _update(m + 1, r_bound, pos, me.r, updval);
         }
         return cur_num;
     }
-    int update(int l_bound, int r_bound, TYP &new_x, int before, TYP &updval) { return update(l_bound, r_bound, std::move(new_x), before, std::move(updval)); }
-    int update(int l_bound, int r_bound, TYP &new_x, int before, TYP &&updval) { return update(l_bound, r_bound, std::move(new_x), before, std::move(updval)); }
+    inline int _update(int l_bound, int r_bound, int pos, int before, TYP &updval) { return _update(l_bound, r_bound, pos, before, std::move(updval)); }
+
+    void update(int pos, TYP &&updval)
+    {
+        headers[h_pointer] = _update(l_bound_cache, r_bound_cache, pos, headers[h_pointer - 1], std::move(updval));
+        h_pointer++;
+    }
+    void update(int pos, TYP &updval)
+    {
+        headers[h_pointer] = _update(l_bound_cache, r_bound_cache, pos, headers[h_pointer - 1], std::move(updval));
+        h_pointer++;
+    }
 
     /*查询的rank是排名，返回的是离散化的排好序的序列的下标，查询函数根据业务需求改*/
-    int query(int l_bound, int r_bound, int front_node, int back_node, TYP &&rank)
+    inline int _query(int l_bound, int r_bound, int front_node, int back_node, TYP &&rank)
     {
         Node &u = nodes[front_node];
         Node &v = nodes[back_node];
         if (l_bound >= r_bound)
             return l_bound;
-        // TYP lx = nodes[v.l].meta - nodes[u.l].meta;
+        TYP lx = nodes[v.l].meta - nodes[u.l].meta;
         // TYP rx = nodes[v.r].meta - nodes[u.r].meta;
-        TYP lx = nodes[v.l].meta;
-        // cerr << "vlmeta:" << nodes[v.r].meta << "\tulmeta:" << nodes[u.r].meta << endl;
+        // TYP lx = nodes[v.l].meta;
+        // cerr << "vlmeta:" << nodes[v.l].meta << "\tulmeta:" << nodes[u.l].meta << endl;
         // cerr << "vrmeta:" << nodes[v.r].meta << "\turmeta:" << nodes[u.r].meta << endl;
         int m = mid(l_bound, r_bound);
-        if (lx >= rank) // 严格大于一半，所以是大于号
-            return query(l_bound, m, u.l, v.l, rank);
+        if (lx >= rank)
+            return _query(l_bound, m, u.l, v.l, rank);
         else //if (2 * rx > rank)
-            return query(m + 1, r_bound, u.r, v.r, rank - lx);
+            return _query(m + 1, r_bound, u.r, v.r, rank - lx);
         // return 0;
     }
-    int query(int l_bound, int r_bound, int front_node, int back_node, TYP &rank) { return query(l_bound, r_bound, front_node, back_node, std::move(rank)); }
+    inline int _query(int l_bound, int r_bound, int front_node, int back_node, TYP &rank) { return _query(l_bound, r_bound, front_node, back_node, std::move(rank)); }
+
+    int query(int l, int r, TYP &&k)
+    {
+        return _query(l_bound_cache, r_bound_cache, headers[l - 1], headers[r], k);
+    }
+    int query(int l, int r, TYP &k)
+    {
+        return _query(l_bound_cache, r_bound_cache, headers[l - 1], headers[r], k);
+    }
 
     int legacy_query(int l_bound, int r_bound, int ql, int qr, int cur)
     {
@@ -1660,6 +1600,335 @@ struct PersistentSengmentTree
         return res;
     }
 };
+
+// #define MODULO MO
+
+#define REQUIRE_RMQ
+
+namespace Tree
+{
+    template <typename T>
+    struct _iNode
+    {
+        T lazy_add;
+        T sum_content;
+        T lazy_mul;
+#ifdef REQUIRE_RMQ
+        T max_content;
+        T min_content;
+#endif
+    };
+
+    // template <typename T>
+    // struct type_deduce
+    // {
+    //     using typ = T;
+    // };
+
+    template <typename T> // 使用的类T必须支持= （问就是你常用的int, long long, double甚至__int128都是支持的）
+    struct SegmentTree
+    {
+        using _Node = _iNode<T>;
+        int len;        // 线段树实际节点数
+        int valid_len;  // 原有效数据长度
+        _Node *_start;  // 起始位置
+        _Node *_finish; // 结束位置
+        // template <typename AllocationPlaceType = void>
+        SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
+        {
+            valid_len = length;
+            len = 1 << 1 + (int)ceil(log2(length));
+
+            // while (length > 1)
+            // {
+            //     len += length;
+            //     length = length + 1 >> 1;
+            // }
+
+            if (arr != nullptr)
+            {
+                _start = ::new (arr) _Node[len]; // 会占用arr序列的空间
+            }
+            else
+            {
+                _start = new _Node[len];
+            }
+
+            _finish = _start + len;
+        }
+
+        _Node *begin() { return _start; }
+        _Node *end() { return _finish; }
+
+        static int mid(int l, int r) { return l + r >> 1; }
+
+        void show()
+        {
+            std::cout << '[';
+            for (_Node *i = begin(); i != end(); i++)
+                std::cout << i->sum_content << ",]"[i == end() - 1] << " \n"[i == end() - 1];
+        }
+
+        std::function<void(int, T &&, int)> update_policies[2] =
+            {
+                [&](int x, T &&v, int my_length)
+                {
+                    _start[x].lazy_add *= v; // 更新此次修改的tag值
+                    _start[x].sum_content *= v;
+                    _start[x].lazy_mul *= v;
+#ifdef REQUIRE_RMQ
+                    _start[x].max_content *= v;
+                    _start[x].min_content *= v;
+#endif
+#ifdef MODULO
+                    _start[x].lazy_mul %= MODULO;
+                    _start[x].sum_content %= MODULO;
+                    _start[x].lazy_add %= MODULO;
+#endif
+                },
+                [&](int x, T &&v, int my_length)
+                {
+                    _start[x].lazy_add += v; // 更新此次修改的tag值
+                    _start[x].sum_content += my_length * v;
+#ifdef REQUIRE_RMQ
+                    _start[x].max_content += v;
+                    _start[x].min_content += v;
+#endif
+#ifdef MODULO
+                    _start[x].sum_content %= MODULO;
+                    _start[x].lazy_add %= MODULO;
+#endif
+                }};
+
+        std::function<void(int, T &)> query_policies[3] =
+            {
+                [&](int x, T &res)
+                {
+                    res += _start[x].sum_content;
+#ifdef MODULO
+                    res %= MODULO;
+#endif
+                },
+                [&](int x, T &res)
+                {
+#ifdef REQUIRE_RMQ
+                    res = min(res, _start[x].min_content);
+#endif
+                },
+                [&](int x, T &res)
+                {
+#ifdef REQUIRE_RMQ
+                    res = max(res, _start[x].max_content);
+#endif
+                }};
+
+        template <typename Func>
+        void range_update(
+            int l,
+            int r,
+            T &&v,
+            int node_l,
+            int node_r,
+            int x,
+            Func &update_policy)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                update_policy(x, std::move(v), node_r - node_l + 1);
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    range_update(l, r, std::move(v), node_l, mi, x << 1, update_policy);
+                if (r > mi)
+                    range_update(l, r, std::move(v), mi + 1, node_r, x << 1 | 1, update_policy);
+                maintain(x);
+            }
+        }
+
+        void range_mul(int l, int r, T &v)
+        {
+            range_update(l, r, std::move(v), 1, this->valid_len, 1, update_policies[0]);
+        }
+
+        void range_mul(int l, int r, T &&v)
+        {
+            range_update(l, r, std::move(v), 1, this->valid_len, 1, update_policies[0]);
+        }
+
+        void range_add(int l, int r, T &v)
+        {
+            range_update(l, r, std::move(v), 1, this->valid_len, 1, update_policies[1]);
+        }
+
+        void range_add(int l, int r, T &&v)
+        {
+            range_update(l, r, std::move(v), 1, this->valid_len, 1, update_policies[1]);
+        }
+
+        inline void maintain(int i)
+        {
+            int l = i << 1;
+            int r = l | 1;
+            _start[i].sum_content = (_start[l].sum_content + _start[r].sum_content)
+#ifdef MODULO
+                                    % MODULO
+#endif
+                ;
+#ifdef REQUIRE_RMQ
+            _start[i].max_content = max(_start[l].max_content, _start[r].max_content);
+            _start[i].min_content = min(_start[l].min_content, _start[r].min_content);
+#endif
+        }
+
+        void assign(T values[]) { build(values, 1, valid_len, 1); }
+
+        inline void build(T values[], int l, int r, int x)
+        {
+            _start[x].lazy_add = 0;
+            _start[x].lazy_mul = 1;
+            if (l == r)
+            {
+                _start[x].sum_content = values[l - 1];
+#ifdef REQUIRE_RMQ
+                _start[x].max_content = values[l - 1];
+                _start[x].min_content = values[l - 1];
+#endif
+            }
+            else
+            {
+                int mi = mid(l, r);
+                build(values, l, mi, x << 1);
+                build(values, mi + 1, r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
+        inline void push_down(int ind, int my_left_bound, int my_right_bound)
+        {
+            int l = ind << 1;
+            int r = l | 1;
+            int mi = mid(my_left_bound, my_right_bound);
+            int lson_length = (mi - my_left_bound + 1);
+            int rson_length = (my_right_bound - mi);
+            if (_start[ind].lazy_mul != 1)
+            {
+                _start[l].sum_content *= _start[ind].lazy_mul;
+                _start[l].sum_content += _start[ind].lazy_add * lson_length;
+
+                _start[r].sum_content *= _start[ind].lazy_mul;
+                _start[r].sum_content += _start[ind].lazy_add * rson_length;
+
+                _start[l].lazy_mul *= _start[ind].lazy_mul;
+                _start[l].lazy_add *= _start[ind].lazy_mul;
+                _start[l].lazy_add += _start[ind].lazy_add;
+
+                _start[r].lazy_mul *= _start[ind].lazy_mul;
+                _start[r].lazy_add *= _start[ind].lazy_mul;
+                _start[r].lazy_add += _start[ind].lazy_add;
+#ifdef MODULO
+                _start[l].lazy_mul %= MODULO;
+                _start[l].lazy_add %= MODULO;
+                _start[l].sum_content %= MODULO;
+
+                _start[r].lazy_mul %= MODULO;
+                _start[r].lazy_add %= MODULO;
+                _start[r].sum_content %= MODULO;
+#endif
+
+#ifdef REQUIRE_RMQ
+                _start[l].max_content *= _start[ind].lazy_mul;
+                _start[l].max_content += _start[ind].lazy_add;
+                _start[l].min_content *= _start[ind].lazy_mul;
+                _start[l].min_content += _start[ind].lazy_add;
+
+                _start[r].max_content *= _start[ind].lazy_mul;
+                _start[r].max_content += _start[ind].lazy_add;
+                _start[r].min_content *= _start[ind].lazy_mul;
+                _start[r].min_content += _start[ind].lazy_add;
+#endif
+                _start[ind].lazy_mul = 1;
+                _start[ind].lazy_add = 0;
+
+                return;
+            }
+            if (_start[ind].lazy_add)
+            {
+                _start[l].sum_content += _start[ind].lazy_add * lson_length;
+                _start[l].lazy_add += _start[ind].lazy_add;
+                _start[r].sum_content += _start[ind].lazy_add * rson_length;
+                _start[r].lazy_add += _start[ind].lazy_add;
+#ifdef MODULO
+                _start[l].lazy_add %= MODULO;
+                _start[l].sum_content %= MODULO;
+                _start[r].lazy_add %= MODULO;
+                _start[r].sum_content %= MODULO;
+#endif
+
+#ifdef REQUIRE_RMQ
+                _start[l].max_content += _start[ind].lazy_add;
+                _start[l].min_content += _start[ind].lazy_add;
+
+                _start[r].max_content += _start[ind].lazy_add;
+                _start[r].min_content += _start[ind].lazy_add;
+#endif
+                _start[ind].lazy_add = 0;
+            }
+        }
+
+        template <typename Func>
+        void query_proxy(
+            int l,
+            int r,
+            T &res,
+            int node_l,
+            int node_r,
+            int x,
+            Func &query_policy)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                query_policy(x, res);
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    query_proxy(l, r, res, node_l, mi, x << 1, query_policy);
+                if (r > mi)
+                    query_proxy(l, r, res, mi + 1, node_r, x << 1 | 1, query_policy);
+                maintain(x);
+            }
+        }
+
+        T query_sum(int l, int r)
+        {
+            T res = 0;
+            query_proxy(l, r, res, 1, valid_len, 1, query_policies[0]);
+            return res;
+        }
+#ifdef REQUIRE_RMQ
+        T query_max(int l, int r)
+        {
+            T res = 0;
+            query_proxy(l, r, res, 1, valid_len, 1, query_policies[2]);
+            return res;
+        }
+
+        T query_min(int l, int r)
+        {
+            T res;
+            memset(&res, 0x3f, sizeof(res));
+            query_proxy(l, r, res, 1, valid_len, 1, query_policies[1]);
+            return res;
+        }
+#endif
+    };
+
+} // namespace Tree
 
 #define ComputeGeometry
 #ifdef ComputeGeometry
@@ -1716,18 +1985,43 @@ namespace Geometry
         Fraction operator-(Fraction b) { return (*this) + (-b); }
         Fraction operator*(Fraction b) { return Fraction(upper * b.upper, lower * b.lower); }
         Fraction operator/(Fraction b) { return Fraction(upper * b.lower, lower * b.upper); }
-        Fraction &operator+=(Fraction b) { return *this = *this + b; }
-        Fraction &operator-=(Fraction b) { return *this = *this - b; }
-        Fraction &operator*=(Fraction b) { return *this = *this * b; }
-        Fraction &operator/=(Fraction b) { return *this = *this / b; }
+        Fraction &operator+=(Fraction b)
+        {
+            *this = *this + b;
+            this->normalize();
+            return *this;
+        }
+        Fraction &operator-=(Fraction b)
+        {
+            *this = *this - b;
+            this->normalize();
+            return *this;
+        }
+        Fraction &operator*=(Fraction b)
+        {
+            *this = *this * b;
+            this->normalize();
+            return *this;
+        }
+        Fraction &operator/=(Fraction b)
+        {
+            *this = *this / b;
+            this->normalize();
+            return *this;
+        }
         friend Fraction fabs(Fraction a) { return Fraction(abs(a.upper), abs(a.lower)); }
         std::string to_string() { return lower == 1 ? std::to_string(upper) : std::to_string(upper) + '/' + std::to_string(lower); }
-        friend std::ostream &operator<<(std::ostream &o, Fraction a) { return o << "Fraction(" << a.upper << ", " << a.lower << ")"; }
+        friend std::ostream &operator<<(std::ostream &o, Fraction a)
+        {
+            return o << "Fraction(" << std::to_string(a.upper) << ", " << std::to_string(a.lower) << ")";
+        }
         friend std::istream &operator>>(std::istream &i, Fraction &a)
         {
             char slash;
             return i >> a.upper >> slash >> a.lower;
         }
+        friend isfinite(Fraction a) { return a.lower != 0; }
+        void set_value(PrecisionType u, PrecisionType d = 1) { upper = u, lower = d; }
     };
 
     template <typename VALUETYPE = FLOAT_>
@@ -2606,48 +2900,6 @@ namespace Geometry
             return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal;
         }
 
-        static Vector2 SmoothDamp(
-            Vector2 current,
-            Vector2 target,
-            Vector2 &currentVelocity,
-            FLOAT_ smoothTime,
-            FLOAT_ maxSpeed = Infinity,
-            FLOAT_ deltaTime = 0.001)
-        {
-            smoothTime = max(smoothTime, FLOAT_(1e-4));
-            FLOAT_ statePerSecond = FLOAT_(2) / smoothTime; // 帧率？
-            FLOAT_ states = statePerSecond * deltaTime;
-            // 1 + x + 0.48x^2 + 0.23x^3 多项式方程
-            FLOAT_ smoothRate = FLOAT_(1.0 / (1.0 + (double)states +
-                                              smooth_const2 * pow((double)states, 2.0) +
-                                              smooth_const3 * pow((double)states, 3.0)));
-            Vector2 d = current - target;
-            FLOAT_ maxForwardDistance = maxSpeed * smoothTime;
-            FLOAT_ sqrMaxForwardDistance = pow(maxForwardDistance, FLOAT_(2));
-            FLOAT_ dSqrMagnitude = d.sqrMagnitude();
-            if (dSqrMagnitude > sqrMaxForwardDistance) // 防止越界
-            {
-                FLOAT_ mag = sqrt(dSqrMagnitude);
-                d = d / mag * maxForwardDistance;
-            }
-            Vector2 var_target = current - d;
-
-            Vector2 forward_dist = (currentVelocity + d * statePerSecond) * deltaTime; // 10 11
-
-            currentVelocity = (currentVelocity + forward_dist * statePerSecond) * smoothRate;
-
-            Vector2 transformed = var_target + (d + forward_dist) * smoothRate;
-
-            Vector2 dist = target - current; // 12 13
-
-            Vector2 dist2 = transformed - target; // 14 15
-            if (Vector2::Dot(dist, dist2) > 0.0)
-            {
-                transformed = target;
-                currentVelocity = (transformed - target) / deltaTime;
-            }
-            return transformed;
-        }
     };
 
     struct Vector3 // 三维向量
@@ -2922,49 +3174,6 @@ namespace Geometry
         /*直角坐标转换为球坐标，默认输出角度*/
         Vector3 toSphericalCoordinate(bool use_degree = 1) { return ToSphericalCoordinate(*this, use_degree); }
 
-        /*说不清楚的魔法平滑（*/
-        static Vector3 SmoothDamp(
-            Vector3 current,
-            Vector3 target,
-            Vector3 &currentVelocity,
-            FLOAT_ smoothTime,
-            FLOAT_ maxSpeed = Infinity,
-            FLOAT_ deltaTime = 0.001)
-        {
-            smoothTime = max(smoothTime, FLOAT_(1e-4));
-            FLOAT_ statePerSecond = FLOAT_(2) / smoothTime; // 帧率？
-            FLOAT_ states = statePerSecond * deltaTime;
-            // 1 + x + 0.48x^2 + 0.23x^3 多项式方程
-            FLOAT_ smoothRate = FLOAT_(1.0 / (1.0 + (double)states +
-                                              smooth_const2 * pow((double)states, 2.0) +
-                                              smooth_const3 * pow((double)states, 3.0)));
-            Vector3 d = current - target;
-            FLOAT_ maxForwardDistance = maxSpeed * smoothTime;
-            FLOAT_ sqrMaxForwardDistance = pow(maxForwardDistance, FLOAT_(2));
-            FLOAT_ dSqrMagnitude = d.sqrMagnitude();
-            if (dSqrMagnitude > sqrMaxForwardDistance) // 防止越界
-            {
-                FLOAT_ mag = sqrt(dSqrMagnitude);
-                d = d / mag * maxForwardDistance;
-            }
-            Vector3 var_target = current - d;
-
-            Vector3 forward_dist = (currentVelocity + d * statePerSecond) * deltaTime; // 10 11
-
-            currentVelocity = (currentVelocity + forward_dist * statePerSecond) * smoothRate;
-
-            Vector3 transformed = var_target + (d + forward_dist) * smoothRate;
-
-            Vector3 dist = target - current; // 12 13
-
-            Vector3 dist2 = transformed - target; // 14 15
-            if (Vector3::Dot(dist, dist2) > 0.0)
-            {
-                transformed = target;
-                currentVelocity = (transformed - target) / deltaTime;
-            }
-            return transformed;
-        }
     };
 
     struct Line2
