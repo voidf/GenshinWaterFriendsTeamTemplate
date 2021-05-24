@@ -1327,27 +1327,17 @@ int main() {
 
 ```cpp
 //动态
-struct node1{
-	int l,r,id,x;
-}q[N];
-struct node2{
-	int id,cl;
-}xiu[N];
+struct unit {
+	int l, r, id;
+  bool operator<(const unit &x) const {
+    return l / sq == x.l / sq
+               ? (r == x.r ? 0 : ((l / sq) & 1) ^ (r < x.r))
+               : l < x.l;//莫队奇偶优化
+  }
+};
+
 int totq=0,totxiu=0,sq,ans[N],ans1=0,n,m,a[N],sum[N],l=1,r=0,now=0;
-int cmp(const node1 &a,const node1 &b)
-{
-    if (a.l/sq!=b.l/sq) return a.l/sq<b.l/sq;
-    else if (a.r/sq!=b.r/sq) return a.r/sq<b.r/sq;
-    else return a.x<b.x;
-}
-void ins(int x) {if(sum[a[x]]==0)ans1++;sum[a[x]]++;}
-void del(int x) {sum[a[x]]--;if(sum[a[x]]==0)ans1--;}
-void change(int bh)
-{
-    if (xiu[bh].id>=l&&xiu[bh].id<=r) del(xiu[bh].id);
-    swap(a[xiu[bh].id],xiu[bh].cl);
-    if (xiu[bh].id>=l&&xiu[bh].id<=r) ins(xiu[bh].id);
-}
+
 int main()
 {
     scanf("%d%d",&n,&m);
@@ -1375,10 +1365,11 @@ int main()
     sort(q+1,q+1+totq,cmp);
 	for(int i=1;i<=totq;i++)
 	{
+        while(l>q[i].l)l--,ins(l);
+        while(r<q[i].r)r++,ins(r);
 		while(l<q[i].l)del(l),l++;
-		while(l>q[i].l)l--,ins(l);
-		while(r<q[i].r)r++,ins(r);
 		while(r>q[i].r)del(r),r--;
+        
 		while(now<q[i].x)change(now+1),now++;
 		while(now>q[i].x)change(now),now--;
 		ans[q[i].id]=ans1;
