@@ -2,7 +2,7 @@
 
 namespace Geometry
 {
-    
+
     struct Vector2
     {
         FLOAT_ x, y;
@@ -53,6 +53,8 @@ namespace Geometry
         Vector2 operator/(FLOAT_ n) { return (*this) * (FLOAT_(1) / n); }
         Vector2 operator/(Vector2 b) { return (*this) * (FLOAT_(1) / b); }
         Vector2 operator+=(Vector2 b) { return (*this) = (*this) + b; }
+
+        bool operator<(Vector2 b) { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
         /* 向量的平方模 */
         FLOAT_ sqrMagnitude() { return pow(this->x, 2) + pow(this->y, 2); }
@@ -208,8 +210,6 @@ namespace Geometry
         {
             return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal;
         }
-
     };
-
 
 }

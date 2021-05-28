@@ -1,22 +1,65 @@
 #include "Geo_Base.cpp"
 #include "Geo_Vector2.cpp"
 
-
 namespace Geometry
 {
-    
+
     struct Polygon2
     {
         std::vector<Vector2> points;
 
     private:
         Vector2 accordance;
-        // bool anticlock_comparator(Vector2 &a, Vector2 &b)
-        // {
-        //     return Vector2::SignedRad(accordance, a) < Vector2::SignedRad(accordance, b);
-        // }
 
     public:
+        Polygon2 ConvexHull()
+        {
+            Polygon2 ret;
+            sort(points.begin(), points.end());
+            std::vector<Vector2> &stk = ret.points;
+
+            std::vector<char> used(points.size(), 0);
+            std::vector<int> uid;
+            for (auto &i : points)
+            {
+                while (stk.size() >= 2 and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+                {
+                    // if (stk.size() >= 2)
+                    // {
+                    //     auto c = Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back());
+                    //     cerr << "c:" << c << endl;
+                    // }
+                    used[uid.back()] = 0;
+                    uid.pop_back();
+                    stk.pop_back();
+                }
+
+                used[&i - &points.front()] = 1;
+                uid.emplace_back(&i - &points.front());
+                stk.emplace_back(i);
+            }
+            used[0] = 0;
+            int ts = stk.size();
+            for (auto ii = ++points.rbegin(); ii != points.rend(); ii++)
+            {
+                Vector2 &i = *ii;
+                if (!used[&i - &points.front()])
+                {
+                    while (stk.size() > ts and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+                    {
+                        used[uid.back()] = 0;
+                        uid.pop_back();
+                        stk.pop_back();
+                    }
+                    used[&i - &points.front()] = 1;
+                    uid.emplace_back(&i - &points.front());
+                    stk.emplace_back(i);
+                }
+            }
+            stk.pop_back();
+            return ret;
+        }
+
         /*凸多边形用逆时针排序*/
         void autoanticlockwiselize()
         {
@@ -29,8 +72,7 @@ namespace Geometry
         void anticlockwiselize()
         {
             // comparator cmp = &Polygon2::anticlock_comparator;
-            auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool
-            {
+            auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool {
                 return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
             };
             sort(points.begin(), points.end(), anticlock_comparator);
@@ -94,6 +136,5 @@ namespace Geometry
             return (long long)A + 1 - (b / 2);
         }
     };
-
 
 }
