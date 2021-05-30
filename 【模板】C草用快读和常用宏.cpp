@@ -35,3 +35,10 @@ __gnu_pbds::tree<int, __gnu_pbds::null_type, std::less<int>, __gnu_pbds::rb_tree
 //  for your needs)
 
 // l2.splice(l2.end(),l1,l1.begin(),l1.end());
+
+//位运算函数
+//int __builtin_ffs (unsigned int x最后一位1的是从后向前第几位，1110011001000 返回4
+//int __builtin_clz (unsigned int x)前导0个数
+//int __builtin_ctz (unsigned int x)末尾0个数
+//int __builtin_popcount (unsigned int x) 1的个数
+//此外，这些函数都有相应的usigned long和usigned long long版本，只需要在函数名后面加上l或ll就可以了，比如int __builtin_clzll。
