@@ -15,7 +15,7 @@ namespace Geometry
         Polygon2 ConvexHull()
         {
             Polygon2 ret;
-            sort(points.begin(), points.end());
+            std::sort(points.begin(), points.end());
             std::vector<Vector2> &stk = ret.points;
 
             std::vector<char> used(points.size(), 0);
@@ -75,7 +75,7 @@ namespace Geometry
             auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool {
                 return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
             };
-            sort(points.begin(), points.end(), anticlock_comparator);
+            std::sort(points.begin(), points.end(), anticlock_comparator);
             // for (auto i : points)
             // {
             //     cerr << (i - accordance).toPolarCoordinate() << "\t" << i << endl;
