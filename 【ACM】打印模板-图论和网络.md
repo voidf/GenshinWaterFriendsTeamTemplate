@@ -863,117 +863,112 @@ namespace HLPP
 } 
 ```
 
-## 最小费用最大流（MCMF）-EK
+## 最小费用最大流（MCMF）Zkw
 
 ```cpp
-const int maxn = 100010;
+template <typename T>
+struct MCMF // 费用流(Dinic)zkw板子
+{           // Based on Dinic (zkw)
 
-bool vis[maxn];
-int n, m, s, t, dis[maxn], pre[maxn], last[maxn], flow[maxn], maxflow, mincost;
-//dis最小花费;pre每个点的前驱；last每个点的所连的前一条边；flow源点到此处的流量
-struct Edge
-{
-    int to, next, flow, dis; //flow流量 dis花费
-} edge[maxn * 10];
-int head[maxn], num_edge;
-queue<int> q;
+    typedef long long LL;
+    T INF;
+    int N = 1e5 + 5; // 最大点meta参数，要按需改
+#define _N 100006
+    std::bitset<_N> vis; // 要一起改
+    T *Dis;
+    int s, t;           // 源点，汇点需要外部写入
+    int *Cur;           // 当前弧优化用
+    T maxflow, mincost; // 放最终答案
 
-void add_edge(int from, int to, int flow, int dis)
-{
-    edge[++num_edge].next = head[from];
-    edge[num_edge].to = to;
-    edge[num_edge].flow = flow;
-    edge[num_edge].dis = dis;
-    head[from] = num_edge;
-}
-
-bool spfa(int s, int t)
-{
-    memset(dis, 0x7f, sizeof(dis));
-    memset(flow, 0x7f, sizeof(flow));
-    memset(vis, 0, sizeof(vis));
-    q.push(s);
-    vis[s] = 1;
-    dis[s] = 0;
-    pre[t] = -1;
-
-    while (!q.empty())
+    struct EdgeContent
     {
-        int now = q.front();
-        q.pop();
-        vis[now] = 0;
-        for (int i = head[now]; i != -1; i = edge[i].next)
+        int to;
+        T flow;
+        T cost;
+        int dualEdge;
+        EdgeContent(int a, T b, T c, int d) : to(a), flow(b), cost(c), dualEdge(d) {}
+    };
+
+    std::vector<EdgeContent> *E;
+
+    MCMF(int n)
+    {
+        N = n;
+        E = new std::vector<EdgeContent>[n + 1];
+        Dis = new T[n + 1];
+        Cur = new int[n + 1];
+        maxflow = mincost = 0;
+        memset(&INF, 0x3f, sizeof(INF));
+    }
+
+    void add(int u, int v, T f, T w) // 加一条u到v流为f单位费为w的边
+    {
+        E[u].emplace_back(v, f, w, E[v].size());
+        E[v].emplace_back(u, 0, -w, E[u].size() - 1);
+    }
+
+    bool SPFA()
+    {
+        std::queue<int> Q;
+        Q.emplace(s);
+        memset(Dis, INF, sizeof(T) * (N + 1));
+        Dis[s] = 0;
+        int k;
+        while (!Q.empty())
         {
-            if (edge[i].flow > 0 && dis[edge[i].to] > dis[now] + edge[i].dis) //正边
+            k = Q.front();
+            Q.pop();
+            vis.reset(k);
+            for (auto [to, f, w, rev] : E[k])
             {
-                dis[edge[i].to] = dis[now] + edge[i].dis;
-                pre[edge[i].to] = now;
-                last[edge[i].to] = i;
-                flow[edge[i].to] = min(flow[now], edge[i].flow); //
-                if (!vis[edge[i].to])
+                if (f and Dis[k] + w < Dis[to])
                 {
-                    vis[edge[i].to] = 1;
-                    q.push(edge[i].to);
+                    Dis[to] = Dis[k] + w;
+                    if (!vis.test(to))
+                    {
+                        Q.emplace(to);
+                        vis.set(to);
+                    }
                 }
             }
         }
+        return Dis[t] != INF;
     }
-    return pre[t] != -1;
-}
-
-void MCMF()
-{
-    while (spfa(s, t))
+    T DFS(int k, T flow)
     {
-        int now = t;
-        maxflow += flow[t];
-        mincost += flow[t] * dis[t];
-        while (now != s)
-        {                                    //从源点一直回溯到汇点
-            edge[last[now]].flow -= flow[t]; //flow和dis容易搞混
-            edge[last[now] ^ 1].flow += flow[t];
-            now = pre[now];
-        }
-    }
-}
-
-int main()
-{
-    int tt;
-    scanf("%d", &tt);
-    s = 1000;
-    t = 1001;
-    while (tt--)
-    {
-        memset(head, -1, sizeof(head));
-        memset(pre, 0, sizeof(head));
-        memset(last, 0, sizeof(head));
-        memset(pre, 0, sizeof(head));
-        num_edge = -1; //初始化
-        maxflow = 0;
-        mincost = 0;
-        scanf("%d", &n);
-        for (auto i = 0; i < n; i++)
+        if (k == t)
         {
-            scanf("%d", &m);
-            add_edge(s, m, 1, 0);
-            add_edge(m, s, 0, 0);
-            for (auto j = 1; j <= 402; j++)
+            maxflow += flow;
+            return flow;
+        }
+        T sum = 0;
+        vis.set(k);
+        for (auto i = Cur[k]; i < E[k].size(); i++)
+        {
+            auto &[to, f, w, rev] = E[k][i];
+            if (!vis.test(to) and f and Dis[to] == Dis[k] + w)
             {
-                int cost = abs(m - j);
-                add_edge(m, j + 500, 1, cost);
-                add_edge(j + 500, m, 0, -cost);
+                Cur[k] = i;
+                T p = DFS(to, std::min(flow - sum, f));
+                sum += p;
+                f -= p;
+                E[to][rev].flow += p;
+                mincost += p * w;
+                if (sum == flow)
+                    break;
             }
         }
-        for (auto j = 1; j <= 402; j++)
-        {
-            add_edge(j + 500, t, 1, 0);
-            add_edge(t, j + 500, 0, 0);
-        }
-
-        MCMF();
-        printf("%d\n", mincost);
+        vis.reset(k);
+        return sum;
     }
-    return 0;
-}
+
+    void Dinic() // 入口
+    {
+        while (SPFA())
+        {
+            memset(Cur, 0, sizeof(int) * (N + 1));
+            DFS(s, INF);
+        }
+    }
+};
 ```
