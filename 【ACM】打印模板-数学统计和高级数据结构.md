@@ -1453,33 +1453,3 @@ while(l+eps<r)
         l=lm;
 }
 ```
-
-# 凸包
-
-```cpp
-// stk[] 是整型，存的是下标
-// p[] 存储向量或点
-tp = 0; // 初始化栈
-std::sort(p + 1, p + 1 + n); // 对点进行排序
-stk[++tp] = 1;
-//栈内添加第一个元素，且不更新 used，使得 1 在最后封闭凸包时也对单调栈更新
-for (int i = 2; i <= n; ++i) {
-	while (tp >= 2 // 下一行 * 被重载为叉积
-		&& (p[stk[tp]] - p[stk[tp - 1]]) * (p[i] - p[stk[tp]]) <= 0)
-		used[stk[tp--]] = 0;
-	used[i] = 1; // used 表示在凸壳上
-	stk[++tp] = i;
-}
-int tmp = tp; // tmp 表示下凸壳大小
-for (int i = n - 1; i > 0; --i)
-if (!used[i]) {
-	// ↓ 求上凸壳时不影响下凸壳
-	while (tp > tmp && (p[stk[tp]] - p[stk[tp - 1]]) * (p[i] - p[stk[tp]]) <= 0)
-		used[stk[tp--]] = 0;
-	used[i] = 1;
-	stk[++tp] = i;
-}
-for (int i = 1; i <= tp; ++i) // 复制到新数组中去
-h[i] = p[stk[i]];
-int ans = tp - 1;
-```
