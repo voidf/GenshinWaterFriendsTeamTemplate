@@ -131,7 +131,7 @@ namespace FenwickTree // 树状数组
         using _Base::len;
         using _Base::lowbit;
         template <typename... Args>
-        FenwickTree_Sum(Args &&... args) : _Base(std::forward<Args>(args)...) { build(); } // 把当前构造函数的参数扔给父构造函数做，然后建树
+        FenwickTree_Sum(Args &&...args) : _Base(std::forward<Args>(args)...) { build(); } // 把当前构造函数的参数扔给父构造函数做，然后建树
         inline void build()
         {
             for (int i = len; i > 0; i--) // 倒序建树防止重复计算
@@ -140,12 +140,7 @@ namespace FenwickTree // 树状数组
         }
         void modify(int ind, T &x) // 在ind下标处将值修改为x，下标(ind)从1开始
         {
-            T diff = x - _start[ind - 1]; // 这里为了方便用了差分修改
-            while (ind <= len)
-            {
-                _start[ind - 1] += diff;
-                ind += lowbit(ind);
-            }
+            modify(ind, std::move(x));
         }
         void modify(int ind, T &&x) // 为了兼容右值引用，所以复制了一份
         {
@@ -177,7 +172,7 @@ namespace FenwickTree // 树状数组
         using _Base::lowbit;
         T *_origin;
         template <typename... Args>
-        FenwickTree_Max(Args &&... args) : _Base(std::forward<Args>(args)...) { build(); }
+        FenwickTree_Max(Args &&...args) : _Base(std::forward<Args>(args)...) { build(); }
 
         void set_origin(T *p) { _origin = p; } // 设置原数组
 
@@ -189,17 +184,7 @@ namespace FenwickTree // 树状数组
         }
         void modify(int ind, T &x, T *origin = NULL) // 将ind位置修改为x，下标还是从1开始，因为查询用到，所以要传入原序列origin一起改
         {
-            if (not origin)
-                origin = _origin;
-            origin[ind - 1] = x;
-            _start[ind - 1] = x;
-            while (ind <= len)
-            {
-                int lowest = lowbit(ind);
-                for (auto i = 1; i < lowest; i <<= 1) // 最大值的修改是log方的，因为这位要维护前面低位负责的几个节点
-                    _start[ind - 1] = std::max(_start[ind - i - 1], _start[ind - 1]);
-                ind += lowbit(ind); // 当然还要向上合并
-            }
+            modify(ind, std::move(x), origin);
         }
         void modify(int ind, T &&x, T *origin = NULL)
         {
