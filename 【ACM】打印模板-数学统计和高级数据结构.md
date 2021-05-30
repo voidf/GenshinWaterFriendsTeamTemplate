@@ -35,41 +35,31 @@ int find(int x)       //查找x元素所在的集合,回溯时压缩路径
 }
 ```
 
-## 树状数组（动态分配//改成能区间加的区间查的？
+## 树状数组
 
 ```cpp
-template <typename T>
-inline T lowbit(T x){return x&-x;}
+int n;
+int a[1005],c[1005]; //对应原数组和树状数组
 
-struct TreeArray
-{
-    LL *content;
-    LL len;
-    TreeArray(LL len)
-    {
-        this->content = new LL[len];
-        memset(this->content, 0, sizeof(LL) * len);
-        this->len = len;
+int lowbit(int x){
+    return x&(-x);
+}
+
+void updata(int i,int k){    //在i位置加上k
+    while(i <= n){
+        c[i] += k;
+        i += lowbit(i);
     }
-    LL getsum(LL pos)
-    {
-        LL ans = 0;
-        while (pos > 0)
-        {
-            ans += this->content[pos];
-            pos -= lowbit(pos);
-        }
-        return ans;
+}
+
+int getsum(int i){        //求A[1 - i]的和
+    int res = 0;
+    while(i > 0){
+        res += c[i];
+        i -= lowbit(i);
     }
-    void update(LL pos, LL x)
-    {
-        while (pos < this->len)
-        {
-            this->content[pos] += x;
-            pos += lowbit(pos);
-        }
-    }
-};
+    return res;
+}
 ```
 
 ## 树状数组（区间查询区间修改）
