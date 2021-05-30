@@ -81,7 +81,7 @@ namespace Geometry
         {
             return Vector2(
                 magnitude(),
-                atan2(y, x) * (use_degree ? 180.0 / PI : 1));
+                toPolarAngle(use_degree));
         }
 
         /*获取极角*/
@@ -89,6 +89,16 @@ namespace Geometry
         {
             return atan2(y, x) * (use_degree ? 180.0 / PI : 1);
         }
+
+        static std::function<bool(Vector2 &, Vector2 &)> PolarSortCmp = [](Vector2 &a, Vector2 &b) -> bool
+        {
+            return a.toPolarAngle(0) < b.toPolarAngle(0);
+        };
+
+        static std::function<bool(Vector2 &, Vector2 &)> CrossSortCmp = [](Vector2 &a, Vector2 &b) -> bool
+        {
+            return Cross(a, b) > 0;
+        };
 
         /*转为极坐标*/
         static Vector2 ToPolarCoordinate(Vector2 coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
