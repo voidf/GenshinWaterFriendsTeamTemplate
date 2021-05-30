@@ -300,7 +300,7 @@ int main() {
 
 
 
-## 主席树//待替换
+## 主席树
 
 ```cpp
 template <typename TYP>
