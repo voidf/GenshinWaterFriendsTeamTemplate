@@ -232,150 +232,91 @@ int main () {
 
 
 
-## 缩点//考虑修改或删除
+## 缩点
 
 ```cpp
-struct E
-{
-    LL next, to, from;
-} eds[M], merged_eds[M];
-
-LL node_ctr, merged_edge_ctr, edge_ctr;
-LL head[N] = {-1};
-LL in[N];
-LL dist[N];
-LL merged_head[N] = {-1};
-LL belongs_to[N];
-LL hand_made_stack[N];
-LL ESP;
-std::bitset<N> in_stack;
-LL DFN[N];
-LL LOW[N];
-LL cur_timestamp;
-LL node_weight[N] = {0};
-//bool vis[N] = {0};
-LL cnt = 0;
-LL Bcnt; //一个强连通可以缩成一个点
-inline void add(LL u, LL v)
-{
-    eds[cnt].from = u;
-    eds[cnt].to = v;
-
-    eds[cnt].next = head[u];
-    head[u] = cnt++;
+const int MAXN = 5e3 + 20;
+const int MAXM = 1e6 + 10; 
+int head[MAXN], cnt, tot, dfn[MAXN], low[MAXN], color[MAXN], col;
+bool vis[MAXN];
+int degree[MAXN];
+stack<int> stc;
+int n, m;
+struct Edge {
+	int to, next, dis;	
+}edge[MAXM << 1];
+void add_edge(int u, int v, int dis) {
+	edge[++cnt].to = v;
+	edge[cnt].next = head[u];
+	head[u] = cnt; 
 }
-void tarjan(LL cur_node)
-{
-    LL to_do_node;
-    DFN[cur_node] = LOW[cur_node] = ++cur_timestamp; //自己
-    in_stack.set(cur_node);
-    hand_made_stack[++ESP] = cur_node;
-    for (auto i = head[cur_node]; ~i; i = eds[i].next)
-    {
-        to_do_node = eds[i].to;
-        if (!DFN[to_do_node])
-        {
-            tarjan(to_do_node);
-            LOW[cur_node] = DMIN(LOW[cur_node], LOW[to_do_node]); //树枝边
-        }
-        else if (in_stack[to_do_node])
-            LOW[cur_node] = DMIN(DFN[to_do_node], LOW[cur_node]); //后向边
-    }
-    if (DFN[cur_node] == LOW[cur_node])
-    {
-        Bcnt++;
-        LL j;
-        while (1)
-        {
-            j = hand_made_stack[ESP--];
-            in_stack.reset(j);
-            belongs_to[j] = cur_node;
-
-            if (j == cur_node)
-                break;
-            node_weight[cur_node] += node_weight[j];
-        }
-    }
+void Tarjan(int x) {
+	vis[x] = 1;
+	dfn[x] = low[x] = ++tot;
+	stc.push(x);
+	for(int i = head[x]; i; i = edge[i].next) {
+		int to = edge[i].to;
+		if (!dfn[to]) {
+			Tarjan(to);
+			low[x] = min(low[x], low[to]);
+		} else if( vis[to] ) {
+			low[x] = min(low[x], dfn[to]);
+		}
+	}
+	if(dfn[x] == low[x]) {
+		col ++;
+		while(true) {
+			int top = stc.top();
+			stc.pop();
+			color[top] = col;	//颜色相同的点缩点 
+			vis[top] = 0;
+		//	cout << top << " ";
+			if(top == x) break; 
+		}
+		//cout << endl;
+	}
 }
-LL toposort()
-{
-    std::queue<LL> Q;
-    for (auto i = 1; i <= node_ctr; i++)
-        if (belongs_to[i] == i && !in[i])
-        {
-            Q.push(i);
-            dist[i] = node_weight[i];
-        }
-    while (!Q.empty())
-    {
-        LL poped_node = Q.front();
-        Q.pop();
-        for (auto i = merged_head[poped_node]; ~i; i = merged_eds[i].next)
-        {
-            LL v = merged_eds[i].to;
-            dist[v] = DMAX(dist[v], dist[poped_node] + node_weight[v]);
-            if (!--in[v])
-                Q.push(v);
-        }
-    }
-    LL ans = 0;
-    for (auto i = 1; i <= node_ctr; i++)
-        ans = DMAX(ans, dist[i]);
-    return ans;
+void solve(){
+	for(int i = 1; i <= n; ++i) {
+		if(!dfn[i])
+			Tarjan(i);
+	}
+	
+	for(int x = 1; x <= n; ++x) {	//遍历 n个节点 
+		for(int i = head[x]; i; i = edge[i].next) {	//缩点后  每个点的出度 
+			int to = edge[i].to;
+			if(color[x] != color[to]) {
+				degree[color[x]] ++;
+			}
+		}
+	}
 }
-void _init()
-{
-    mem(head, 255);
-    cnt = 0;
-    //mem(vis, 0);
-    mem(node_weight, 0);
-    mem(DFN, 0);
-    mem(LOW, 0);
-    mem(merged_head, 255);
-    mem(in, 0);
-    mem(dist, 0);
-    merged_edge_ctr = 0;
-    in_stack.reset();
-    ESP = Bcnt = cur_timestamp = 0;
+void init () {
+	cnt = 1;
+	tot = 0;
+	col = 0;
+	memset(vis, 0, sizeof(vis));
+	memset(head, 0, sizeof(head));
+	memset(dfn, 0, sizeof(dfn));
+	memset(low, 0, sizeof(low));
+	memset(degree, 0, sizeof(degree));
+	memset(color, 0, sizeof(color));
+	while(!stc.empty()) stc.pop();
 }
-
-void merge_loop()
-{
-    for (auto i = 0; i < edge_ctr; i++)
-    {
-        LL father_from = belongs_to[eds[i].from];
-        LL father_to = belongs_to[eds[i].to];
-        if (father_from != father_to)
-        {
-            merged_eds[merged_edge_ctr].next = merged_head[father_from];
-            merged_eds[merged_edge_ctr].from = father_from;
-            merged_eds[merged_edge_ctr].to = father_to;
-            merged_head[father_from] = merged_edge_ctr++;
-            in[father_to]++;
-        }
-    }
-}
-int main()
-{
-
-    _init();
-    node_ctr = qr();
-    edge_ctr = qr();
-    for (auto i = 0; i < node_ctr; i++)
-        node_weight[i + 1] = qr();
-
-    for (auto i = 0; i < edge_ctr; i++)
-    {
-        LL s = qr();
-        LL e = qr();
-        add(s, e);
-    }
-    for (auto i = 1; i <= node_ctr; i++)
-        if (!DFN[i])
-            tarjan(i);
-    merge_loop();
-    printf("%lld", toposort());
-    return 0;
+int main () {
+	std::ios::sync_with_stdio(false);
+	cin.tie(0);
+	while(cin >> n && n) {
+		cin >> m;
+		init();
+		int x, y;
+		for(int i = 1; i <= m; ++i) {
+			cin >> x >> y;
+			add_edge(x, y, 0);
+		}
+		solve();
+	} 
+	return 0;
 }
 ```
 ## 割点
