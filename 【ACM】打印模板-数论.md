@@ -384,3 +384,81 @@ void Gauss() {
 }
 ```
 
+## 公式
+
+卡特兰数 K(x) = C(2*x, x) / (x + 1)
+
+## 来自bot的球盒问题
+
+```py
+def A072233_list(n: int, m: int, mod=0) -> list:
+    """n个无差别球塞进m个无差别盒子方案数"""
+    mod = int(mod)
+    f = [[0] * (m + 1)] * (n + 1)
+    f[0][0] = 1
+    for i in range(1, n+1):
+        for j in range(1, min(i+1, m+1)): # 只是求到m了话没必要打更大的
+            f[i][j] = f[i-1][j-1] + f[i-j][j]
+            if mod: f[i][j] %= mod
+    return f
+
+def A048993_list(n: int, m: int, mod=0) -> list:
+    """第二类斯特林数"""
+    mod = int(mod)
+    f = [1] + [0] * m
+    for i in range(1, n+1):
+        for j in range(min(m, i), 0, -1):
+            f[j] = f[j-1] + f[j] * j
+            if mod: f[j] %= mod
+        f[0] = 0
+    return f
+
+
+def A000110_list(m, mod=0):
+    """集合划分方案总和，或者叫贝尔数"""
+    mod = int(mod)
+    A = [0 for i in range(m)]
+    # m -= 1
+    A[0] = 1
+    # R = [1, 1]
+    for n in range(1, m):
+        A[n] = A[0]
+        for k in range(n, 0, -1):
+            A[k-1] += A[k]
+            if mod: A[k-1] %= mod
+        # R.append(A[0])
+    # return R
+    return A[0]
+
+async def 球盒(*attrs, kwargs={}):
+    """求解把n个球放进m个盒子里面有多少种方案的问题。
+必须指定盒子和球以及允不允许为空三个属性。
+用法：
+    #球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
+用例：
+    #球盒 110 20 5
+    上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
+    # 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
+    if len(attrs)!=3:
+        return '不是这么用的！请输入#h #球盒'
+    n, m = map(int, attrs[1:3])
+    if attrs[0] == '110':
+        f = A072233_list(n, m)
+        return f[n][m]
+    elif attrs[0] == '111':
+        f = A072233_list(n, m)
+        return sum(f[-1])
+    elif attrs[0] == '100':
+        return A048993_list(n, m)[-1]
+    elif attrs[0] == '101':
+        return sum(A048993_list(n, m))
+    elif attrs[0] == '010':
+        return comb(n-1, m-1)
+    elif attrs[0] == '011':
+        return comb(n+m-1, m-1)
+    elif attrs[0] == '000': # 求两个集合的满射函数的个数可以用
+        return A048993_list(n, m)[-1] * math.factorial(m)
+    elif attrs[0] == '001':
+        return m**n
+
+```
