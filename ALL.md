@@ -5146,4 +5146,12 @@ __gnu_pbds::tree<int, __gnu_pbds::null_type, std::less<int>, __gnu_pbds::rb_tree
 //        System.out.println(a.add(b));
 //    }
 //}
+//
+//生成超过32767的随机数
+//unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+//	mt19937 rand_num(seed);  // 大随机数
+//	uniform_int_distribution<long long> dist(0, 1000000000);  // 给定范围
+//	cout << dist(rand_num) << endl;
+
+
 ```
