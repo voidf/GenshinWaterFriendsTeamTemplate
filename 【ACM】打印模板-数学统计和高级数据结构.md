@@ -35,41 +35,31 @@ int find(int x)       //查找x元素所在的集合,回溯时压缩路径
 }
 ```
 
-## 树状数组（动态分配//改成能区间加的区间查的？
+## 树状数组
 
 ```cpp
-template <typename T>
-inline T lowbit(T x){return x&-x;}
+int n;
+int a[1005],c[1005]; //对应原数组和树状数组
 
-struct TreeArray
-{
-    LL *content;
-    LL len;
-    TreeArray(LL len)
-    {
-        this->content = new LL[len];
-        memset(this->content, 0, sizeof(LL) * len);
-        this->len = len;
+int lowbit(int x){
+    return x&(-x);
+}
+
+void updata(int i,int k){    //在i位置加上k
+    while(i <= n){
+        c[i] += k;
+        i += lowbit(i);
     }
-    LL getsum(LL pos)
-    {
-        LL ans = 0;
-        while (pos > 0)
-        {
-            ans += this->content[pos];
-            pos -= lowbit(pos);
-        }
-        return ans;
+}
+
+int getsum(int i){        //求A[1 - i]的和
+    int res = 0;
+    while(i > 0){
+        res += c[i];
+        i -= lowbit(i);
     }
-    void update(LL pos, LL x)
-    {
-        while (pos < this->len)
-        {
-            this->content[pos] += x;
-            pos += lowbit(pos);
-        }
-    }
-};
+    return res;
+}
 ```
 
 ## 树状数组（区间查询区间修改）
@@ -1479,34 +1469,4 @@ while(l+eps<r)
     else
         l=lm;
 }
-```
-
-# 凸包
-
-```cpp
-// stk[] 是整型，存的是下标
-// p[] 存储向量或点
-tp = 0; // 初始化栈
-std::sort(p + 1, p + 1 + n); // 对点进行排序
-stk[++tp] = 1;
-//栈内添加第一个元素，且不更新 used，使得 1 在最后封闭凸包时也对单调栈更新
-for (int i = 2; i <= n; ++i) {
-	while (tp >= 2 // 下一行 * 被重载为叉积
-		&& (p[stk[tp]] - p[stk[tp - 1]]) * (p[i] - p[stk[tp]]) <= 0)
-		used[stk[tp--]] = 0;
-	used[i] = 1; // used 表示在凸壳上
-	stk[++tp] = i;
-}
-int tmp = tp; // tmp 表示下凸壳大小
-for (int i = n - 1; i > 0; --i)
-if (!used[i]) {
-	// ↓ 求上凸壳时不影响下凸壳
-	while (tp > tmp && (p[stk[tp]] - p[stk[tp - 1]]) * (p[i] - p[stk[tp]]) <= 0)
-		used[stk[tp--]] = 0;
-	used[i] = 1;
-	stk[++tp] = i;
-}
-for (int i = 1; i <= tp; ++i) // 复制到新数组中去
-h[i] = p[stk[i]];
-int ans = tp - 1;
 ```
