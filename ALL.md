@@ -5153,5 +5153,19 @@ __gnu_pbds::tree<int, __gnu_pbds::null_type, std::less<int>, __gnu_pbds::rb_tree
 //	uniform_int_distribution<long long> dist(0, 1000000000);  // 给定范围
 //	cout << dist(rand_num) << endl;
 
+double randreal(double begin, double end)
+{
+	static std::default_random_engine eng(time(0));
+	std::uniform_real_distribution<> skip_rate(begin, end);
+	return skip_rate(eng);
+}
+
+int randint(int begin, int end)
+{
+	static std::default_random_engine eng(time(0));
+	std::uniform_int_distribution<> skip_rate(begin, end);
+	return skip_rate(eng);
+}
+
 
 ```
