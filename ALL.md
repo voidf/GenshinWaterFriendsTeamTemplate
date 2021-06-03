@@ -5169,3 +5169,41 @@ int randint(int begin, int end)
 
 
 ```
+
+石子合并 4e4
+
+找到第一个a\[i]满足a\[i-1]<=a\[i+1]，将他俩合并。
+
+从第i位往前找第一个a\[k]满足a\[k]>刚才的合并结果。
+
+将合并结果放在k位置之后，若无满足条件的k，放在第一个位置。若i不存在，直接合并最后两个数。
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+const ll N=41000;
+ll n,a[N],ans,now=1,pro;
+int main()
+{
+	scanf("%lld",&n);
+	for(ll i=1;i<=n;i++) scanf("%lld",&a[i]);
+	while(now<n-1)
+	{
+		for(pro=now;pro<n-1;pro++)
+		{
+			if(a[pro+2]<a[pro]) continue;
+			a[pro+1]+=a[pro];
+            ans+=a[pro+1];ll k;
+			for(k=pro;k>now;k--) a[k]=a[k-1]; 
+            now++; k=pro+1;
+			while(now<k&&a[k-1]<a[k]) {a[k]^=a[k-1]^=a[k]^=a[k-1];k--;}
+			break;
+		}
+		if(pro==n-1) {a[n-1]+=a[n];ans+=a[n-1];n--;}
+	}
+	if(now==n-1) ans+=(a[n-1]+a[n]); 
+    printf("%lld\n",ans);
+	return 0;
+}
+```
