@@ -54,7 +54,7 @@ namespace Geometry
         Vector2 operator/(Vector2 b) { return (*this) * (FLOAT_(1) / b); }
         Vector2 operator+=(Vector2 b) { return (*this) = (*this) + b; }
 
-        bool operator<(Vector2 b) { return this->x < b.x or this->x == b.x and this->y < b.y; }
+        bool operator<(Vector2 b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
         /* 向量的平方模 */
         FLOAT_ sqrMagnitude() { return pow(this->x, 2) + pow(this->y, 2); }
@@ -89,16 +89,6 @@ namespace Geometry
         {
             return atan2(y, x) * (use_degree ? 180.0 / PI : 1);
         }
-
-        static std::function<bool(Vector2 &, Vector2 &)> PolarSortCmp = [](Vector2 &a, Vector2 &b) -> bool
-        {
-            return a.toPolarAngle(0) < b.toPolarAngle(0);
-        };
-
-        static std::function<bool(Vector2 &, Vector2 &)> CrossSortCmp = [](Vector2 &a, Vector2 &b) -> bool
-        {
-            return Cross(a, b) > 0;
-        };
 
         /*转为极坐标*/
         static Vector2 ToPolarCoordinate(Vector2 coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
@@ -219,6 +209,18 @@ namespace Geometry
         static Vector2 Project(Vector2 vector, Vector2 onNormal)
         {
             return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal;
+        }
+    };
+    struct PolarSortCmp
+    {
+        bool operator()(Vector2 &a, Vector2 &b) { return a.toPolarAngle(0) < b.toPolarAngle(0); }
+    };
+
+    struct CrossSortCmp
+    {
+        bool operator()(Vector2 &a, Vector2 &b)
+        {
+            return Vector2::Cross(a, b) > 0;
         }
     };
 

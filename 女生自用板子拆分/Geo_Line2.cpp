@@ -3,7 +3,7 @@
 
 namespace Geometry
 {
-    
+
     struct Line2
     {
         FLOAT_ A, B, C;
@@ -43,6 +43,7 @@ namespace Geometry
             o << v.ToString();
             return o;
         }
+        static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
         FLOAT_ k() { return -A / B; }
         FLOAT_ b() { return -C / B; }
         FLOAT_ x(FLOAT_ y) { return -(B * y + C) / A; }
