@@ -5207,3 +5207,134 @@ int main()
 	return 0;
 }
 ```
+
+### 线形基
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+// #pragma GCC optimize(2)
+#define fi first
+#define se second
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+void io() { ios::sync_with_stdio(false); cin.tie(0); cout.tie(0); }
+template<typename T>
+inline void debug(T const& x) { cout << x << "\n"; }
+
+struct LinearBase {
+    const int siz=64;
+    int MN;
+    vector<ll>p, tmp;
+    bool flag = false;
+    LinearBase(){
+        p.resize(siz);
+        tmp.resize(siz);
+        MN=siz-1;
+    }
+
+    void clear()
+    {
+        // siz = MN = 0;
+        p.clear(); tmp.clear();
+        flag = false;
+    }
+
+    void resize(int size)
+    {
+        p.resize(siz);
+        tmp.resize(siz);
+        MN = siz - 1;
+        flag = false;
+    }
+
+    void insert(ll x)
+    {
+        for (int i = MN; ~i; --i) {
+            if (x & (1ll << i)) {
+                if (!p[i]) {
+                    p[i] = x;
+                    return;
+                }
+                else
+                    x ^= p[i];
+            }
+        }
+        flag = true;
+    }
+
+    bool check(ll x)
+    {
+        for (int i = MN; ~i; i--) {
+            if (x & (1ll << i)) {
+                if (!p[i]) return false;
+                else x ^= p[i];
+            }
+        }
+        return true;
+    }
+
+    ll Qmax()
+    {
+        ll res = 0ll;
+        for (int i = MN; ~i; --i) {
+            res = max(res, res ^ p[i]);
+        }
+        return res;
+    }
+
+    ll Qmin()
+    {
+        if (flag) return 0;
+        for (int i = 0; i <= MN; ++i)
+            if (p[i]) p[i];
+    }
+
+    // void rebuild()
+    // {
+    //     int cnt=0,top=0;
+    //     for(int i=MN;~i)
+    // }
+
+    ll Qnth_element(ll k)
+    {
+        ll res = 0;
+        int cnt = 0;
+        k -= flag;
+        if (!k) return 0;
+        for (int i = 0; i <= MN; ++i) {
+            for (int j = i - 1; ~j; j--) {
+                if (p[i] & (1ll << j)) p[i] ^= p[j];
+            }
+            if (p[i]) tmp[cnt++] = p[i];
+        }
+        if (k >= (1ll << cnt)) return -1;
+        for (int i = 0; i < cnt; ++i)
+            if (k & (1ll << i))
+                res ^= tmp[i];
+        return res;
+    }
+
+
+};
+
+
+
+int main()
+{
+    io();
+    int n;
+    cin >> n;
+    LinearBase lb;
+    for (int i = 0; i < n; ++i) {
+        ll _;
+        cin >> _;
+        lb.insert(_);
+    }
+    cout << lb.Qmax() << "\n";
+    return 0;
+}
+```
+
