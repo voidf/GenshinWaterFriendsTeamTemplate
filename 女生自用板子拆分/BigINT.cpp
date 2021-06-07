@@ -82,16 +82,3 @@ inline void printBint(Bint x)
 }
 
 
-template <typename IntegerType>
-void convert_to_string(IntegerType x, std::string &s)
-{
-    if (x < 0)
-    {
-        x = -x;
-        s.push_back('-');
-        // *O++ = '-';
-    }
-    if (x > 9)
-        convert_to_string(x / 10, s);
-    s.push_back(x % 10 + '0');
-}
