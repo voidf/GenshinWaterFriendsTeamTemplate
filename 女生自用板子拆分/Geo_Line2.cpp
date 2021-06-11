@@ -7,7 +7,8 @@ namespace Geometry
     struct Line2
     {
         FLOAT_ A, B, C;
-        Line2(Vector2 u, Vector2 v) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
+        /* 默认两点式，打false为点向式（先点后向） */
+        Line2(Vector2 u, Vector2 v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
         {
             if (u == v)
             {
@@ -29,6 +30,12 @@ namespace Geometry
                     B = -1;
                     C = 0;
                 }
+            }
+            if (!two_point)
+            {
+                A = -v.y;
+                B = v.x;
+                C = -(A * u.x + B * u.y);
             }
         }
         Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
