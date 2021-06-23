@@ -1,3 +1,5 @@
+#include "MathTheoryMisc.cpp"
+
 #define LUCASM 114514
 LL fact[LUCASM];
 
