@@ -26,6 +26,10 @@ namespace Geometry
 
             radius = (center - a).magnitude();
         }
+        Vector2 fromRad(FLOAT_ A)
+        {
+            return Vector2(center.x + radius * cos(A), center.y + radius * sin(A));
+        }
         std::pair<Vector2, Vector2> intersect_points(Line2 l)
         {
             FLOAT_ k = l.k();
@@ -57,19 +61,14 @@ namespace Geometry
                 return make_pair(Vector2(x1, l.y(x1)), Vector2(x2, l.y(x2)));
             }
         }
+        /* 使用极角和余弦定理算交点，更稳，但没添加处理相离和相包含的情况 */
         std::pair<Vector2, Vector2> intersect_points(Circle cir)
         {
-            FLOAT_ dist = (cir.center - center).magnitude();
-            if (abs(cir.radius - radius) <= dist and dist <= cir.radius + radius)
-            {
-                FLOAT_ AA = 2 * (cir.center.x - center.x);
-                FLOAT_ BB = 2 * (cir.center.y - center.y);
-                FLOAT_ CC = pow(center.x, 2) - pow(cir.center.x, 2) + pow(center.y, 2) - pow(cir.center.y, 2) + pow(cir.radius, 2) - pow(radius, 2);
-                Line2 lcl(AA, BB, CC);
-                return intersect_points(lcl);
-            }
-            else // 相离或包含
-                return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+            Vector2 distV = (cir.center - center);
+            FLOAT_ dist = distV.magnitude();
+            FLOAT_ ang = distV.toPolarAngle(false);
+            FLOAT_ dang = acos((pow(radius, 2) + pow(dist, 2) - pow(cir.radius, 2)) / (2 * radius * dist)); //余弦定理
+            return make_pair(fromRad(ang + dang), fromRad(ang - dang));
         }
 
         FLOAT_ area() { return pi * radius * radius; }
