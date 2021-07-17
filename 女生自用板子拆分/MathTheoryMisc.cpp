@@ -35,6 +35,7 @@ inline LL inv(LL a, LL mo)
     return x >= 0 ? x : x + mo; // 为0时无解
 }
 
+/* 解同余方程ax + by = c */
 void exgcd_solve()
 {
     qr(a);

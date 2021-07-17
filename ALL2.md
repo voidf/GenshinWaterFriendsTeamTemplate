@@ -3284,6 +3284,25 @@ int main(){
 }
 ```
 
+### 线性基
+
+```cpp
+void Get_LB(ll x)
+{
+	for(int i = 62; i >= 0; i--)
+	{
+		if(!(x >> (ll)i))
+			continue;
+		if(!p[i])
+		{
+			p[i] = x;
+			break;
+		}
+		x ^= p[i];
+	}
+}
+```
+
 ### ST表
 
 ```cpp
@@ -4771,8 +4790,7 @@ public:
 ```
 
 ### 圆
-
-```c++
+```
 struct Circle
 {
     Vector2 center;
@@ -4913,11 +4931,9 @@ void sa(FT temperature = 300, FT cooldown = 1e-14, FT cool = 0.986)
         }
         temperature *= cool;
     }
-}
+}```
 
-```
-
-## 数学
+## 数论
 
 ### exgcd全解
 
@@ -4966,136 +4982,6 @@ void exgcd_solve()
         LL yMin = y1 - yupper * dy;       // y的最小正整数解
         printf("%lld %lld %lld %lld %lld\n", s_range, xMin, yMin, xMax, yMax);
     }
-}
-```
-
-### 线形基
-
-```c++
-#include<bits/stdc++.h>
-using namespace std;
-// #pragma GCC optimize(2)
-#define fi first
-#define se second
-typedef pair<int, int> pii;
-typedef long long ll;
-typedef unsigned long long ull;
-typedef long double ld;
-void io() { ios::sync_with_stdio(false); cin.tie(0); cout.tie(0); }
-template<typename T>
-inline void debug(T const& x) { cout << x << "\n"; }
-
-struct LinearBase {
-    const int siz=64;
-    int MN;
-    vector<ll>p, tmp;
-    bool flag = false;
-    LinearBase(){
-        p.resize(siz);
-        tmp.resize(siz);
-        MN=siz-1;
-    }
-
-    void clear()
-    {
-        // siz = MN = 0;
-        p.clear(); tmp.clear();
-        flag = false;
-    }
-
-    void resize(int size)
-    {
-        p.resize(siz);
-        tmp.resize(siz);
-        MN = siz - 1;
-        flag = false;
-    }
-
-    void insert(ll x)
-    {
-        for (int i = MN; ~i; --i) {
-            if (x & (1ll << i)) {
-                if (!p[i]) {
-                    p[i] = x;
-                    return;
-                }
-                else
-                    x ^= p[i];
-            }
-        }
-        flag = true;
-    }
-
-    bool check(ll x)
-    {
-        for (int i = MN; ~i; i--) {
-            if (x & (1ll << i)) {
-                if (!p[i]) return false;
-                else x ^= p[i];
-            }
-        }
-        return true;
-    }
-
-    ll Qmax()
-    {
-        ll res = 0ll;
-        for (int i = MN; ~i; --i) {
-            res = max(res, res ^ p[i]);
-        }
-        return res;
-    }
-
-    ll Qmin()
-    {
-        if (flag) return 0;
-        for (int i = 0; i <= MN; ++i)
-            if (p[i]) p[i];
-    }
-
-    // void rebuild()
-    // {
-    //     int cnt=0,top=0;
-    //     for(int i=MN;~i)
-    // }
-
-    ll Qnth_element(ll k)
-    {
-        ll res = 0;
-        int cnt = 0;
-        k -= flag;
-        if (!k) return 0;
-        for (int i = 0; i <= MN; ++i) {
-            for (int j = i - 1; ~j; j--) {
-                if (p[i] & (1ll << j)) p[i] ^= p[j];
-            }
-            if (p[i]) tmp[cnt++] = p[i];
-        }
-        if (k >= (1ll << cnt)) return -1;
-        for (int i = 0; i < cnt; ++i)
-            if (k & (1ll << i))
-                res ^= tmp[i];
-        return res;
-    }
-
-
-};
-
-
-
-int main()
-{
-    io();
-    int n;
-    cin >> n;
-    LinearBase lb;
-    for (int i = 0; i < n; ++i) {
-        ll _;
-        cin >> _;
-        lb.insert(_);
-    }
-    cout << lb.Qmax() << "\n";
-    return 0;
 }
 ```
 
@@ -5514,101 +5400,6 @@ string FFTBigNumMul(string &A, string &B)
 }
 ```
 
-### NTT
-
-```c++
-#include<bits/stdc++.h>
-using namespace std;
-
-inline int read() {
-  int x = 0, f = 1;
-  char ch = getchar();
-  while (ch < '0' || ch > '9') {
-    if (ch == '-') f = -1;
-    ch = getchar();
-  }
-  while (ch <= '9' && ch >= '0') {
-    x = 10 * x + ch - '0';
-    ch = getchar();
-  }
-  return x * f;
-}
-void print(int x) {
-  if (x < 0) putchar('-'), x = -x;
-  if (x >= 10) print(x / 10);
-  putchar(x % 10 + '0');
-}
-
-const int N = 300100, P = 998244353;
-
-inline int qpow(int x, int y) {
-  int res(1);
-  while (y) {
-    if (y & 1) res = 1ll * res * x % P;
-    x = 1ll * x * x % P;
-    y >>= 1;
-  }
-  return res;
-}
-
-int r[N];
-
-void ntt(int *x, int lim, int opt) {
-  register int i, j, k, m, gn, g, tmp;
-  for (i = 0; i < lim; ++i)
-    if (r[i] < i) swap(x[i], x[r[i]]);
-  for (m = 2; m <= lim; m <<= 1) {
-    k = m >> 1;
-    gn = qpow(3, (P - 1) / m);
-    for (i = 0; i < lim; i += m) {
-      g = 1;
-      for (j = 0; j < k; ++j, g = 1ll * g * gn % P) {
-        tmp = 1ll * x[i + j + k] * g % P;
-        x[i + j + k] = (x[i + j] - tmp + P) % P;
-        x[i + j] = (x[i + j] + tmp) % P;
-      }
-    }
-  }
-  if (opt == -1) {
-    reverse(x + 1, x + lim);
-    register int inv = qpow(lim, P - 2);
-    for (i = 0; i < lim; ++i) x[i] = 1ll * x[i] * inv % P;
-  }
-}
-
-int A[N], B[N], C[N];
-
-char a[N], b[N];
-
-int main() {
-  register int i, lim(1), n;
-  scanf("%s", &a);
-  n = strlen(a);
-  for (i = 0; i < n; ++i) A[i] = a[n - i - 1] - '0';
-  while (lim < (n << 1)) lim <<= 1;
-  scanf("%s", &b);
-  n = strlen(b);
-  for (i = 0; i < n; ++i) B[i] = b[n - i - 1] - '0';
-  while (lim < (n << 1)) lim <<= 1;
-  for (i = 0; i < lim; ++i) r[i] = (i & 1) * (lim >> 1) + (r[i >> 1] >> 1);
-  ntt(A, lim, 1);
-  ntt(B, lim, 1);
-  for (i = 0; i < lim; ++i) C[i] = 1ll * A[i] * B[i] % P;
-  ntt(C, lim, -1);
-  int len(0);
-  for (i = 0; i < lim; ++i) {
-    if (C[i] >= 10) len = i + 1, C[i + 1] += C[i] / 10, C[i] %= 10;
-    if (C[i]) len = max(len, i);
-  }
-  while (C[len] >= 10) C[len + 1] += C[len] / 10, C[len] %= 10, len++;
-  for (i = len; ~i; --i) putchar(C[i] + '0');
-  puts("");
-  return 0;
-}
-```
-
-
-
 ### 拉格朗日插值
 
 ```cpp
@@ -5755,6 +5546,16 @@ async def 球盒(*attrs, kwargs={}):
 ### BM线性递推
 
 ```c++
+
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <map>
+#include <set>
+#include <cassert>
 #include<bits/stdc++.h>
 using namespace std;
 #define rep(i,a,n) for (int i=a;i<n;i++)
@@ -5983,6 +5784,135 @@ int main()
 }
 ```
 
+### 线形基
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+// #pragma GCC optimize(2)
+#define fi first
+#define se second
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+void io() { ios::sync_with_stdio(false); cin.tie(0); cout.tie(0); }
+template<typename T>
+inline void debug(T const& x) { cout << x << "\n"; }
+
+struct LinearBase {
+    const int siz=64;
+    int MN;
+    vector<ll>p, tmp;
+    bool flag = false;
+    LinearBase(){
+        p.resize(siz);
+        tmp.resize(siz);
+        MN=siz-1;
+    }
+
+    void clear()
+    {
+        // siz = MN = 0;
+        p.clear(); tmp.clear();
+        flag = false;
+    }
+
+    void resize(int size)
+    {
+        p.resize(siz);
+        tmp.resize(siz);
+        MN = siz - 1;
+        flag = false;
+    }
+
+    void insert(ll x)
+    {
+        for (int i = MN; ~i; --i) {
+            if (x & (1ll << i)) {
+                if (!p[i]) {
+                    p[i] = x;
+                    return;
+                }
+                else
+                    x ^= p[i];
+            }
+        }
+        flag = true;
+    }
+
+    bool check(ll x)
+    {
+        for (int i = MN; ~i; i--) {
+            if (x & (1ll << i)) {
+                if (!p[i]) return false;
+                else x ^= p[i];
+            }
+        }
+        return true;
+    }
+
+    ll Qmax()
+    {
+        ll res = 0ll;
+        for (int i = MN; ~i; --i) {
+            res = max(res, res ^ p[i]);
+        }
+        return res;
+    }
+
+    ll Qmin()
+    {
+        if (flag) return 0;
+        for (int i = 0; i <= MN; ++i)
+            if (p[i]) p[i];
+    }
+
+    // void rebuild()
+    // {
+    //     int cnt=0,top=0;
+    //     for(int i=MN;~i)
+    // }
+
+    ll Qnth_element(ll k)
+    {
+        ll res = 0;
+        int cnt = 0;
+        k -= flag;
+        if (!k) return 0;
+        for (int i = 0; i <= MN; ++i) {
+            for (int j = i - 1; ~j; j--) {
+                if (p[i] & (1ll << j)) p[i] ^= p[j];
+            }
+            if (p[i]) tmp[cnt++] = p[i];
+        }
+        if (k >= (1ll << cnt)) return -1;
+        for (int i = 0; i < cnt; ++i)
+            if (k & (1ll << i))
+                res ^= tmp[i];
+        return res;
+    }
+
+
+};
+
+
+
+int main()
+{
+    io();
+    int n;
+    cin >> n;
+    LinearBase lb;
+    for (int i = 0; i < n; ++i) {
+        ll _;
+        cin >> _;
+        lb.insert(_);
+    }
+    cout << lb.Qmax() << "\n";
+    return 0;
+}
+```
 
 ### Add fhq-Treap
 
