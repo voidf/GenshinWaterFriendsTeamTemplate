@@ -1,4 +1,4 @@
-### pallord pho
+### pollard's rho
 
 ```c++
 #include <bits/stdc++.h>
