@@ -8,14 +8,12 @@ namespace Geometry
     template <typename VALUETYPE = FLOAT_>
     struct SquareMatrix : Matrix<VALUETYPE>
     {
-        SquareMatrix(int siz, bool is_reset = false) : Matrix<VALUETYPE>(siz, siz, is_reset) {}
-        SquareMatrix(Matrix<VALUETYPE> &&x) : Matrix<VALUETYPE>(x)
-        {
-            assert(x.COL == x.ROW);
-        }
+        SquareMatrix(int siz, VALUETYPE &&default_val = 0) : Matrix<VALUETYPE>(siz, siz, default_val) {}
+        SquareMatrix(Matrix<VALUETYPE> &&x) : Matrix<VALUETYPE>(x) { assert(x.COL == x.ROW); }
+        SquareMatrix(Matrix<VALUETYPE> &x) : Matrix<VALUETYPE>(x) { assert(x.COL == x.ROW); }
         static SquareMatrix eye(int siz)
         {
-            SquareMatrix ret(siz, true);
+            SquareMatrix ret(siz);
             for (siz--; siz >= 0; siz--)
                 ret[siz][siz] = 1;
             return ret;

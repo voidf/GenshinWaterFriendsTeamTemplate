@@ -120,7 +120,7 @@ namespace Geometry
                     break;
             }
         }
-
+        /*化为行最简型*/
         void row_echelonify(long long mod = 0)
         {
             if (mod)
@@ -210,7 +210,7 @@ namespace Geometry
         {
             if (this->COL != rhs.ROW)
                 throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
-            Matrix ret(this->ROW, rhs.COL, true);
+            Matrix ret(this->ROW, rhs.COL, 0);
             for (int i = 0; i < ret.ROW; ++i)
                 for (int k = 0; k < this->COL; ++k)
                 {
