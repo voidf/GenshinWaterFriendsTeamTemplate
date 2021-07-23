@@ -65,8 +65,8 @@ void exgcd_solve()
     LL yupper = floor(double(y1 - 1) / dy); // s可能的最大值
     if (xlower > yupper)
     {
-        LL xMin = x1 + xlower * dx;            // x的最小正整数解
-        LL yMin = y1 - yupper * dy;            // y的最小正整数解
+        LL xMin = x1 + xlower * dx; // x的最小正整数解
+        LL yMin = y1 - yupper * dy; // y的最小正整数解
         printf("%lld %lld\n", xMin, yMin);
     }
     else
@@ -78,4 +78,82 @@ void exgcd_solve()
         LL yMin = y1 - yupper * dy;       // y的最小正整数解
         printf("%lld %lld %lld %lld %lld\n", s_range, xMin, yMin, xMax, yMax);
     }
+}
+
+/* 取 l <= dx%m <= r 的最小非负x */
+LL modinq(LL m, LL d, LL l, LL r)
+{
+    // 0 <= l <= r < m, d < m, minimal non-negative solution
+    if (r < l)
+        return -1;
+    if (l == 0)
+        return 0;
+    if (d == 0)
+        return -1;
+    if ((r / d) * d >= l)
+        return (l - 1) / d + 1;
+    LL res = modinq(d, m % d, (d - r % d) % d, (d - l % d) % d);
+    return res == -1 ? -1 : (m * res + l - 1) / d + 1;
+}
+
+/* 求1~x的和 */
+LL pref(LL x) { return (x) * (x + 1) >> 1; }
+
+/* 求 ax%p x从1到p-1 的序列的逆序对数 */
+LL calcinvs(LL a, LL p)
+{
+    a %= p;
+    if (a * 2 > p)
+    {
+        return pref(p - 2) - calcinvs(p - a, p);
+    }
+
+    LL G = gcd(a, p);
+    a /= G;
+    p /= G;
+    LL orires;
+
+    if (a <= 1 or a == p)
+    {
+        orires = 0;
+    }
+    else if (a == p - 1)
+    {
+        orires = pref(a - 1);
+    }
+    else
+    {
+        LL kuaidaxiao = p / a;
+        LL yushu = p % a;
+
+        LL pf = pref(kuaidaxiao);
+        LL pf2 = pref(a - 1);
+
+        LL offset1 = pf * pf2 & 1;
+        if (yushu == 0)
+        {
+            orires = offset1;
+        }
+        else
+        {
+            LL step = a - yushu;
+
+            LL gouctr = yushu - 1;
+
+            LL shengxia = a - gouctr;
+
+            LL atoP = shengxia - 1;
+
+            LL firstarr = modinq(a, step, yushu + 1, a - 1) * step % a - yushu;
+
+            LL offset2 = (kuaidaxiao & 1) ? (pref(atoP - 2) - calcinvs(firstarr, atoP) & 1) : (calcinvs(step % yushu, yushu) & 1);
+            orires = offset1 ^ offset2;
+            // orires = offset1 + offset2;
+        }
+    }
+    // return ;
+    // LL orires = pf * pf2 + (kuaidaxiao + 1) * calcinvs(step % yushu, yushu) - (kuaidaxiao) * (pref(atoP - 2) - calcinvs(firstarr, atoP));
+    orires *= G;
+    return 1 & orires + pref(G - 1) * pref(p - 1);
+    // return pf * pf2 + (kuaidaxiao + 1) * calcinvs(step % yushu, yushu) - (kuaidaxiao) * (pref(atoP - 2) - calcinvs(firstarr, atoP));
 }
