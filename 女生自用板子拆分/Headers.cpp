@@ -62,7 +62,7 @@
 #define range_2(__iter__, __to__) range_4(__iter__, 0, __to__, 1)
 #define range_1(__iter__, __to__) range_4(__iter__, 0, 1, 1)
 #define get_range(_1, _2, _3, _4, _Func, ...) _Func
-#define range(...) get_range(__VA_ARGS__, range_4, range_3, range_2, range_1, ...)(__VA_ARGS__)
+#define crange(...) get_range(__VA_ARGS__, range_4, range_3, range_2, range_1, ...)(__VA_ARGS__)
 
 #include <ext/pb_ds/tag_and_trait.hpp>
 #define _CRT_SECURE_NO_WARNINGS
@@ -141,3 +141,6 @@ int clz(unsigned long long N)
 {
     return N ? 64 - __builtin_clzll(N) : -INF;
 }
+
+int log2int(int x) { return 31 - __builtin_clz(x); }
+int log2ll(long long x) { return 63 - __builtin_clzll(x); }
