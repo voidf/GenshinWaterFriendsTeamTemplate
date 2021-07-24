@@ -1,4 +1,5 @@
 #include "Headers.cpp"
+#include "foreach.cpp"
 template <typename INTEGER>
 struct STMax
 {
