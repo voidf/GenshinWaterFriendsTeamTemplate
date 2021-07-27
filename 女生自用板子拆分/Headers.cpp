@@ -1,3 +1,4 @@
+// cpp -dD -P -fpreprocessed | tr -d  '[:space:]' | md5sum
 // #pragma GCC optimize(1)
 // #pragma GCC optimize(2)
 // #pragma GCC optimize(3)
