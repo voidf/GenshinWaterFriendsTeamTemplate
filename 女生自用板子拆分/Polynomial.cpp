@@ -6,7 +6,7 @@
 template <typename T>
 struct Polynomial
 {
-    std::vector<T> cof; //各项系数 coefficient
+    std::vector<T> cof; // 各项系数 coefficient 低次在前高次在后
     T mod;
     using pointval = std::pair<T, T>;
     std::vector<pointval> points; // x在前y在后
