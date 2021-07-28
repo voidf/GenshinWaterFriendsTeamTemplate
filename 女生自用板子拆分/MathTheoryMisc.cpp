@@ -1,3 +1,8 @@
+#include "Headers.cpp"
+
+inline LL modadd(LL &x, LL y) { return (x += y) >= mo ? x -= mo : x; }
+inline LL modsub(LL &x, LL y) { return (x -= y) < 0 ? x += mo : x; }
+
 template <typename IntegerType>
 inline IntegerType power(IntegerType a, IntegerType n)
 {
@@ -33,6 +38,16 @@ inline LL inv(LL a, LL mo)
     LL x, y;
     exgcd(a, mo, x, y);
     return x >= 0 ? x : x + mo; // 为0时无解
+}
+
+//递推求法
+std::vector<LL> getInvRecursion(LL upp, LL mod)
+{
+    std::vector<LL> vinv(1, 0);
+    vinv.emplace_back(1);
+    for (LL i = 2; i <= upp; i++)
+        vinv.emplace_back((mod - mod / i) * vinv[mod % i] % mod);
+    return vinv;
 }
 
 /* 解同余方程ax + by = c */
