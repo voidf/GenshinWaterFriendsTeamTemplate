@@ -1,7 +1,9 @@
 #include "Headers.cpp"
 
 inline LL modadd(LL &x, LL y) { return (x += y) >= mo ? x -= mo : x; }
+inline LL madd(LL x, LL y) { return (x += y) >= mo ? x - mo : x; }
 inline LL modsub(LL &x, LL y) { return (x -= y) < 0 ? x += mo : x; }
+inline LL msub(LL x, LL y) { return (x -= y) < 0 ? x + mo : x; }
 
 template <typename IntegerType>
 inline IntegerType power(IntegerType a, IntegerType n)
