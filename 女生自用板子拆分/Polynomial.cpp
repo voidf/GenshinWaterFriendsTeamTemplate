@@ -47,16 +47,16 @@ g 是mod(r*2^k+1)的原根
 */
 
 /* 多项式 */
+/* 多项式 */
 template <typename T>
 struct Polynomial
 {
     std::vector<T> cof; // 各项系数 coefficient 低次在前高次在后
-    T mod = 998244353;  // 模数
-    T G = 3;            // 原根
-    T Gi = 332748118;   // 原根的逆元
+    LL mod = 998244353; // 模数
+    LL G = 3;           // 原根
+    LL Gi = 332748118;  // 原根的逆元
     using pointval = std::pair<T, T>;
     std::vector<pointval> points; // x在前y在后
-    Polynomial(T _mod) : mod(_mod) {}
     Polynomial() {}
 
     /* n^2 拉格朗日插值 */
@@ -103,22 +103,49 @@ struct Polynomial
     }
 
     /* rev是蝴蝶操作数组，lim为填充到2的幂的值，mode为0正变换，1逆变换，逆变换后系数需要除以lim才是答案 */
-    void NTT(std::vector<int> &rev, T lim, bool mode = 0)
+    void NTT(std::vector<int> &rev, LL lim, bool mode = 0)
     {
         for (auto i : range(lim))
             if (i < rev[i])
                 swap(cof[i], cof[rev[i]]);
-        for (T mid = 1; mid < lim; mid <<= 1)
+        for (LL mid = 1; mid < lim; mid <<= 1)
         {
             T Wn = power(mode ? Gi : G, (mod - 1) / (mid << 1), mod);
-            for (T j = 0; j < lim; j += mid << 1)
+            for (LL j = 0; j < lim; j += mid << 1)
             {
                 T w = 1;
-                for (T k = 0; k < mid; ++k, w = (w * Wn) % mod)
+                for (LL k = 0; k < mid; ++k, w = (w * Wn) % mod)
                 {
                     T x = cof[j + k], y = w * cof[j + k + mid] % mod;
                     cof[j + k] = madd(x, y); // 已经不得不用这个优化了
                     cof[j + k + mid] = msub(x, y);
+                }
+            }
+        }
+    }
+
+    /* 精度更高的写法 */
+    void FFT(std::vector<int> &rev, LL lim, bool mode, std::vector<T> &Wn)
+    {
+        LL &n = lim;
+        if (mode == 1)
+            for (int i = 1; i < n; i++)
+                if (i < (n - i))
+                    std::swap(cof[i], cof[n - i]);
+        for (int i = 0; i < n; i++)
+            if (i < rev[i])
+                std::swap(cof[i], cof[rev[i]]);
+
+        for (int m = 1, l = 0; m < n; m <<= 1, l++)
+        {
+            for (int i = 0; i < n; i += m << 1)
+            {
+                for (int k = i; k < i + m; k++)
+                {
+                    T W = Wn[1ll * (k - i) * n / m];
+                    T a0 = cof[k], a1 = cof[k + m] * W;
+                    cof[k] = a0 + a1;
+                    cof[k + m] = a0 - a1;
                 }
             }
         }
@@ -132,7 +159,7 @@ struct Polynomial
             return;
         }
         _inv((siz + 1) >> 1, B);
-        T lim = 1, limpow = 0;
+        LL lim = 1, limpow = 0;
         while (lim < (siz << 1))
             lim <<= 1, ++limpow;
         Polynomial C;
@@ -142,7 +169,7 @@ struct Polynomial
         C.NTT(rev, lim, 0);
         B.NTT(rev, lim, 0);
         for (auto i : range(lim))
-            B.cof[i] = msub(2LL , B.cof[i] * C.cof[i] % mod) * B.cof[i] % mod;
+            B.cof[i] = msub(2LL, B.cof[i] * C.cof[i] % mod) * B.cof[i] % mod;
         B.NTT(rev, lim, 1);
         T iv = inv(lim, mod);
         for (auto i : range(siz))
@@ -154,7 +181,7 @@ struct Polynomial
     {
         T siz = cof.size();
         Polynomial B;
-        T lim = 1, limpow = 0;
+        LL lim = 1, limpow = 0;
         while (lim < (siz << 1))
             lim <<= 1, ++limpow;
         B.cof.resize(lim, 0);
@@ -168,37 +195,42 @@ struct Polynomial
     {
         return NTTMul(*this, rhs);
     }
-    std::vector<int> generateRev(T lim, T limpow)
+
+    static std::vector<int> generateRev(LL lim, LL limpow)
     {
         std::vector<int> rev(lim, 0);
-        for (auto i : range(lim))
+        for (auto i : range(1, lim))
             rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (limpow - 1));
         return rev;
     }
 
-    static inline void _mul(Polynomial &A, Polynomial &B, T lim, T limpow)
+    static std::vector<T> generateWn(LL lim)
     {
+        std::vector<T> Wn;
+        for (int i = 0; i < lim; i++)
+            Wn.emplace_back(cos(M_PI / lim * i), sin(M_PI / lim * i));
+        return Wn;
+    }
+
+    /* NTT卷积 板题4.72s */
+    static Polynomial NTTMul(Polynomial A, Polynomial B)
+    {
+        // assert(A.mod == B.mod);
+        // Polynomial C(A.mod);
+        LL lim = 1;
+        LL limpow = 0;
+        LL retsiz = A.cof.size() + B.cof.size();
+        while (lim <= retsiz)
+            lim <<= 1, ++limpow;
+        A.cof.resize(lim, 0);
+        B.cof.resize(lim, 0);
+
         std::vector<int> rev(generateRev(lim, limpow));
         A.NTT(rev, lim, 0);
         B.NTT(rev, lim, 0);
         for (auto i : range(lim))
             A.cof[i] = (A.cof[i] * B.cof[i] % A.mod);
         A.NTT(rev, lim, 1);
-    }
-    /* 有点慢的NTT，换左值引用参数几乎没有优化 */
-    static Polynomial NTTMul(Polynomial A, Polynomial B)
-    {
-        // assert(A.mod == B.mod);
-        // Polynomial C(A.mod);
-        T lim = 1;
-        T limpow = 0;
-        T retsiz = A.cof.size() + B.cof.size();
-        while (lim <= retsiz)
-            lim <<= 1, ++limpow;
-        A.cof.resize(lim, 0);
-        B.cof.resize(lim, 0);
-
-        _mul(A, B, lim, limpow);
 
         A.cof.resize(retsiz - 1);
         T iv = inv(lim, A.mod);
@@ -206,4 +238,118 @@ struct Polynomial
             i = (i * iv) % A.mod;
         return A;
     }
+    /* FFT卷积 板题1.98s 使用手写复数 -> 1.33s*/
+    static Polynomial FFTMul(Polynomial A, Polynomial B)
+    {
+        LL lim = 1;
+        LL limpow = 0;
+        LL retsiz = A.cof.size() + B.cof.size();
+        while (lim <= retsiz)
+            lim <<= 1, ++limpow;
+        A.cof.resize(lim, 0);
+        B.cof.resize(lim, 0);
+
+        std::vector<int> rev(generateRev(lim, limpow));
+        std::vector<T> Wn(generateWn(lim));
+        A.FFT(rev, lim, 0, Wn);
+        B.FFT(rev, lim, 0, Wn);
+        for (auto i : range(lim))
+            A.cof[i] *= B.cof[i];
+        A.FFT(rev, lim, 1, Wn);
+
+        A.cof.resize(retsiz - 1);
+        for (auto &i : A.cof)
+            i /= lim;
+        return A;
+    }
+
+    static Polynomial MTT_FFT(const Polynomial &A, const Polynomial &B)
+    {
+        LL lim = 1;
+        LL limpow = 0;
+        LL retsiz = A.cof.size() + B.cof.size();
+        while (lim <= retsiz)
+            lim <<= 1, ++limpow;
+        std::vector<int> rev(generateRev(lim, limpow));
+        std::vector<T> Wn(generateWn(lim));
+
+        LL thr = sqrt(A.mod) + 1; // 拆系数阈值
+
+        Polynomial A0, B0;
+        for (auto i : A.cof)
+        {
+            LL tmp = i.real();
+            A0.cof.emplace_back(tmp / thr, tmp % thr);
+        }
+        for (auto i : B.cof)
+        {
+            LL tmp = i.real();
+            B0.cof.emplace_back(tmp / thr, tmp % thr);
+        }
+        A0.cof.resize(lim);
+        B0.cof.resize(lim);
+
+        A0.FFT(rev, lim, 0, Wn);
+        B0.FFT(rev, lim, 0, Wn);
+        std::vector<T> Acp(A0.cof);
+        std::vector<T> Bcp(B0.cof);
+        const T IV(0, 1);
+        const T half(0.5);
+        for (auto ii : range(lim))
+        {
+            T i = A0.cof[ii];
+            T j = (Acp[ii ? lim - ii : 0]).conj();
+            T a0 = (j + i) * half;
+            T a1 = (j - i) * half * IV;
+            i = B0.cof[ii];
+            j = (Bcp[ii ? lim - ii : 0]).conj();
+            T b0 = (j + i) * half;
+            T b1 = (j - i) * half * IV;
+            A0.cof[ii] = a0 * b0 + IV * a1 * b0;
+            B0.cof[ii] = a0 * b1 + IV * a1 * b1;
+        }
+        A0.FFT(rev, lim, 1, Wn);
+        B0.FFT(rev, lim, 1, Wn);
+        T limc(lim);
+
+        for (auto i : range(retsiz - 1))
+        {
+            T ac = A0.cof[i] / limc;
+            T bc = B0.cof[i] / limc;
+            A0.cof[i] = thr * thr * (__int128)round(ac.real()) % A.mod +
+                        thr * (__int128)round(ac.imag() + bc.real()) % A.mod +
+                        (__int128)round(bc.imag()) % A.mod;
+        }
+        A0.cof.resize(retsiz - 1);
+        return A0;
+    }
+};
+
+/* 使用手写的以后 2.00s -> 1.33s*/
+template <typename T>
+struct Complex
+{
+    T re_al, im_ag;
+    inline T &real() { return re_al; }
+    inline T &imag() { return im_ag; }
+    Complex() { re_al = im_ag = 0; }
+    Complex(T x) : re_al(x), im_ag(0) {}
+    Complex(T x, T y) : re_al(x), im_ag(y) {}
+    inline Complex conj() { return Complex(re_al, -im_ag); }
+    inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
+    inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
+    inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
+                                                                 im_ag * rhs.re_al + re_al * rhs.im_ag); }
+    inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
+    //(a+bi)(c+di) = (ac-bd) + (bc+ad)i
+    friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
+    inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
+    inline Complex operator/=(T x) { return (*this) = (*this) / x; }
+    friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
+    inline Complex operator/(Complex rhs) const
+    {
+        return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
+    }
+    inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
+    inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
 };
