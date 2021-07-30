@@ -172,3 +172,14 @@ int main() {
     //     "jmp main2\n"
     //     :: "r"(p));
 }
+
+
+std::chrono::_V2::steady_clock::time_point C = chrono::steady_clock::now();
+std::chrono::duration<double> D;
+
+void gt(string s = "")
+{
+    cerr << s << endl;
+    cerr << setprecision(12) << fixed << '\t' << (D = chrono::steady_clock::now() - C).count() << "s" << endl;
+    C = chrono::steady_clock::now();
+}
