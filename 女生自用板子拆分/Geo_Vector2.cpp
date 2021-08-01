@@ -54,6 +54,18 @@ namespace Geometry
         Vector2 operator/(Vector2 b) { return (*this) * (FLOAT_(1) / b); }
         Vector2 operator+=(Vector2 b) { return (*this) = (*this) + b; }
 
+        /* 绕原点逆时针旋转多少度 */
+        void rotate(FLOAT_ theta, bool use_degree = false)
+        {
+            FLOAT_ ox = x;
+            FLOAT_ oy = y;
+            theta = (use_degree ? theta / 180 * M_PI : theta);
+            FLOAT_ costheta = cos(theta);
+            FLOAT_ sintheta = sin(theta);
+            this->x = ox * costheta - oy * sintheta;
+            this->y = oy * costheta + ox * sintheta;
+        }
+
         bool operator<(Vector2 b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
         /* 向量的平方模 */
