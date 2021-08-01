@@ -21,7 +21,7 @@ struct STMax
         for (auto j : range(1, data.size()))
         {
             data[j].assign(data[0].size(), 0);
-            for (int i = 0; i + (1 << j) - 1 < data[0].size(); i++)
+            for (long long i = 0; i + (1LL << j) - 1 < data[0].size(); i++)
             {
                 data[j][i] = std::max(data[j - 1][i], data[j - 1][i + (1 << (j - 1))]);
             }
