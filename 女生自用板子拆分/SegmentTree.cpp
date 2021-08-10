@@ -1,4 +1,5 @@
 
+// 4a3629edbc4bfda9ca2df0ff11f870e4 2021.8.10 线段树区间平方和
 namespace Tree
 {
     template <typename T>
@@ -9,7 +10,8 @@ namespace Tree
         T lazy_mul;
         // T max_content;
         T min_content;
-        _iNode() : lazy_add(0), sum_content(0), lazy_mul(1), min_content(0x3f3f3f3f) {}
+        T sqrt_content;
+        _iNode() : lazy_add(0), sum_content(0), lazy_mul(1), min_content(0x3f3f3f3f), sqrt_content(0) {}
     };
 
     template <typename T>
@@ -49,6 +51,8 @@ namespace Tree
                 _D[x].sum_content *= v;
                 _D[x].lazy_mul *= v;
                 _D[x].min_content *= v;
+
+                _D[x].sqrt_content = _D[x].sqrt_content * v * v;
             }
             else
             {
@@ -73,6 +77,9 @@ namespace Tree
             {
                 LL my_length = node_r - node_l + 1;
                 _D[x].lazy_add += v;
+
+                _D[x].sqrt_content = _D[x].sqrt_content + 2 * v * _D[x].sum_content + (my_length * v * v);
+
                 _D[x].sum_content += my_length * v;
                 _D[x].min_content += v;
             }
@@ -104,6 +111,8 @@ namespace Tree
             int r = l | 1;
             _D[i].sum_content = (_D[l].sum_content + _D[r].sum_content);
             _D[i].min_content = min(_D[l].min_content, _D[r].min_content);
+
+            _D[i].sqrt_content = (_D[l].sqrt_content + _D[r].sqrt_content);
         }
 
         inline void push_down(int ind, int my_left_bound, int my_right_bound)
@@ -115,33 +124,36 @@ namespace Tree
             int rson_length = (my_right_bound - mi);
             if (_D[ind].lazy_mul != 1)
             {
+                // 区间和
                 _D[l].sum_content *= _D[ind].lazy_mul;
-                _D[l].sum_content += _D[ind].lazy_add * lson_length;
 
                 _D[r].sum_content *= _D[ind].lazy_mul;
-                _D[r].sum_content += _D[ind].lazy_add * rson_length;
 
                 _D[l].lazy_mul *= _D[ind].lazy_mul;
                 _D[l].lazy_add *= _D[ind].lazy_mul;
-                _D[l].lazy_add += _D[ind].lazy_add;
 
                 _D[r].lazy_mul *= _D[ind].lazy_mul;
                 _D[r].lazy_add *= _D[ind].lazy_mul;
-                _D[r].lazy_add += _D[ind].lazy_add;
 
+                // RMQ
                 _D[l].min_content *= _D[ind].lazy_mul;
-                _D[l].min_content += _D[ind].lazy_add;
 
                 _D[r].min_content *= _D[ind].lazy_mul;
-                _D[r].min_content += _D[ind].lazy_add;
+
+                // 平方和，依赖区间和
+                _D[l].sqrt_content = _D[l].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
+
+                _D[r].sqrt_content = _D[r].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
 
                 _D[ind].lazy_mul = 1;
-                _D[ind].lazy_add = 0;
-
-                return;
             }
             if (_D[ind].lazy_add)
             {
+                // 平方和，先于区间和处理
+                _D[l].sqrt_content = _D[l].sqrt_content + 2 * _D[ind].lazy_add * _D[l].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * lson_length;
+
+                _D[r].sqrt_content = _D[r].sqrt_content + 2 * _D[ind].lazy_add * _D[r].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * rson_length;
+
                 _D[l].sum_content += _D[ind].lazy_add * lson_length;
                 _D[l].lazy_add += _D[ind].lazy_add;
                 _D[r].sum_content += _D[ind].lazy_add * rson_length;
@@ -200,6 +212,30 @@ namespace Tree
             }
         }
 
+        void _query_sqrt(
+            int l,
+            int r,
+            T &res,
+            int node_l,
+            int node_r,
+            int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                res += _D[x].sqrt_content;
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    _query_sqrt(l, r, res, node_l, mi, x << 1);
+                if (r > mi)
+                    _query_sqrt(l, r, res, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
         T query_sum(int l, int r)
         {
             T res = 0;
@@ -212,6 +248,13 @@ namespace Tree
             T res;
             memset(&res, 0x3f, sizeof(res));
             _query_min(l, r, res, 1, valid_len, 1);
+            return res;
+        }
+
+        T query_sqrt(int l, int r)
+        {
+            T res = 0;
+            _query_sqrt(l, r, res, 1, valid_len, 1);
             return res;
         }
     };
