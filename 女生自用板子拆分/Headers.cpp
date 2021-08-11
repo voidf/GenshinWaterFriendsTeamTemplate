@@ -173,6 +173,21 @@ int main() {
     //     :: "r"(p));
 }
 
+template<typename FT>
+FT randreal(FT begin, FT end)
+{
+    static std::default_random_engine eng(time(0));
+    std::uniform_real_distribution<FT> skip_rate(begin, end);
+    return skip_rate(eng);
+}
+
+template<typename IT>
+IT randint(IT begin, IT end)
+{
+    static std::default_random_engine eng(time(0));
+    std::uniform_int_distribution<IT> skip_rate(begin, end);
+    return skip_rate(eng);
+}
 
 std::chrono::_V2::steady_clock::time_point C = chrono::steady_clock::now();
 std::chrono::duration<double> D;

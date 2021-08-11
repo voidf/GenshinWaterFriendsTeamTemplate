@@ -14,19 +14,7 @@ FT fun(FT angle) // 根据需要改 评估函数
     return res;
 }
 
-FT randreal(FT begin = -pi, FT end = pi)
-{
-    static std::default_random_engine eng(time(0));
-    std::uniform_real_distribution<FT> skip_rate(begin, end);
-    return skip_rate(eng);
-}
 
-int randint(int begin, int end)
-{
-    static std::default_random_engine eng(time(0));
-    std::uniform_int_distribution<int> skip_rate(begin, end);
-    return skip_rate(eng);
-}
 
 void sa(FT temperature = 300, FT cooldown = 1e-14, FT cool = 0.986)
 {
