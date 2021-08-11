@@ -164,7 +164,7 @@ struct Polynomial
             for (auto &i : cof)
                 i /= lim;
     }
-    // 建议模数满足原根时使用，1e5 O2 331ms，无O2 612ms
+    /* 建议模数满足原根时使用，1e5 O2 331ms，无O2 612ms */
     void N_inv(int siz, Polynomial &B)
     {
         if (siz == 1)
@@ -188,7 +188,7 @@ struct Polynomial
         B.NTT(rev, lim, 1);
         std::fill(B.cof.begin() + siz, B.cof.end(), 0);
     }
-    // 两次MTT的任意模数多项式求逆，1e5 O2 550ms，无O2 2.11s
+    /* 两次MTT的任意模数多项式求逆，1e5 O2 550ms，无O2 2.11s */
     void F_inv(int siz, Polynomial &B)
     {
         if (siz == 1)
@@ -214,20 +214,51 @@ struct Polynomial
         }
     }
 
-    Polynomial getinv()
+    /* siz为需要求的多项式逆的次数，为0时默认取自己次数的 */
+    Polynomial getinv(int siz = 0)
     {
-        int siz = cof.size();
+        if (!siz)
+            siz = cof.size();
+        int orisiz = cof.size();
+        cof.resize(siz);
         Polynomial B;
         LL lim, limpow, retsize;
         Resize(*this, *this, lim, limpow, retsize);
-        F_inv(siz, B);
+        N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
         B.cof.resize(siz);
+        cof.resize(orisiz);
         return B;
     }
 
-    Polynomial operator*(Polynomial &rhs)
+    Polynomial operator*(const Polynomial &rhs)
     {
         return NTTMul(*this, rhs);
+    }
+    /* 获取F(x) = G(x) * Q(x) +  R(x)的Q(x) */
+    Polynomial operator/(Polynomial G)
+    {
+        Polynomial F(*this);
+        int beforen = F.cof.size();
+        std::reverse(F.cof.begin(), F.cof.end());
+        std::reverse(G.cof.begin(), G.cof.end());
+        int beforem = G.cof.size();
+        F.cof.resize(beforen - beforem + 1);
+        Polynomial tmp(F * G.getinv(beforen));
+        // G.cof.resize(beforem);
+        tmp.cof.resize(beforen - beforem + 1);
+        std::reverse(tmp.cof.begin(), tmp.cof.end());
+        // std::reverse(cof.begin(), cof.end());
+        return tmp;
+    }
+
+    /* 获取F(x) = G(x) * Q(x) +  R(x)的R(x) */
+    static Polynomial getremain(Polynomial &F, Polynomial &G, Polynomial &Q)
+    {
+        Polynomial C(G * Q);
+        C.cof.resize(G.cof.size() - 1);
+        for (auto i : range(G.cof.size() - 1))
+            C.cof[i] = F.msub(F.cof[i], C.cof[i]);
+        return C;
     }
 
     static std::vector<int> generateRev(LL lim, LL limpow)
