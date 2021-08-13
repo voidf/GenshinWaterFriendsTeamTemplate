@@ -51,7 +51,7 @@ template <typename T>
 struct Polynomial
 {
     std::vector<T> cof; // 各项系数 coefficient 低次在前高次在后
-    LL mod = 1e9+7; // 模数
+    LL mod = 998244353; // 模数
     LL G = 3;           // 原根
     LL Gi = 332748118;  // 原根的逆元
     using pointval = std::pair<T, T>;
@@ -110,20 +110,22 @@ struct Polynomial
     /* rev是蝴蝶操作数组，lim为填充到2的幂的值，mode为0正变换，1逆变换，逆变换后系数需要除以lim才是答案 */
     void NTT(std::vector<int> &rev, LL lim, bool mode = 0)
     {
-        for (auto i : range(lim))
+        int l;
+        for (int i = 0; i < lim; ++i)
             if (i < rev[i])
                 swap(cof[i], cof[rev[i]]);
-        for (LL mid = 1; mid < lim; mid <<= 1)
+        for (int mid = 1; mid < lim; mid = l)
         {
+            l = mid << 1;
             T Wn = power(mode ? Gi : G, (mod - 1) / (mid << 1), mod);
-            for (LL j = 0; j < lim; j += mid << 1)
+            for (int j = 0; j < lim; j += l)
             {
                 T w = 1;
-                for (LL k = 0; k < mid; ++k, w = (w * Wn) % mod)
+                for (int k = 0; k < mid; ++k, w = ((LL)w * Wn) % mod)
                 {
-                    T x = cof[j + k], y = w * cof[j + k + mid] % mod;
-                    cof[j + k] = madd(x, y); // 已经不得不用这个优化了
-                    cof[j + k + mid] = msub(x, y);
+                    T x = cof[j | k], y = (LL)w * cof[j | k | mid] % mod;
+                    cof[j | k] = madd(x, y); // 已经不得不用这个优化了
+                    cof[j | k | mid] = msub(x, y);
                 }
             }
         }
@@ -131,7 +133,7 @@ struct Polynomial
         {
             T iv = inv(lim, mod);
             for (auto &i : cof)
-                i = (i * iv) % mod;
+                i = ((LL)i * iv) % mod;
         }
     }
 
@@ -164,29 +166,33 @@ struct Polynomial
             for (auto &i : cof)
                 i /= lim;
     }
-    /* 建议模数满足原根时使用，1e5 O2 331ms，无O2 612ms */
+
+    /* 建议模数满足原根时使用，1e5 O2 331ms，无O2 612ms, 写成循环只优化了空间 */
     void N_inv(int siz, Polynomial &B)
     {
-        if (siz == 1)
+        B.cof.emplace_back(inv(cof[0], mod));
+        LL bas = 2, lim = 4, limpow = 2;
+        Polynomial A;
+        while (bas < (siz << 1))
         {
-            B.cof.emplace_back(inv(cof[0], mod));
-            return;
+            B.cof.resize(lim, 0);
+            if (bas <= cof.size())
+                A.cof.assign(cof.begin(), cof.begin() + bas);
+            else
+                A.cof = cof;
+            A.cof.resize(lim, 0);
+            std::vector<int> rev(generateRev(lim, limpow));
+            A.NTT(rev, lim, 0);
+            B.NTT(rev, lim, 0);
+            for (auto i : range(lim))
+                B.cof[i] = (LL)B.cof[i] * (2 + mod - (LL)B.cof[i] * A.cof[i] % mod) % mod;
+            B.NTT(rev, lim, 1);
+            std::fill(B.cof.begin() + bas, B.cof.end(), 0);
+            bas <<= 1;
+            lim <<= 1;
+            ++limpow;
         }
-        N_inv((siz + 1) >> 1, B);
-        LL lim = 1, limpow = 0;
-        while (lim < (siz << 1))
-            lim <<= 1, ++limpow;
-        Polynomial C;
-        C.cof.assign(cof.begin(), cof.begin() + siz);
-        C.cof.resize(lim, 0);
-        B.cof.resize(lim, 0);
-        std::vector<int> rev(generateRev(lim, limpow));
-        C.NTT(rev, lim, 0);
-        B.NTT(rev, lim, 0);
-        for (auto i : range(lim))
-            B.cof[i] = msub(2LL, B.cof[i] * C.cof[i] % mod) * B.cof[i] % mod;
-        B.NTT(rev, lim, 1);
-        std::fill(B.cof.begin() + siz, B.cof.end(), 0);
+        B.cof.resize(siz);
     }
     /* 两次MTT的任意模数多项式求逆，1e5 O2 550ms，无O2 2.11s */
     void F_inv(int siz, Polynomial &B)
@@ -213,6 +219,49 @@ struct Polynomial
                 LL(round(BBC.cof[i].real())) % mod);
         }
     }
+    /* G2 = (G1^2 + A)/2G1 */
+    Polynomial getsqrt()
+    {
+        Polynomial B;
+        int siz = cof.size();
+        LL s1, s2;
+        Cipolla<LL>::solve((LL)cof[0], (LL)mod, s1, s2);
+        if (s2 < s1)
+            swap(s2, s1);
+        B.cof.emplace_back(s1);
+        LL bas = 2, lim = 4, limpow = 2;
+        Polynomial A;
+        // T inv2 = inv(2, mod);
+        while (bas < (siz << 1))
+        {
+            Polynomial Binv(B.getinv(bas));
+            B.cof.resize(lim, 0);
+            if (bas <= cof.size())
+                A.cof.assign(cof.begin(), cof.begin() + bas);
+            else
+                A.cof = cof;
+            A.cof.resize(lim, 0);
+            std::vector<int> rev(generateRev(lim, limpow));
+            Binv.cof.resize(lim);
+            A.NTT(rev, lim, 0);
+            B.NTT(rev, lim, 0);
+            Binv.NTT(rev, lim, 0);
+
+            for (auto i : range(lim))
+            {
+                B.cof[i] = (LL)Binv.cof[i] * (A.cof[i] + (LL)B.cof[i] * B.cof[i] % mod) % mod;
+                B.cof[i] = (B.cof[i] & 1) ? (B.cof[i] + mod >> 1) : B.cof[i] >> 1;
+            }
+
+            B.NTT(rev, lim, 1);
+            std::fill(B.cof.begin() + bas, B.cof.end(), 0);
+            bas <<= 1;
+            lim <<= 1;
+            ++limpow;
+        }
+        B.cof.resize(siz);
+        return B;
+    }
 
     /* siz为需要求的多项式逆的次数，为0时默认取自己次数的 */
     Polynomial getinv(int siz = 0)
@@ -222,8 +271,8 @@ struct Polynomial
         int orisiz = cof.size();
         cof.resize(siz);
         Polynomial B;
-        LL lim, limpow, retsize;
-        Resize(*this, *this, lim, limpow, retsize);
+        // LL lim, limpow, retsize;
+        // Resize(*this, *this, lim, limpow, retsize);
         N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
         B.cof.resize(siz);
         cof.resize(orisiz);
@@ -411,3 +460,5 @@ struct Complex
     }
     inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
 };
+using _MTT = Complex<double>;
+using _NTT = long long;
