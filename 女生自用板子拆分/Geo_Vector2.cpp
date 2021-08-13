@@ -59,7 +59,7 @@ namespace Geometry
         {
             FLOAT_ ox = x;
             FLOAT_ oy = y;
-            theta = (use_degree ? theta / 180 * M_PI : theta);
+            theta = (use_degree ? theta / 180 * PI : theta);
             FLOAT_ costheta = cos(theta);
             FLOAT_ sintheta = sin(theta);
             this->x = ox * costheta - oy * sintheta;
