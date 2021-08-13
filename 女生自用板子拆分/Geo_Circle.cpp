@@ -71,7 +71,7 @@ namespace Geometry
             return make_pair(fromRad(ang + dang), fromRad(ang - dang));
         }
 
-        FLOAT_ area() { return pi * radius * radius; }
+        FLOAT_ area() { return PI * radius * radius; }
 
         bool is_outside(Vector2 p)
         {
@@ -81,7 +81,45 @@ namespace Geometry
         {
             return intereps((p - center).magnitude() - radius) < 0;
         }
+        static intersect_area(Circle A, Circle B)
+        {
+            Vector2 dis = A.center - B.center;
+            FLOAT_ sqrdis = dis.sqrMagnitude();
+            FLOAT_ cdis = sqrt(sqrdis);
+            if (sqrdis >= pow(A.radius + B.radius, 2))
+                return FLOAT_(0);
+            if (A.radius >= B.radius)
+                std::swap(A, B);
+            if (cdis + A.radius <= B.radius)
+                return PI * A.radius * A.radius;
+            if (sqrdis >= B.radius * B.radius)
+            {
+                FLOAT_ area = 0.0;
+                FLOAT_ ed = sqrdis;
+                FLOAT_ jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt((FLOAT_)ed));
+                jiao = acos(jiao);
+                jiao *= 2.0;
+                area += B.radius * B.radius * jiao / 2;
+                jiao = sin(jiao);
+                area -= B.radius * B.radius * jiao / 2;
+                jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt((FLOAT_)ed));
+                jiao = acos(jiao);
+                jiao *= 2;
+                area += A.radius * A.radius * jiao / 2;
+                jiao = sin(jiao);
+                area -= A.radius * A.radius * jiao / 2;
+                return area;
+            }
+            FLOAT_ area = 0.0;
+            FLOAT_ ed = sqrdis;
+            FLOAT_ jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt(ed));
+            jiao = acos(jiao);
+            area += A.radius * A.radius * jiao;
+            jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt(ed));
+            jiao = acos(jiao);
+            area += B.radius * B.radius * jiao - B.radius * sqrt(ed) * sin(jiao);
+            return area;
+        }
     };
-
 
 }
