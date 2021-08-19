@@ -94,4 +94,68 @@ inline LL S_(LL x, int y)
     return ans % mo;
 }
 
+
+// 递归，分段缓存版本
+unordered_map<ULL, LL> UM;
+unordered_map<unsigned, unsigned> IM;
+
+LL ans[100010];
+vector<vector<pair<LL, LL>>> QUERY(17, vector<pair<LL, LL>>());
+
+unsigned gfi(unsigned n, int j)
+{
+    unsigned mpk = unsigned(j) * 1000000001 + n;
+    if (IM.count(mpk))
+        return IM[mpk];
+    else
+    {
+        LL ret;
+        if (n < 2)
+            ret = 0;
+        else if (n == 2)
+            ret = 1;
+        else if (j < 1)
+            ret = n - 1;
+        else if (prime[j] * prime[j] > n)
+            ret = gfi(n, j - 1);
+        else
+            ret = gfi(n, j - 1) - (gfi(n / prime[j], j - 1) - (j - 1));
+        // if (n < 1e9)
+        //     return UM[mpk] = ret;
+        return ret;
+    }
+}
+
+LL gf(LL n, LL j)
+{
+    if (n < 1e9)
+        return gfi(unsigned(n), j);
+    ULL mpk = ULL(j) * 1000000000000000001 + n;
+    if (UM.count(mpk))
+        return UM[mpk];
+    else
+    {
+        LL ret;
+        if (n < 2)
+            ret = 0;
+        else if (n == 2)
+            ret = 1;
+        else if (j < 1)
+            ret = n - 1;
+        else if (prime[j] * prime[j] > n)
+            ret = gf(n, j - 1);
+        else
+        {
+            // ret = gf(n, j - 1) -  (gf(n / prime[j], j - 1)) - (j - 1);
+            ret = gf(n, j - 1);
+            LL dv = n / prime[j];
+            LL ret2 = (n < 1e9 ? gfi(dv, j - 1) : gf(dv, j - 1)) - (j - 1);
+            ret -= ret2;
+        }
+        // if (n < 1e9)
+        //     return UM[mpk] = ret;
+        return UM[mpk] = ret;
+    }
+}
+
 // min_25结束
