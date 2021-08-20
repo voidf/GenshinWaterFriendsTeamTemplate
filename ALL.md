@@ -2963,10 +2963,7 @@ int main()
 
 ```cpp
 // 倍增方法：
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <vector>
+#include<bits/stdc++.h>
 #define MXN 50007
 using namespace std;
 std::vector<int> v[MXN];
@@ -3005,12 +3002,15 @@ int lca(int x, int y) {
 	return ans;
 }
 int main() {
+    ios::sync_with_stdio(false);
 	memset(fa, 0, sizeof(fa));
 	memset(cost, 0, sizeof(cost));
 		memset(dep, 0, sizeof(dep));
-	scanf("%d", &n);
+	// scanf("%d", &n);
+    cin>>n;
 	for (int i = 1; i < n; ++i) {
-		scanf("%d %d %d", &a, &b, &c);
+		// scanf("%d %d %d", &a, &b, &c);
+        cin>>a>>b>>c;
 		++a, ++b;
 		v[a].push_back(b);
 		v[b].push_back(a);
@@ -3018,15 +3018,20 @@ int main() {
 		w[b].push_back(c);
 	}
 	dfs(1, 0);
-	scanf("%d", &m);
+	// scanf("%d", &m);
+    cin>>m;
 	for (int i = 0; i < m; ++i) {
-		scanf("%d %d", &a, &b);
-		++a, ++b;
-		printf("%d\n", lca(a, b));
+		// scanf("%d %d", &a, &b);
+		cin>>a>>b;
+        ++a, ++b;
+		// printf("%d\n", lca(a, b));
+        cout<<lca(a,b)<<"\n";
 	}
 	return 0;
 }
 ```
+
+
 
 ```cpp
 // Tarjan方法：
@@ -5351,6 +5356,7 @@ int main() {
 ### 欧拉筛
 
 ```cpp
+typedef long long LL
 // #define ORAFM 2333
 int prime[ORAFM + 5], prime_number = 0, prv[ORAFM + 5];
 // 莫比乌斯函数
