@@ -2270,35 +2270,36 @@ void DP(int u, int p) {// p 为 u 的父节点
 ### 并查集
 
 ```cpp
+int parent[maxn],rk[maxn];
 void init(int n)
 {
     for(int i=0;i<n;i++)
     {
         parent[i]=i;
-        rank[i]=0;   // 初始树的高度为0
+        rk[i]=0;   // 初始树的高度为0
     }
 }
 // 合并x和y所属的集合
+int fid(int x)       //查找x元素所在的集合,回溯时压缩路径
+{
+    if (x != parent[x])
+    {
+        parent[x] = fid(parent[x]);     //回溯时的压缩路径
+    }         //从x结点搜索到祖先结点所经过的结点都指向该祖先结点
+    return parent[x];
+}
 void unite(int x,int y)
 {
-    x=find(x);
-    y=find(y);
+    x=fid(x);
+    y=fid(y);
     if(x==y) return ;
-    if(rank[x]<rank[y])
+    if(rk[x]<rk[y])
         parent[x]=y;  // 合并是从rank小的向rank大的连边
     else
     {
         parent[y]=x;
-        if(rank[x]==rank[y]) rank[x]++;
+        if(rk[x]==rk[y]) rk[x]++;
     }
-}
-int find(int x)       //查找x元素所在的集合,回溯时压缩路径
-{
-    if (x != parent[x])
-    {
-        parent[x] = find(parent[x]);     //回溯时的压缩路径
-    }         //从x结点搜索到祖先结点所经过的结点都指向该祖先结点
-    return parent[x];
 }
 ```
 
