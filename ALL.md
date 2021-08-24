@@ -907,7 +907,7 @@ void Boruvka() {
 
     if (merged == N - 1)  //printf("%d\n", sum);
         cout<<sum<<"\n";
-    else puts("orz");
+    else cout<<"orz\n";
 }
 
 int main() {
