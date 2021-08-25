@@ -834,6 +834,92 @@ inline char qrc()
 
 ## 图论
 
+### 最小生成树 
+
+#### Boruvka
+
+ 求最小森林 $O(E\log V)$
+
+```cpp
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MaxN = 5000 + 5, MaxM = 200000 + 5;
+
+int N, M;
+int U[MaxM], V[MaxM], W[MaxM];
+bool used[MaxM];
+int par[MaxN], Best[MaxN];
+
+void init() {
+    //scanf("%d %d", &N, &M);
+    cin>>N>>M;
+    for (int i = 1; i <= M; ++i)
+        cin>>U[i]>>V[i]>>W[i];
+        //scanf("%d %d %d", &U[i], &V[i], &W[i]);
+}
+
+void init_dsu() {
+    for (int i = 1; i <= N; ++i)
+        par[i] = i;
+}
+
+int get_par(int x) {
+    if (x == par[x]) return x;
+    else return par[x] = get_par(par[x]);
+}
+
+// 比较统一连通块的出边边权
+inline bool Better(int x, int y) {
+    if (y == 0) return true;
+    if (W[x] != W[y]) return W[x] < W[y];
+    return x < y;
+}
+
+void Boruvka() {
+    init_dsu();
+
+    int merged = 0, sum = 0;
+
+    bool update = true;
+    while (update) {
+        update = false;
+        memset(Best, 0, sizeof Best);
+
+        for (int i = 1; i <= M; ++i) {
+            if (used[i] == true) continue;
+            int p = get_par(U[i]), q = get_par(V[i]);
+            if (p == q) continue;
+
+            if (Better(i, Best[p]) == true) Best[p] = i;
+            if (Better(i, Best[q]) == true) Best[q] = i;
+        }
+
+        for (int i = 1; i <= N; ++i)
+            if (Best[i] != 0 && used[Best[i]] == false) {
+                update = true;
+                merged++; sum += W[Best[i]];
+                used[Best[i]] = true;
+                // 合并连通块
+                par[get_par(U[Best[i]])] = get_par(V[Best[i]]);
+            }
+    }
+
+    if (merged == N - 1)  //printf("%d\n", sum);
+        cout<<sum<<"\n";
+    else cout<<"orz\n";
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    init();
+    Boruvka();
+    return 0;
+}
+```
+
+
+
 ### 二分图
 
 #### 二分图带权最大匹配-KM
@@ -2184,35 +2270,36 @@ void DP(int u, int p) {// p 为 u 的父节点
 ### 并查集
 
 ```cpp
+int parent[maxn],rk[maxn];
 void init(int n)
 {
     for(int i=0;i<n;i++)
     {
         parent[i]=i;
-        rank[i]=0;   // 初始树的高度为0
+        rk[i]=0;   // 初始树的高度为0
     }
 }
 // 合并x和y所属的集合
+int fid(int x)       //查找x元素所在的集合,回溯时压缩路径
+{
+    if (x != parent[x])
+    {
+        parent[x] = fid(parent[x]);     //回溯时的压缩路径
+    }         //从x结点搜索到祖先结点所经过的结点都指向该祖先结点
+    return parent[x];
+}
 void unite(int x,int y)
 {
-    x=find(x);
-    y=find(y);
+    x=fid(x);
+    y=fid(y);
     if(x==y) return ;
-    if(rank[x]<rank[y])
+    if(rk[x]<rk[y])
         parent[x]=y;  // 合并是从rank小的向rank大的连边
     else
     {
         parent[y]=x;
-        if(rank[x]==rank[y]) rank[x]++;
+        if(rk[x]==rk[y]) rk[x]++;
     }
-}
-int find(int x)       //查找x元素所在的集合,回溯时压缩路径
-{
-    if (x != parent[x])
-    {
-        parent[x] = find(parent[x]);     //回溯时的压缩路径
-    }         //从x结点搜索到祖先结点所经过的结点都指向该祖先结点
-    return parent[x];
 }
 ```
 
@@ -2963,10 +3050,7 @@ int main()
 
 ```cpp
 // 倍增方法：
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <vector>
+#include<bits/stdc++.h>
 #define MXN 50007
 using namespace std;
 std::vector<int> v[MXN];
@@ -3005,12 +3089,15 @@ int lca(int x, int y) {
 	return ans;
 }
 int main() {
+    ios::sync_with_stdio(false);
 	memset(fa, 0, sizeof(fa));
 	memset(cost, 0, sizeof(cost));
 		memset(dep, 0, sizeof(dep));
-	scanf("%d", &n);
+	// scanf("%d", &n);
+    cin>>n;
 	for (int i = 1; i < n; ++i) {
-		scanf("%d %d %d", &a, &b, &c);
+		// scanf("%d %d %d", &a, &b, &c);
+        cin>>a>>b>>c;
 		++a, ++b;
 		v[a].push_back(b);
 		v[b].push_back(a);
@@ -3018,15 +3105,20 @@ int main() {
 		w[b].push_back(c);
 	}
 	dfs(1, 0);
-	scanf("%d", &m);
+	// scanf("%d", &m);
+    cin>>m;
 	for (int i = 0; i < m; ++i) {
-		scanf("%d %d", &a, &b);
-		++a, ++b;
-		printf("%d\n", lca(a, b));
+		// scanf("%d %d", &a, &b);
+		cin>>a>>b;
+        ++a, ++b;
+		// printf("%d\n", lca(a, b));
+        cout<<lca(a,b)<<"\n";
 	}
 	return 0;
 }
 ```
+
+
 
 ```cpp
 // Tarjan方法：
@@ -5351,6 +5443,7 @@ int main() {
 ### 欧拉筛
 
 ```cpp
+typedef long long LL
 // #define ORAFM 2333
 int prime[ORAFM + 5], prime_number = 0, prv[ORAFM + 5];
 // 莫比乌斯函数
@@ -5831,6 +5924,23 @@ void Gauss() {
 
 卡特兰数 K(x) = C(2*x, x) / (x + 1)
 
+### 生成函数
+
+#### 普通生成函数
+
+常用生成函数的开放，收敛转化：
+$$
+1+px+p^2x^2+...=\frac{1}{1-px}
+$$
+
+$$
+\sum_{n=0}C_{m}^nx^n=(1+x)^m
+$$
+
+$$
+\sum_{n=0}{C_{n+m}^{n}}x^n=\frac{1}{(1-x)^{m+1}}
+$$
+
 ### 来自bot的球盒问题
 
 ```py
@@ -6015,7 +6125,7 @@ int main() {
 }
 ```
 
-
+### 常用宏及函数与快读
 
 ```c++
 // v2021.5.22 主席树更面向对象
@@ -6102,7 +6212,7 @@ int randint(int begin, int end)
 
 ```
 
-石子合并 4e4
+### 石子合并 4e4
 
 找到第一个a\[i]满足a\[i-1]<=a\[i+1]，将他俩合并。
 
