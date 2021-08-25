@@ -1,23 +1,23 @@
 #include "Headers.cpp"
 #include "foreach.cpp"
 
-/* Tarjan求割点 67097c1850be2e3cfed344d3d4e1142d */
+/* Tarjan求割点 0be7ea2efe57f513c4616992215f7be9 */
 struct Tarjan
 {
     std::vector<int> DFN, LOW;
     std::vector<int> belongs;
-    std::vector<int> DFS_from; // 记父亲节点
-    std::vector<std::set<int>> &E; // 根据实际情况选择set还是vector
+    std::vector<int> DFS_from;        // 记父亲节点
+    std::vector<std::vector<int>> &E; // 根据实际情况选择set还是vector
     std::vector<char> in_stack;
     std::stack<int> stk;
     std::vector<int> changed; // 被缩点的点
     int ts;
-    std::set<int> cut; // 割点
+    // std::set<int> cut; // 割点
     int N;
     int remaining_point_ctr;
 
     /* 构造函数确定边引用 */
-    Tarjan(int _siz, std::vector<std::set<int>> &_E) : E(_E), N(_siz + 1) {}
+    Tarjan(int _siz, std::vector<std::vector<int>> &_E) : E(_E), N(_siz + 1) {}
 
     /* 类并查集路径压缩寻找SCC代表节点 */
     inline int chk_belongs(int x)
@@ -56,21 +56,21 @@ struct Tarjan
         stk.push(x);
         if (x == f) // 本节点为根
         {
-            set<int> realson;
+            // set<int> realson;
             for (auto &i : E[x])
             {
                 if (!DFN[i])
                 {
                     tarjan(i, x);
                     LOW[x] = min(LOW[x], LOW[i]);
-                    if (realson.size() < 2)
-                        realson.insert(LOW[i]);
+                    // if (realson.size() < 2)
+                    // realson.insert(LOW[i]);
                 }
                 else if (in_stack[i])
                     LOW[x] = min(LOW[x], DFN[i]);
             }
-            if (realson.size() >= 2)
-                cut.insert(x);
+            // if (realson.size() >= 2)
+            // cut.insert(x);
         }
         else
         {
@@ -83,8 +83,8 @@ struct Tarjan
                     {
                         tarjan(i, x);
                         LOW[x] = min(LOW[x], LOW[i]);
-                        if (LOW[i] >= DFN[x])
-                            cut.insert(x);
+                        // if (LOW[i] >= DFN[x])
+                        // cut.insert(x);
                     }
                     else if (in_stack[i])
                         LOW[x] = min(LOW[x], DFN[i]);
@@ -111,14 +111,14 @@ struct Tarjan
     {
         for (auto i : changed)
         {
+            int fi = chk_belongs(i);
             for (auto j : E[i])
             {
-                int fi = chk_belongs(i);
                 int fj = chk_belongs(j);
                 if (fi != fj)
-                    E[fi].emplace(fj);
+                    E[fi].emplace_back(fj);
             }
-            E[i].clear();
+            E[i].clear(); // 清掉已经被缩点的点上的边
         }
         changed.clear();
     }
@@ -137,14 +137,17 @@ struct Tarjan
 
     inline void update_point(int x)
     {
-        set<int> tmpe;
+        std::unordered_set<int> tmpe;
         for (auto j : E[x])
         {
             int fj = chk_belongs(j);
             if (fj != x)
                 tmpe.emplace(fj);
         }
-        swap(E[x], tmpe);
+        E[x].clear();
+        for (auto j : tmpe)
+            E[x].emplace_back(j);
+        // swap(E[x], tmpe);
     }
 
     /* 仅加一条边的缩点，在已经跑过上面的缩点之后使用，为了保证复杂度实际上只维护了一个并查集 */

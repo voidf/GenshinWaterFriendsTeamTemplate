@@ -5,6 +5,15 @@ charset = string.ascii_uppercase
 def randstr(l):
     return ''.join(random.choices(charset, k=l))
 
+def randomtree(siz: int) -> list:
+    ret = []
+    rem = [i for i in range(1,siz+1)]
+    random.shuffle(rem)
+    while len(rem)>1:
+        rd = rem.pop()
+        ret.append((rd, random.choice(rem)))
+    return ret
+
 exe1 = 'norm.exe'
 
 exe2 = 'duipai.exe'
