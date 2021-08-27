@@ -13,7 +13,7 @@
 - 正文说明使用六号
 - 
 
-# Todo List
+# TODO
 
 - [ ] 快速阶乘
 - [ ] splay
