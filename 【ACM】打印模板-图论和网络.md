@@ -602,68 +602,92 @@ for (int i = 1; i <= n; ++i)
 ## 最大流-Dinic
 
 ```cpp
-LL distant[M]; // 用于分层图层次表示
-LL current[M]; // 当前弧优化
-LL n, m, src, dst;
-
-inline LL bfs()
+template <class T>
+struct Dinic
 {
-	for (auto i = 1; i <= n; i++)
-		distant[i] = INF;
-	queue<LL> Q;
-	Q.push(src);
-	distant[src] = 0;
-	current[src] = hds[src];
-	while (!Q.empty())
-	{
-		auto x = Q.front();
-		Q.pop();
-		for (auto i = hds[x]; ~i; i = E[i].next)
-		{
-			auto v = E[i].to;
-			if (E[i].val > 0 and distant[v] == INF)
-			{
-				Q.push(v);
-				current[v] = hds[v];
-				distant[v] = distant[x] + 1;
-				if (v == dst)
-					return 1;
-			}
-		}
-	}
-	return 0;
-}
-
-inline LL dfs(LL x, LL Sum)
-{
-	if (x == dst)
-		return Sum;
-	LL res = 0;
-	for (auto i = current[x]; ~i and Sum; i = E[i].next) // 当前弧优化：改变枚举起点
-	{
-		current[x] = i;
-		auto v = E[i].to;
-		if (E[i].val > 0 and (distant[v] == distant[x] + 1))
-		{
-			LL remain = dfs(v, min(Sum, E[i].val)); // remain:当前最小剩余的流量
-			if (remain == 0)
-				distant[v] = INF; // 去掉增广完毕的点
-			E[i].val -= remain;
-			E[i ^ 1].val += remain;
-			res += remain; // 经过该点的所有流量和
-			Sum -= remain; // 该点剩余流量
-		}
-	}
-	return res;
-}
-
-LL Dinic()
-{
-	LL ans = 0;
-	while (bfs())
-		ans += dfs(src, INF);
-	return ans;
-}
+	int vnum,edgenum; //点数 边数
+    struct Edge
+    {
+        int v, next;
+        T flow;
+        Edge() {}
+        Edge(int v, int next, T flow) : v(v), next(next), flow(flow) {}
+    } e[N * 30];
+    int head[N], tot;
+    int cur[N];  // 当前弧优化
+    int dep[N];
+    void init(int siz)
+    {
+        memset(head, -1, sizeof(int)*(siz+10));
+        vnum=siz;
+		tot = 0;
+    }
+    void adde(int u, int v, T w, T rw = 0)
+    {
+        e[tot] = Edge(v, head[u], w);
+        head[u] = tot++;
+        // cur[u]=head[u];
+        e[tot] = Edge(u, head[v], rw);
+        head[v] = tot++;
+        // cur[v]=head[v];
+    }
+    bool BFS(int _S, int _T)
+    {
+        memset(dep, 0, sizeof(dep));
+		memcpy(cur,head,sizeof(int)*(vnum+10));
+        queue<int> q;
+        q.push(_S);
+        dep[_S] = 1;
+        while (!q.empty())
+        {
+            int u = q.front();
+            q.pop();
+            for (int i = head[u]; ~i; i = e[i].next)
+            {
+                int v = e[i].v;
+                if (!dep[v] && e[i].flow > 0)
+                {
+                    dep[v] = dep[u] + 1;
+                    q.push(v);
+                }
+            }
+        }
+        return dep[_T] != 0;
+    }
+    T dfs(int _S, int _T, T a)
+    {
+        T flow = 0, f;
+        if (_S == _T || a == 0)
+            return a;
+        for (int i = cur[_S]; ~i; i = e[i].next)
+        {
+            cur[_S]=i;  // 当前弧
+            int v = e[i].v;
+            if (dep[v] != dep[_S] + 1)
+                continue;
+            f = dfs(v, _T, min(a, e[i].flow));
+            if (f)
+            {
+                e[i].flow -= f;
+                e[i ^ 1].flow += f;
+                flow += f;
+                a -= f;
+                if (a == 0)
+                    break;
+            }
+        }
+        if (!flow)
+            dep[_S] = -1;
+        return flow;
+    }
+    T dinic(int _S, int _T)
+    {
+        T max_flow = 0;
+        while (BFS(_S, _T))
+            max_flow += dfs(_S, _T, INF);
+        return max_flow;
+    }
+};
 ```
 
 ## 最大流-HLPP+黑魔法优化
