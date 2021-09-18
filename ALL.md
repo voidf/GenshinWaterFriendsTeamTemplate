@@ -2028,6 +2028,7 @@ namespace HLPP
 ```cpp
 #include "Headers.cpp"
 
+/* 2021.7.23 完全使用vector版本，SPFA使用SLF优化 */
 template <typename T>
 struct MCMF // 费用流(Dinic)zkw板子
 {           // Based on Dinic (zkw)
@@ -2035,12 +2036,12 @@ struct MCMF // 费用流(Dinic)zkw板子
     typedef long long LL;
     T INF;
     int N = 1e5 + 5; // 最大点meta参数，要按需改
-#define _N 100006
+#define _N 10006
     std::bitset<_N> vis; // 要一起改
-    T *Dis;
-    int s, t;           // 源点，汇点需要外部写入
-    int *Cur;           // 当前弧优化用
-    T maxflow, mincost; // 放最终答案
+    std::vector<T> Dis;
+    int s, t;             // 源点，汇点需要外部写入
+    std::vector<int> Cur; // 当前弧优化用
+    T maxflow, mincost;   // 放最终答案
 
     struct EdgeContent
     {
@@ -2051,14 +2052,15 @@ struct MCMF // 费用流(Dinic)zkw板子
         EdgeContent(int a, T b, T c, int d) : to(a), flow(b), cost(c), dualEdge(d) {}
     };
 
-    std::vector<EdgeContent> *E;
+    std::vector<std::vector<EdgeContent>> E;
 
+    /* 构造函数，分配内存 */
     MCMF(int n)
     {
         N = n;
-        E = new std::vector<EdgeContent>[n + 1];
-        Dis = new T[n + 1];
-        Cur = new int[n + 1];
+        E.assign(n + 1, std::vector<EdgeContent>());
+        Dis.assign(n + 1, 0);
+        Cur.assign(n + 1, 0);
         maxflow = mincost = 0;
         memset(&INF, 0x3f, sizeof(INF));
     }
@@ -2071,24 +2073,35 @@ struct MCMF // 费用流(Dinic)zkw板子
 
     bool SPFA()
     {
-        std::queue<int> Q;
-        Q.emplace(s);
-        memset(Dis, INF, sizeof(T) * (N + 1));
+        std::deque<int> Q;
+        Q.emplace_back(s);
+        // memset(Dis, INF, sizeof(T) * (N + 1));
+        Dis.assign(N + 1, INF);
         Dis[s] = 0;
         int k;
         while (!Q.empty())
         {
             k = Q.front();
-            Q.pop();
+            Q.pop_front();
             vis.reset(k);
-            for (auto [to, f, w, rev] : E[k])
+            // for (auto [to, f, w, rev] : E[k])s
+            for (auto &i : E[k])
             {
+                auto &to = i.to;
+                auto &f = i.flow;
+                auto &w = i.cost;
+                auto &rev = i.dualEdge;
                 if (f and Dis[k] + w < Dis[to])
                 {
                     Dis[to] = Dis[k] + w;
                     if (!vis.test(to))
                     {
-                        Q.emplace(to);
+                        if (Q.size() and Dis[Q.front()] > Dis[to])
+                        {
+                            Q.emplace_front(to);
+                        }
+                        else
+                            Q.emplace_back(to);
                         vis.set(to);
                     }
                 }
@@ -2107,7 +2120,11 @@ struct MCMF // 费用流(Dinic)zkw板子
         vis.set(k);
         for (auto i = Cur[k]; i < E[k].size(); i++)
         {
-            auto &[to, f, w, rev] = E[k][i];
+            auto &to = E[k][i].to;
+            auto &f = E[k][i].flow;
+            auto &w = E[k][i].cost;
+            auto &rev = E[k][i].dualEdge;
+            // auto &[to, f, w, rev] = E[k][i];
             if (!vis.test(to) and f and Dis[to] == Dis[k] + w)
             {
                 Cur[k] = i;
@@ -2128,7 +2145,8 @@ struct MCMF // 费用流(Dinic)zkw板子
     {
         while (SPFA())
         {
-            memset(Cur, 0, sizeof(int) * (N + 1));
+            // memset(Cur, 0, sizeof(int) * (N + 1));
+            Cur.assign(N + 1, 0);
             DFS(s, INF);
         }
     }
@@ -2524,6 +2542,273 @@ int main()
         }
     }
 }
+```
+
+### 线段树
+
+```cpp
+
+// 4a3629edbc4bfda9ca2df0ff11f870e4 2021.8.10 线段树区间平方和
+namespace Tree
+{
+    template <typename T>
+    struct _iNode
+    {
+        T lazy_add;
+        T sum_content;
+        T lazy_mul;
+        // T max_content;
+        T min_content;
+        T sqrt_content;
+        _iNode() : lazy_add(0), sum_content(0), lazy_mul(1), min_content(0x3f3f3f3f), sqrt_content(0) {}
+    };
+
+    template <typename T>
+    struct SegmentTree
+    {
+        using _Node = _iNode<T>;
+        int len;       // 线段树实际节点数
+        int valid_len; // 原有效数据长度
+        std::vector<_Node> _D;
+        // template <typename AllocationPlaceType = void>
+        SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
+        {
+            valid_len = length;
+            len = 1 << 1 + (int)ceil(log2(length));
+            _D.resize(len);
+        }
+
+        void show()
+        {
+            std::cout << '[';
+            for (_Node *i = _D.begin(); i != _D.end(); ++i)
+                std::cout << i->sum_content << ",]"[i == _D.end() - 1] << " \n"[i == _D.end() - 1];
+        }
+
+        static int mid(int l, int r) { return l + r >> 1; }
+
+        void update_mul(int l,
+                        int r,
+                        T v,
+                        int node_l,
+                        int node_r,
+                        int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                _D[x].lazy_add *= v;
+                _D[x].sum_content *= v;
+                _D[x].lazy_mul *= v;
+                _D[x].min_content *= v;
+
+                _D[x].sqrt_content = _D[x].sqrt_content * v * v;
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    update_mul(l, r, v, node_l, mi, x << 1);
+                if (r > mi)
+                    update_mul(l, r, v, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
+        void update_add(int l,
+                        int r,
+                        T v,
+                        int node_l,
+                        int node_r,
+                        int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                LL my_length = node_r - node_l + 1;
+                _D[x].lazy_add += v;
+
+                _D[x].sqrt_content = _D[x].sqrt_content + 2 * v * _D[x].sum_content + (my_length * v * v);
+
+                _D[x].sum_content += my_length * v;
+                _D[x].min_content += v;
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    update_add(l, r, v, node_l, mi, x << 1);
+                if (r > mi)
+                    update_add(l, r, v, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
+        void range_mul(int l, int r, T v)
+        {
+            update_mul(l, r, v, 1, valid_len, 1);
+        }
+
+        void range_add(int l, int r, T v)
+        {
+            update_add(l, r, v, 1, valid_len, 1);
+        }
+
+        inline void maintain(int i)
+        {
+            int l = i << 1;
+            int r = l | 1;
+            _D[i].sum_content = (_D[l].sum_content + _D[r].sum_content);
+            _D[i].min_content = min(_D[l].min_content, _D[r].min_content);
+
+            _D[i].sqrt_content = (_D[l].sqrt_content + _D[r].sqrt_content);
+        }
+
+        inline void push_down(int ind, int my_left_bound, int my_right_bound)
+        {
+            int l = ind << 1;
+            int r = l | 1;
+            int mi = mid(my_left_bound, my_right_bound);
+            int lson_length = (mi - my_left_bound + 1);
+            int rson_length = (my_right_bound - mi);
+            if (_D[ind].lazy_mul != 1)
+            {
+                // 区间和
+                _D[l].sum_content *= _D[ind].lazy_mul;
+
+                _D[r].sum_content *= _D[ind].lazy_mul;
+
+                _D[l].lazy_mul *= _D[ind].lazy_mul;
+                _D[l].lazy_add *= _D[ind].lazy_mul;
+
+                _D[r].lazy_mul *= _D[ind].lazy_mul;
+                _D[r].lazy_add *= _D[ind].lazy_mul;
+
+                // RMQ
+                _D[l].min_content *= _D[ind].lazy_mul;
+
+                _D[r].min_content *= _D[ind].lazy_mul;
+
+                // 平方和，依赖区间和
+                _D[l].sqrt_content = _D[l].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
+
+                _D[r].sqrt_content = _D[r].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
+
+                _D[ind].lazy_mul = 1;
+            }
+            if (_D[ind].lazy_add)
+            {
+                // 平方和，先于区间和处理
+                _D[l].sqrt_content = _D[l].sqrt_content + 2 * _D[ind].lazy_add * _D[l].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * lson_length;
+
+                _D[r].sqrt_content = _D[r].sqrt_content + 2 * _D[ind].lazy_add * _D[r].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * rson_length;
+
+                _D[l].sum_content += _D[ind].lazy_add * lson_length;
+                _D[l].lazy_add += _D[ind].lazy_add;
+                _D[r].sum_content += _D[ind].lazy_add * rson_length;
+                _D[r].lazy_add += _D[ind].lazy_add;
+
+                _D[l].min_content += _D[ind].lazy_add;
+                _D[r].min_content += _D[ind].lazy_add;
+                _D[ind].lazy_add = 0;
+            }
+        }
+
+        void _query_sum(
+            int l,
+            int r,
+            T &res,
+            int node_l,
+            int node_r,
+            int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                res += _D[x].sum_content;
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    _query_sum(l, r, res, node_l, mi, x << 1);
+                if (r > mi)
+                    _query_sum(l, r, res, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+        void _query_min(
+            int l,
+            int r,
+            T &res,
+            int node_l,
+            int node_r,
+            int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                res = min(res, _D[x].min_content);
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    _query_min(l, r, res, node_l, mi, x << 1);
+                if (r > mi)
+                    _query_min(l, r, res, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
+        void _query_sqrt(
+            int l,
+            int r,
+            T &res,
+            int node_l,
+            int node_r,
+            int x)
+        {
+            if (l <= node_l and node_r <= r)
+            {
+                res += _D[x].sqrt_content;
+            }
+            else
+            {
+                push_down(x, node_l, node_r);
+                int mi = mid(node_l, node_r);
+                if (l <= mi)
+                    _query_sqrt(l, r, res, node_l, mi, x << 1);
+                if (r > mi)
+                    _query_sqrt(l, r, res, mi + 1, node_r, x << 1 | 1);
+                maintain(x);
+            }
+        }
+
+        T query_sum(int l, int r)
+        {
+            T res = 0;
+            _query_sum(l, r, res, 1, valid_len, 1);
+            return res;
+        }
+
+        T query_min(int l, int r)
+        {
+            T res;
+            memset(&res, 0x3f, sizeof(res));
+            _query_min(l, r, res, 1, valid_len, 1);
+            return res;
+        }
+
+        T query_sqrt(int l, int r)
+        {
+            T res = 0;
+            _query_sqrt(l, r, res, 1, valid_len, 1);
+            return res;
+        }
+    };
+}
+
 ```
 
 ### 树链剖分//？
@@ -2970,7 +3255,81 @@ int main() {
 	return 0;
 }
 ```
+```cpp
+/* 从1到n都可用，0是保留字 5b4026638a0f469f91d26a4ff0dee4bf */
+struct LCA
+{
+    std::vector<std::vector<int>> fa;
+    std::vector<int> dep, siz;
+    std::vector<std::vector<int>> &E;
 
+    /* 构造函数分配内存，传入边数组 */
+    LCA(int _siz, std::vector<std::vector<int>> &_E) : E(_E)
+    {
+        _siz++;
+        fa.assign(_siz, vector<int>(log2int(_siz) + 1, 0));
+        dep.assign(_siz, 0);
+        siz.assign(_siz, 0);
+    }
+
+    void dfs(int x, int from)
+    {
+        fa[x][0] = from;
+        dep[x] = dep[from] + 1;
+        siz[x] = 1;
+        for (auto i : range(1, log2int(dep[x]) + 1))
+            fa[x][i] = fa[fa[x][i - 1]][i - 1];
+        for (auto &i : E[x])
+            if (i != from)
+            {
+                dfs(i, x);
+                siz[x] += siz[i];
+            }
+    }
+
+    /* 传入边 */
+    void prework(int root)
+    {
+        // dep[root] = 1;
+        dfs(root, 0);
+        siz[0] = siz[root];
+        // for (auto &i : E[root])
+        // dfs(i, root);
+    }
+
+    /* LCA查找 */
+    int lca(int x, int y)
+    {
+        if (dep[x] < dep[y])
+            swap(x, y);
+        while (dep[x] > dep[y])
+            x = fa[x][log2int(dep[x] - dep[y])];
+        if (x == y)
+            return x;
+        for (auto k : range(log2int(dep[x]), -1, -1))
+            if (fa[x][k] != fa[y][k])
+                x = fa[x][k], y = fa[y][k];
+        return fa[x][0];
+    }
+
+    /* 拿x所在father的子树的节点数 */
+    int subtree_size(int x, int father)
+    {
+        if (x == father)
+            return 0;
+        for (auto i : range(fa[x].size() - 1, -1, -1))
+            x = (dep[fa[x][i]] > dep[father] ? fa[x][i] : x);
+        return siz[x];
+    }
+
+    /* 判断tobechk是否在from -> to的路径上 */
+    bool on_the_way(int from, int to, int tobechk)
+    {
+        int k = lca(from, to);
+        return ((lca(from, tobechk) == tobechk) or (lca(tobechk, to) == tobechk)) and lca(tobechk, k) == k;
+    }
+};
+```
 
 
 ```cpp
@@ -3410,7 +3769,7 @@ struct STMax
         for (auto j : range(1, data.size()))
         {
             data[j].assign(data[0].size(), 0);
-            for (int i = 0; i + (1 << j) - 1 < data[0].size(); i++)
+            for (long long i = 0; i + (1LL << j) - 1 < data[0].size(); i++)
             {
                 data[j][i] = std::max(data[j - 1][i], data[j - 1][i + (1 << (j - 1))]);
             }
@@ -3574,6 +3933,15 @@ namespace Geometry
     const FLOAT_ DEC = 1.0 / decimal_round;
     const double smooth_const2 = 0.479999989271164; // 二次项平滑系数
     const double smooth_const3 = 0.234999999403954; // 三次项平滑系数
+
+    int intereps(FLOAT_ x)
+    {
+        if (x < -decimal_round)
+            return -1;
+        else if (x > decimal_round)
+            return 1;
+        return 0;
+    }
 
     const FLOAT_ PI = acos(-1);
     bool round_compare(FLOAT_ a, FLOAT_ b) { return round(DEC * a) == round(DEC * b); }
@@ -3863,6 +4231,18 @@ struct Vector2
     {
         return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal;
     }
+    struct PolarSortCmp
+    {
+        bool operator()(Vector2 &a, Vector2 &b) { return a.toPolarAngle(0) < b.toPolarAngle(0); }
+    };
+
+    struct CrossSortCmp
+    {
+        bool operator()(Vector2 &a, Vector2 &b)
+        {
+            return Vector2::Cross(a, b) > 0;
+        }
+    };
 };
 ```
 
@@ -4335,6 +4715,7 @@ template <typename VALUETYPE = FLOAT_>
 struct Matrix : VectorN<VectorN<VALUETYPE>>
 {
     int ROW, COL;
+    // std::vector<VectorN<VALUETYPE>> data;
 
     std::string ToString()
     {
@@ -4345,6 +4726,9 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
         ostr << "]";
         return ostr.str();
     }
+
+    friend std::ostream &operator<<(std::ostream &o, Matrix &m) { return o << m.ToString(); }
+    friend std::ostream &operator<<(std::ostream &o, Matrix &&m) { return o << m.ToString(); }
 
     Matrix(VectorN<VectorN<VALUETYPE>> &&v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
     Matrix(VectorN<VectorN<VALUETYPE>> &v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
@@ -4443,7 +4827,7 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
                 break;
         }
     }
-
+    /*化为行最简型*/
     void row_echelonify(long long mod = 0)
     {
         if (mod)
@@ -4515,6 +4899,7 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
             (*this)[i].rconcat(rhs[i]);
         }
     }
+    void rconcat(Matrix &rhs) { rconcat(std::move(rhs)); }
 
     /*左截断*/
     void lerase(int ctr)
@@ -4532,7 +4917,7 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
     {
         if (this->COL != rhs.ROW)
             throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
-        Matrix ret(this->ROW, rhs.COL, true);
+        Matrix ret(this->ROW, rhs.COL, 0);
         for (int i = 0; i < ret.ROW; ++i)
             for (int k = 0; k < this->COL; ++k)
             {
@@ -4546,6 +4931,7 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
             }
         return ret;
     }
+    Matrix dot(Matrix &rhs, long long mod = 0) { return dot(std::move(rhs), mod); }
 };
 ```
 ### 方阵
@@ -4554,14 +4940,12 @@ struct Matrix : VectorN<VectorN<VALUETYPE>>
 template <typename VALUETYPE = FLOAT_>
 struct SquareMatrix : Matrix<VALUETYPE>
 {
-    SquareMatrix(int siz, bool is_reset = false) : Matrix<VALUETYPE>(siz, siz, is_reset) {}
-    SquareMatrix(Matrix<VALUETYPE> &&x) : Matrix<VALUETYPE>(x)
-    {
-        assert(x.COL == x.ROW);
-    }
+    SquareMatrix(int siz, VALUETYPE &&default_val = 0) : Matrix<VALUETYPE>(siz, siz, default_val) {}
+    SquareMatrix(Matrix<VALUETYPE> &&x) : Matrix<VALUETYPE>(x) { assert(x.COL == x.ROW); }
+    SquareMatrix(Matrix<VALUETYPE> &x) : Matrix<VALUETYPE>(x) { assert(x.COL == x.ROW); }
     static SquareMatrix eye(int siz)
     {
-        SquareMatrix ret(siz, true);
+        SquareMatrix ret(siz);
         for (siz--; siz >= 0; siz--)
             ret[siz][siz] = 1;
         return ret;
@@ -4875,82 +5259,166 @@ public:
 ### 圆
 
 ```c++
-struct Circle
+namespace Geometry
 {
-    Vector2 center;
-    FLOAT_ radius;
-    Circle(Vector2 c, FLOAT_ r) : center(c), radius(r) {}
-    Circle(FLOAT_ x, FLOAT_ y, FLOAT_ r) : center(x, y), radius(r) {}
-    Circle(Vector2 a, Vector2 b, Vector2 c)
+    /* https://www.luogu.com.cn/record/51674409 模板题需要用long double */
+    struct Circle
     {
-        Vector2 p1 = Vector2::LerpUnclamped(a, b, 0.5);
-        Vector2 v1 = b - a;
-        swap(v1.x, v1.y);
-        v1.x = -v1.x;
-        Vector2 p2 = Vector2::LerpUnclamped(b, c, 0.5);
-        Vector2 v2 = c - b;
-        swap(v2.x, v2.y);
-        v2.x = -v2.x;
-
-        center = Line2::Intersect(Line2(p1, v1, false), Line2(p2, v2, false));
-
-        radius = (center - a).magnitude();
-    }
-    std::pair<Vector2, Vector2> intersect_points(Line2 l)
-    {
-        FLOAT_ k = l.k();
-        // 特判
-        if (isnan(k))
+        Vector2 center;
+        FLOAT_ radius;
+        Circle(Vector2 c, FLOAT_ r) : center(c), radius(r) {}
+        Circle(FLOAT_ x, FLOAT_ y, FLOAT_ r) : center(x, y), radius(r) {}
+        Circle(Vector2 a, Vector2 b, Vector2 c)
         {
-            FLOAT_ x = -l.C / l.A;
-            FLOAT_ rhs = pow(radius, 2) - pow(x - center.x, 2);
-            if (rhs < 0)
+            Vector2 p1 = Vector2::LerpUnclamped(a, b, 0.5);
+            Vector2 v1 = b - a;
+            swap(v1.x, v1.y);
+            v1.x = -v1.x;
+            Vector2 p2 = Vector2::LerpUnclamped(b, c, 0.5);
+            Vector2 v2 = c - b;
+            swap(v2.x, v2.y);
+            v2.x = -v2.x;
+
+            center = Line2::Intersect(Line2(p1, v1, false), Line2(p2, v2, false));
+
+            radius = (center - a).magnitude();
+        }
+        Vector2 fromRad(FLOAT_ A)
+        {
+            return Vector2(center.x + radius * cos(A), center.y + radius * sin(A));
+        }
+        std::pair<Vector2, Vector2> intersect_points(Line2 l)
+        {
+            FLOAT_ k = l.k();
+            // 特判
+            if (isnan(k))
+            {
+                FLOAT_ x = -l.C / l.A;
+                FLOAT_ rhs = pow(radius, 2) - pow(x - center.x, 2);
+                if (rhs < 0)
+                    return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+                else
+                {
+                    rhs = sqrt(rhs);
+                    return make_pair(Vector2(x, rhs + radius), Vector2(x, -rhs + radius));
+                }
+            }
+            FLOAT_ lb = l.b();
+            FLOAT_ a = k * k + 1;
+            FLOAT_ b = 2 * k * (lb - center.y) - 2 * center.x;
+            FLOAT_ c = pow(lb - center.y, 2) + pow(center.x, 2) - pow(radius, 2);
+            FLOAT_ x1, x2;
+            std::tie(x1, x2) = solveQuadraticEquation(a, b, c);
+            if (isnan(x1))
+            {
                 return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+            }
             else
             {
-                rhs = sqrt(rhs);
-                return make_pair(Vector2(x, rhs + radius), Vector2(x, -rhs + radius));
+                return make_pair(Vector2(x1, l.y(x1)), Vector2(x2, l.y(x2)));
             }
         }
-        FLOAT_ lb = l.b();
-        FLOAT_ a = k * k + 1;
-        FLOAT_ b = 2 * k * (lb - center.y) - 2 * center.x;
-        FLOAT_ c = pow(lb - center.y, 2) + pow(center.x, 2) - pow(radius, 2);
-        FLOAT_ x1, x2;
-        std::tie(x1, x2) = solveQuadraticEquation(a, b, c);
-        if (isnan(x1))
+        /* 使用极角和余弦定理算交点，更稳，但没添加处理相离和相包含的情况 */
+        std::pair<Vector2, Vector2> intersect_points(Circle cir)
         {
-            return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+            Vector2 distV = (cir.center - center);
+            FLOAT_ dist = distV.magnitude();
+            FLOAT_ ang = distV.toPolarAngle(false);
+            FLOAT_ dang = acos((pow(radius, 2) + pow(dist, 2) - pow(cir.radius, 2)) / (2 * radius * dist)); //余弦定理
+            return make_pair(fromRad(ang + dang), fromRad(ang - dang));
         }
-        else
-        {
-            return make_pair(Vector2(x1, l.y(x1)), Vector2(x2, l.y(x2)));
-        }
-    }
-    std::pair<Vector2, Vector2> intersect_points(Circle cir)
-    {
-        FLOAT_ dist = (cir.center - center).magnitude();
-        if (abs(cir.radius - radius) <= dist and dist <= cir.radius + radius)
-        {
-            FLOAT_ AA = 2 * (cir.center.x - center.x);
-            FLOAT_ BB = 2 * (cir.center.y - center.y);
-            FLOAT_ CC = pow(center.x, 2) - pow(cir.center.x, 2) + pow(center.y, 2) - pow(cir.center.y, 2) + pow(cir.radius, 2) - pow(radius, 2);
-            Line2 lcl(AA, BB, CC);
-            return intersect_points(lcl);
-        }
-        else // 相离或包含
-            return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
-    }
 
-    FLOAT_ area() { return pi * radius * radius; }
+        FLOAT_ area() { return PI * radius * radius; }
 
-    bool is_outside(Vector2 p)
+        bool is_outside(Vector2 p)
+        {
+            return (p - center).magnitude() > radius;
+        }
+        bool is_inside(Vector2 p)
+        {
+            return intereps((p - center).magnitude() - radius) < 0;
+        }
+        static intersect_area(Circle A, Circle B)
+        {
+            Vector2 dis = A.center - B.center;
+            FLOAT_ sqrdis = dis.sqrMagnitude();
+            FLOAT_ cdis = sqrt(sqrdis);
+            if (sqrdis >= pow(A.radius + B.radius, 2))
+                return FLOAT_(0);
+            if (A.radius >= B.radius)
+                std::swap(A, B);
+            if (cdis + A.radius <= B.radius)
+                return PI * A.radius * A.radius;
+            if (sqrdis >= B.radius * B.radius)
+            {
+                FLOAT_ area = 0.0;
+                FLOAT_ ed = sqrdis;
+                FLOAT_ jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt((FLOAT_)ed));
+                jiao = acos(jiao);
+                jiao *= 2.0;
+                area += B.radius * B.radius * jiao / 2;
+                jiao = sin(jiao);
+                area -= B.radius * B.radius * jiao / 2;
+                jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt((FLOAT_)ed));
+                jiao = acos(jiao);
+                jiao *= 2;
+                area += A.radius * A.radius * jiao / 2;
+                jiao = sin(jiao);
+                area -= A.radius * A.radius * jiao / 2;
+                return area;
+            }
+            FLOAT_ area = 0.0;
+            FLOAT_ ed = sqrdis;
+            FLOAT_ jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt(ed));
+            jiao = acos(jiao);
+            area += A.radius * A.radius * jiao;
+            jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt(ed));
+            jiao = acos(jiao);
+            area += B.radius * B.radius * jiao - B.radius * sqrt(ed) * sin(jiao);
+            return area;
+        }
+    };
+}
+```
+
+### 球
+
+```cpp
+struct Sphere
+{
+    FLOAT_ radius;
+    Vector3 center;
+    Sphere(Vector3 c, FLOAT_ r) : center(c), radius(r) {}
+    Sphere(FLOAT_ x, FLOAT_ y, FLOAT_ z, FLOAT_ r) : center(x, y, z), radius(r) {}
+    FLOAT_ volumn() { return 4.0 * PI * pow(radius, 3) / 3.0; }
+    FLOAT_ intersectVolumn(Sphere o)
     {
-        return (p - center).magnitude() > radius;
+        Vector3 dist = o.center - center;
+        FLOAT_ distval = dist.magnitude();
+        if (distval > o.radius + radius)
+            return 0;
+        if (distval < abs(o.radius - radius))
+        {
+            return o.radius > radius ? volumn() : o.volumn();
+        }
+        FLOAT_ &d = distval;
+        //球心距
+        FLOAT_ t = (d * d + o.radius * o.radius - radius * radius) / (2.0 * d);
+        //h1=h2，球冠的高
+        FLOAT_ h = sqrt((o.radius * o.radius) - (t * t)) * 2;
+        FLOAT_ angle_a = 2 * acos((o.radius * o.radius + d * d - radius * radius) / (2.0 * o.radius * d)); //余弦公式计算r1对应圆心角，弧度
+        FLOAT_ angle_b = 2 * acos((radius * radius + d * d - o.radius * o.radius) / (2.0 * radius * d));   //余弦公式计算r2对应圆心角，弧度
+        FLOAT_ l1 = ((o.radius * o.radius - radius * radius) / d + d) / 2;
+        FLOAT_ l2 = d - l1;
+        FLOAT_ x1 = o.radius - l1, x2 = radius - l2;	//分别为两个球缺的高度
+        FLOAT_ v1 = PI * x1 * x1 * (o.radius - x1 / 3); //相交部分r1圆所对应的球缺部分体积
+        FLOAT_ v2 = PI * x2 * x2 * (radius - x2 / 3);	//相交部分r2圆所对应的球缺部分体积
+                                                        //相交部分体积
+        return v1 + v2;
     }
-    bool is_inside(Vector2 p)
+    FLOAT_ joinVolumn(Sphere o)
     {
-        return intereps((p - center).magnitude() - radius) < 0;
+        return volumn() + o.volumn() - intersectVolumn(o);
     }
 };
 ```
@@ -5292,6 +5760,95 @@ int main() {
 ```
 
 
+### 数论和杂项
+
+### Cipolla求奇质数的二次剩余
+
+```cpp
+/* def94200d616892a0187be01c94ea9c1 使用Cipolla计算二次剩余 */
+template <typename T>
+struct Cipolla
+{
+	T re_al, im_ag;
+	/* 定义I = a^2 - n，实际上是单位负根的平方 */
+	inline static T mod, I; // 17特性，不行就提全局
+
+	inline static Cipolla power(Cipolla x, LL p)
+	{
+		Cipolla res(1);
+		while (p)
+		{
+			if (p & 1)
+				res = res * x;
+			x = x * x;
+			p >>= 1;
+		}
+		return res;
+	}
+	/* 检查x是不是二次剩余 */
+	inline static bool check_if_residue(T x)
+	{
+		return power(x, mod - 1 >> 1) == 1;
+	}
+
+	/* 算法入口，要求p是奇素数 */
+	static void solve(T n, T p, T &x0, T &x1)
+	{
+		n %= p;
+		mod = p;
+		if (n == 0)
+		{
+			x0 = x1 = 0;
+			return;
+		}
+		if (!check_if_residue(n))
+		{
+			x0 = x1 = -1; // 无解
+			return;
+		}
+		T a;
+		do
+		{
+			a = randint(T(1), mod - 1);
+		} while (check_if_residue((a * a + mod - n) % mod));
+		I = (a * a - n + mod) % mod;
+		x0 = T(power(Cipolla(a, 1), mod + 1 >> 1).real());
+		x1 = mod - x0;
+	}
+	/* 实际上是个模意义复数类 */
+	Cipolla(T _real = 0, T _imag = 0) : re_al(_real), im_ag(_imag) {}
+	inline T &real() { return re_al; }
+	inline T &imag() { return im_ag; }
+	inline bool operator==(const Cipolla &y) const
+	{
+		return re_al == y.re_al and im_ag == y.im_ag;
+	}
+	inline Cipolla operator*(const Cipolla &y) const
+	{
+		return Cipolla((re_al * y.re_al + I * im_ag % mod * y.im_ag) % mod,
+					   (im_ag * y.re_al + re_al * y.im_ag) % mod);
+	}
+};
+```
+
+### 类欧模意义不等式
+```cpp
+/* 取 l <= dx%m <= r 的最小非负x */
+LL modinq(LL m, LL d, LL l, LL r)
+{
+    // 0 <= l <= r < m, d < m, minimal non-negative solution
+    if (r < l)
+        return -1;
+    if (l == 0)
+        return 0;
+    if (d == 0)
+        return -1;
+    if ((r / d) * d >= l)
+        return (l - 1) / d + 1;
+    LL res = modinq(d, m % d, (d - r % d) % d, (d - l % d) % d);
+    return res == -1 ? -1 : (m * res + l - 1) / d + 1;
+}
+```
 
 ### 欧拉筛
 
@@ -5400,6 +5957,70 @@ inline LL S_(LL x, int y)
     return ans % mo;
 }
 
+
+
+// 递归，分段缓存版本
+unordered_map<ULL, LL> UM;
+unordered_map<unsigned, unsigned> IM;
+LL ans[100010];
+vector<vector<pair<LL, LL>>> QUERY(17, vector<pair<LL, LL>>());
+
+unsigned gfi(unsigned n, int j)
+{
+    unsigned mpk = unsigned(j) * 1000000001 + n;
+    if (IM.count(mpk))
+        return IM[mpk];
+    else
+    {
+        LL ret;
+        if (n < 2)
+            ret = 0;
+        else if (n == 2)
+            ret = 1;
+        else if (j < 1)
+            ret = n - 1;
+        else if (prime[j] * prime[j] > n)
+            ret = gfi(n, j - 1);
+        else
+            ret = gfi(n, j - 1) - (gfi(n / prime[j], j - 1) - (j - 1));
+        // if (n < 1e9)
+        //     return UM[mpk] = ret;
+        return ret;
+    }
+}
+
+LL gf(LL n, LL j)
+{
+    if (n < 1e9)
+        return gfi(unsigned(n), j);
+    ULL mpk = ULL(j) * 1000000000000000001 + n;
+    if (UM.count(mpk))
+        return UM[mpk];
+    else
+    {
+        LL ret;
+        if (n < 2)
+            ret = 0;
+        else if (n == 2)
+            ret = 1;
+        else if (j < 1)
+            ret = n - 1;
+        else if (prime[j] * prime[j] > n)
+            ret = gf(n, j - 1);
+        else
+        {
+            // ret = gf(n, j - 1) -  (gf(n / prime[j], j - 1)) - (j - 1);
+            ret = gf(n, j - 1);
+            LL dv = n / prime[j];
+            LL ret2 = (n < 1e9 ? gfi(dv, j - 1) : gf(dv, j - 1)) - (j - 1);
+            ret -= ret2;
+        }
+        // if (n < 1e9)
+        //     return UM[mpk] = ret;
+        return UM[mpk] = ret;
+    }
+}
+
 ```
 
 
@@ -5475,146 +6096,483 @@ inline LL inv(LL a, LL mo)
 }
 ```
 
-### FFT
+### 递推求逆元
 
 ```cpp
-struct Complex
+//递推求法
+std::vector<LL> getInvRecursion(LL upp, LL mod)
 {
-    double re, im;
-    Complex(double _re, double _im)
-    {
-        re = _re;
-        im = _im;
-    }
-    Complex(double _re)
-    {
-        re = _re;
-        im = 0;
-    }
-    Complex() {}
-};
-Complex operator+(const Complex &c1, const Complex &c2) { return Complex(c1.re + c2.re, c1.im + c2.im); }
-Complex operator-(const Complex &c1, const Complex &c2) { return Complex(c1.re - c2.re, c1.im - c2.im); }
-Complex operator*(const Complex &c1, const Complex &c2) { return Complex(c1.re * c2.re - c1.im * c2.im, c1.re * c2.im + c1.im * c2.re); }
+    std::vector<LL> vinv(1, 0);
+    vinv.emplace_back(1);
+    for (LL i = 2; i <= upp; i++)
+        vinv.emplace_back((mod - mod / i) * vinv[mod % i] % mod);
+    return vinv;
+}
+```
 
-void FFT(complex<double> a[], LL n, LL inv, LL rev[]) // FFT系列没有外部依赖数组，不用打ifdef
+### 多项式
+
+```cpp
+/*
+g 是mod(r*2^k+1)的原根
+素数  r  k  g
+3   1   1   2
+5   1   2   2
+17  1   4   3
+97  3   5   5
+193 3   6   5
+257 1   8   3
+7681    15  9   17
+12289   3   12  11
+40961   5   13  3
+65537   1   16  3
+786433  3   18  10
+5767169 11  19  3
+7340033 7   20  3
+23068673    11  21  3
+104857601   25  22  3
+167772161   5   25  3
+469762049   7   26  3
+1004535809  479 21  3
+2013265921  15  27  31
+2281701377  17  27  3
+3221225473  3   30  5
+75161927681 35  31  3
+77309411329 9   33  7
+206158430209    3   36  22
+2061584302081   15  37  7
+2748779069441   5   39  3
+6597069766657   3   41  5
+39582418599937  9   42  5
+79164837199873  9   43  5
+263882790666241 15  44  7
+1231453023109121    35  45  3
+1337006139375617    19  46  3
+3799912185593857    27  47  5
+4222124650659841    15  48  19
+7881299347898369    7   50  6
+31525197391593473   7   52  3
+180143985094819841  5   55  6
+1945555039024054273 27  56  5
+4179340454199820289 29  57  3
+*/
+
+/* 多项式 */
+template <typename T>
+struct Polynomial
 {
-    for (auto i = 0; i < n; i++)
-        if (i < rev[i])
-            swap(a[i], a[rev[i]]);
-    for (auto mid = 1; mid < n; mid <<= 1)
+    std::vector<T> cof; // 各项系数 coefficient 低次在前高次在后
+    LL mod = 998244353; // 模数
+    LL G = 3;           // 原根
+    LL Gi = 332748118;  // 原根的逆元
+    using pointval = std::pair<T, T>;
+    std::vector<pointval> points; // x在前y在后
+
+    inline LL modadd(LL &x, LL y) { return (x += y) >= mod ? x -= mod : x; }
+    inline LL madd(LL x, LL y) { return (x += y) >= mod ? x - mod : x; }
+    inline LL modsub(LL &x, LL y) { return (x -= y) < 0 ? x += mod : x; }
+    inline LL msub(LL x, LL y) { return (x -= y) < 0 ? x + mod : x; }
+
+    Polynomial() {}
+
+    /* n^2 拉格朗日插值 */
+    void interpolation()
     {
-        complex<double> tmp(cos(pi / mid), inv * sin(pi / mid));
-        for (auto i = 0; i < n; i += mid << 1)
+        cof.assign(points.size(), 0);
+        std::vector<T> num(cof.size() + 1, 0);
+        std::vector<T> tmp(cof.size() + 1, 0);
+        std::vector<T> invs(cof.size(), 0);
+        num[0] = 1;
+        for (int i = 1; i <= cof.size(); swap(num, tmp), ++i)
         {
-            complex<double> omega(1, 0);
-            for (auto j = 0; j < mid; j++, omega *= tmp)
+            tmp[0] = 0;
+            invs[i - 1] = inv(mod - points[i - 1].first, mod);
+            for (auto j : range(1, i + 1))
+                tmp[j] = num[j - 1];
+            for (auto j : range(i + 1))
+                modadd(tmp[j], num[j] * (mod - points[i - 1].first) % mod);
+        }
+        for (auto i : range(1, cof.size() + 1))
+        {
+            T den = 1, lst = 0;
+            for (auto j : range(1, cof.size() + 1))
+                if (i != j)
+                    den = den * (points[i - 1].first - points[j - 1].first + mod) % mod;
+            den = points[i - 1].second * inv(den) % mod;
+            for (auto j : range(cof.size()))
             {
-                auto x = a[i + j], y = omega * a[i + j + mid];
-                a[i + j] = x + y, a[i + j + mid] = x - y;
+                tmp[j] = (num[j] - lst + mod) * invs[i - 1] % mod;
+                modadd(cof[j], den * tmp[j] % mod), lst = tmp[j];
             }
         }
     }
-}
+    /* 计算多项式在x这点的值 */
+    T eval(T x)
+    {
+        T ret = 0, px = 1;
+        for (auto i : cof)
+        {
+            modadd(ret, i * px % mod);
+            px = px * x % mod;
+        }
+        return ret;
+    }
 
-LL *FFTArrayMul(LL A[], LL B[], LL Alen, LL Blen)
+    /* rev是蝴蝶操作数组，lim为填充到2的幂的值，mode为0正变换，1逆变换，逆变换后系数需要除以lim才是答案 */
+    void NTT(std::vector<int> &rev, LL lim, bool mode = 0)
+    {
+        int l;
+        for (int i = 0; i < lim; ++i)
+            if (i < rev[i])
+                swap(cof[i], cof[rev[i]]);
+        for (int mid = 1; mid < lim; mid = l)
+        {
+            l = mid << 1;
+            T Wn = power(mode ? Gi : G, (mod - 1) / (mid << 1), mod);
+            for (int j = 0; j < lim; j += l)
+            {
+                T w = 1;
+                for (int k = 0; k < mid; ++k, w = ((LL)w * Wn) % mod)
+                {
+                    T x = cof[j | k], y = (LL)w * cof[j | k | mid] % mod;
+                    cof[j | k] = madd(x, y); // 已经不得不用这个优化了
+                    cof[j | k | mid] = msub(x, y);
+                }
+            }
+        }
+        if (mode)
+        {
+            T iv = inv(lim, mod);
+            for (auto &i : cof)
+                i = ((LL)i * iv) % mod;
+        }
+    }
+
+    /* 精度更高的写法 */
+    void FFT(std::vector<int> &rev, LL lim, bool mode, std::vector<T> &Wn)
+    {
+        LL &n = lim;
+        if (mode)
+            for (int i = 1; i < n; i++)
+                if (i < (n - i))
+                    std::swap(cof[i], cof[n - i]);
+        for (int i = 0; i < n; i++)
+            if (i < rev[i])
+                std::swap(cof[i], cof[rev[i]]);
+
+        for (int m = 1, l = 0; m < n; m <<= 1, l++)
+        {
+            for (int i = 0; i < n; i += m << 1)
+            {
+                for (int k = i; k < i + m; k++)
+                {
+                    T W = Wn[1ll * (k - i) * n / m];
+                    T a0 = cof[k], a1 = cof[k + m] * W;
+                    cof[k] = a0 + a1;
+                    cof[k + m] = a0 - a1;
+                }
+            }
+        }
+        if (mode)
+            for (auto &i : cof)
+                i /= lim;
+    }
+
+    /* 建议模数满足原根时使用，1e5 O2 331ms，无O2 612ms, 写成循环只优化了空间 */
+    void N_inv(int siz, Polynomial &B)
+    {
+        B.cof.emplace_back(inv(cof[0], mod));
+        LL bas = 2, lim = 4, limpow = 2;
+        Polynomial A;
+        while (bas < (siz << 1))
+        {
+            B.cof.resize(lim, 0);
+            if (bas <= cof.size())
+                A.cof.assign(cof.begin(), cof.begin() + bas);
+            else
+                A.cof = cof;
+            A.cof.resize(lim, 0);
+            std::vector<int> rev(generateRev(lim, limpow));
+            A.NTT(rev, lim, 0);
+            B.NTT(rev, lim, 0);
+            for (auto i : range(lim))
+                B.cof[i] = (LL)B.cof[i] * (2 + mod - (LL)B.cof[i] * A.cof[i] % mod) % mod;
+            B.NTT(rev, lim, 1);
+            std::fill(B.cof.begin() + bas, B.cof.end(), 0);
+            bas <<= 1;
+            lim <<= 1;
+            ++limpow;
+        }
+        B.cof.resize(siz);
+    }
+    /* 两次MTT的任意模数多项式求逆，1e5 O2 550ms，无O2 2.11s */
+    void F_inv(int siz, Polynomial &B)
+    {
+        if (siz == 1)
+        {
+            B.cof.emplace_back(inv(LL(round(cof[0].real())), mod));
+            return;
+        }
+        F_inv((siz + 1) >> 1, B);
+        Polynomial C;
+        C.cof.assign(cof.begin(), cof.begin() + siz);
+        Polynomial BC(MTT_FFT(B, C));
+        for (auto &i : BC.cof)
+            i = LL(round(i.real())) % mod;
+        Polynomial BBC(MTT_FFT(BC, B));
+        B.cof.resize(siz, 0);
+        for (int i = 0; i < siz; ++i)
+        {
+            B.cof[i] = msub(
+                madd(
+                    LL(round(B.cof[i].real())),
+                    LL(round(B.cof[i].real()))),
+                LL(round(BBC.cof[i].real())) % mod);
+        }
+    }
+    /* G2 = (G1^2 + A)/2G1 */
+    Polynomial getsqrt()
+    {
+        Polynomial B;
+        int siz = cof.size();
+        LL s1, s2;
+        Cipolla<LL>::solve((LL)cof[0], (LL)mod, s1, s2);
+        if (s2 < s1)
+            swap(s2, s1);
+        B.cof.emplace_back(s1);
+        LL bas = 2, lim = 4, limpow = 2;
+        Polynomial A;
+        // T inv2 = inv(2, mod);
+        while (bas < (siz << 1))
+        {
+            Polynomial Binv(B.getinv(bas));
+            B.cof.resize(lim, 0);
+            if (bas <= cof.size())
+                A.cof.assign(cof.begin(), cof.begin() + bas);
+            else
+                A.cof = cof;
+            A.cof.resize(lim, 0);
+            std::vector<int> rev(generateRev(lim, limpow));
+            Binv.cof.resize(lim);
+            A.NTT(rev, lim, 0);
+            B.NTT(rev, lim, 0);
+            Binv.NTT(rev, lim, 0);
+
+            for (auto i : range(lim))
+            {
+                B.cof[i] = (LL)Binv.cof[i] * (A.cof[i] + (LL)B.cof[i] * B.cof[i] % mod) % mod;
+                B.cof[i] = (B.cof[i] & 1) ? (B.cof[i] + mod >> 1) : B.cof[i] >> 1;
+            }
+
+            B.NTT(rev, lim, 1);
+            std::fill(B.cof.begin() + bas, B.cof.end(), 0);
+            bas <<= 1;
+            lim <<= 1;
+            ++limpow;
+        }
+        B.cof.resize(siz);
+        return B;
+    }
+
+    /* siz为需要求的多项式逆的次数，为0时默认取自己次数的 */
+    Polynomial getinv(int siz = 0)
+    {
+        if (!siz)
+            siz = cof.size();
+        int orisiz = cof.size();
+        cof.resize(siz);
+        Polynomial B;
+        // LL lim, limpow, retsize;
+        // Resize(*this, *this, lim, limpow, retsize);
+        N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
+        B.cof.resize(siz);
+        cof.resize(orisiz);
+        return B;
+    }
+
+    Polynomial operator*(const Polynomial &rhs)
+    {
+        return NTTMul(*this, rhs);
+    }
+    /* 获取F(x) = G(x) * Q(x) +  R(x)的Q(x) */
+    Polynomial operator/(Polynomial G)
+    {
+        Polynomial F(*this);
+        int beforen = F.cof.size();
+        std::reverse(F.cof.begin(), F.cof.end());
+        std::reverse(G.cof.begin(), G.cof.end());
+        int beforem = G.cof.size();
+        F.cof.resize(beforen - beforem + 1);
+        Polynomial tmp(F * G.getinv(beforen));
+        // G.cof.resize(beforem);
+        tmp.cof.resize(beforen - beforem + 1);
+        std::reverse(tmp.cof.begin(), tmp.cof.end());
+        // std::reverse(cof.begin(), cof.end());
+        return tmp;
+    }
+
+    /* 获取F(x) = G(x) * Q(x) +  R(x)的R(x) */
+    static Polynomial getremain(Polynomial &F, Polynomial &G, Polynomial &Q)
+    {
+        Polynomial C(G * Q);
+        C.cof.resize(G.cof.size() - 1);
+        for (auto i : range(G.cof.size() - 1))
+            C.cof[i] = F.msub(F.cof[i], C.cof[i]);
+        return C;
+    }
+
+    static std::vector<int> generateRev(LL lim, LL limpow)
+    {
+        std::vector<int> rev(lim, 0);
+        for (auto i : range(1, lim))
+            rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (limpow - 1));
+        return rev;
+    }
+
+    static std::vector<T> generateWn(LL lim)
+    {
+        std::vector<T> Wn;
+        for (int i = 0; i < lim; i++)
+            Wn.emplace_back(cos(M_PI / lim * i), sin(M_PI / lim * i));
+        return Wn;
+    }
+
+    /* NTT卷积 板题4.72s */
+    static Polynomial NTTMul(Polynomial A, Polynomial B)
+    {
+        LL lim, limpow, retsiz;
+        Resize(A, B, lim, limpow, retsiz);
+
+        std::vector<int> rev(generateRev(lim, limpow));
+        A.NTT(rev, lim, 0);
+        B.NTT(rev, lim, 0);
+        for (auto i : range(lim))
+            A.cof[i] = (A.cof[i] * B.cof[i] % A.mod);
+        A.NTT(rev, lim, 1);
+
+        A.cof.resize(retsiz - 1);
+
+        return A;
+    }
+    /* FFT卷积 板题1.98s 使用手写复数 -> 1.33s*/
+    static Polynomial FFTMul(Polynomial A, Polynomial B)
+    {
+        LL lim, limpow, retsiz;
+        Resize(A, B, lim, limpow, retsiz);
+
+        std::vector<int> rev(generateRev(lim, limpow));
+        std::vector<T> Wn(generateWn(lim));
+        A.FFT(rev, lim, 0, Wn);
+        B.FFT(rev, lim, 0, Wn);
+        for (auto i : range(lim))
+            A.cof[i] *= B.cof[i];
+        A.FFT(rev, lim, 1, Wn);
+
+        A.cof.resize(retsiz - 1);
+        return A;
+    }
+
+    inline static void Resize(Polynomial &A, Polynomial &B, LL &lim, LL &limpow, LL &retsiz)
+    {
+        lim = 1;
+        limpow = 0;
+        retsiz = A.cof.size() + B.cof.size();
+        while (lim <= retsiz)
+            lim <<= 1, ++limpow;
+        A.cof.resize(lim, 0);
+        B.cof.resize(lim, 0);
+    }
+
+    static Polynomial MTT_FFT(const Polynomial &A, const Polynomial &B)
+    {
+        LL lim, limpow, retsiz;
+        Polynomial A0, B0;
+        LL thr = sqrt(A.mod) + 1; // 拆系数阈值
+        for (auto i : A.cof)
+        {
+            LL tmp = i.real();
+            A0.cof.emplace_back(tmp / thr, tmp % thr);
+        }
+        for (auto i : B.cof)
+        {
+            LL tmp = i.real();
+            B0.cof.emplace_back(tmp / thr, tmp % thr);
+        }
+        Resize(A0, B0, lim, limpow, retsiz);
+
+        std::vector<int> rev(generateRev(lim, limpow));
+        std::vector<T> Wn(generateWn(lim));
+
+        A0.FFT(rev, lim, 0, Wn);
+        B0.FFT(rev, lim, 0, Wn);
+        std::vector<T> Acp(A0.cof);
+        std::vector<T> Bcp(B0.cof);
+        const T IV(0, 1);
+        const T half(0.5);
+        for (int ii = 0; ii < lim; ++ii)
+        {
+            T i = A0.cof[ii];
+            T j = (Acp[ii ? lim - ii : 0]).conj();
+            T a0 = (j + i) * half;
+            T a1 = (j - i) * half * IV;
+            i = B0.cof[ii];
+            j = (Bcp[ii ? lim - ii : 0]).conj();
+            T b0 = (j + i) * half;
+            T b1 = (j - i) * half * IV;
+            A0.cof[ii] = a0 * b0 + IV * a1 * b0;
+            B0.cof[ii] = a0 * b1 + IV * a1 * b1;
+        }
+        A0.FFT(rev, lim, 1, Wn);
+        B0.FFT(rev, lim, 1, Wn);
+
+        for (int i = 0; i < retsiz - 1; ++i)
+        {
+            T &ac = A0.cof[i];
+            T &bc = B0.cof[i];
+            A0.cof[i] = thr * thr * (__int128)round(ac.real()) % A.mod +
+                        thr * (__int128)round(ac.imag() + bc.real()) % A.mod +
+                        (__int128)round(bc.imag()) % A.mod;
+        }
+        A0.cof.resize(retsiz - 1);
+        return A0;
+    }
+};
+/* 使用手写的以后 2.00s -> 1.33s*/
+template <typename T>
+struct Complex
 {
-    LL max_length = max(Alen, Blen);
-    LL limit = 1;
-    LL bit = 0;
-    while (limit < max_length << 1)
-        bit++, limit <<= 1;
-
-    auto rev = new LL[limit + 5];
-    mem(rev, 0);
-
-    for (auto i = 0; i <= limit; i++)
-        rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (bit - 1));
-
-    // auto a = new complex<double>[limit + 5];
-    // auto b = new complex<double>[limit + 5];
-    complex<double> a[limit + 5], b[limit + 5];
-
-    // for (auto i = 0; i < limit; i++)
-    // {
-    //     a[i] = i >= Alen ? 0 : A[Alen - i - 1] ^ 0x30;
-    //     b[i] = i >= Blen ? 0 : B[Blen - i - 1] ^ 0x30;
-    // } // 右对齐的输入方式，类似下面的大数乘法板子，答案需要去除前导零
-    for (auto i = 0; i < max_length; i++) // 左对齐，段错误的坑，得用max_length
+    T re_al, im_ag;
+    inline T &real() { return re_al; }
+    inline T &imag() { return im_ag; }
+    Complex() { re_al = im_ag = 0; }
+    Complex(T x) : re_al(x), im_ag(0) {}
+    Complex(T x, T y) : re_al(x), im_ag(y) {}
+    inline Complex conj() { return Complex(re_al, -im_ag); }
+    inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
+    inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
+    inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
+                                                                 im_ag * rhs.re_al + re_al * rhs.im_ag); }
+    inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
+    //(a+bi)(c+di) = (ac-bd) + (bc+ad)i
+    friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
+    inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
+    inline Complex operator/=(T x) { return (*this) = (*this) / x; }
+    friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
+    inline Complex operator/(Complex rhs) const
     {
-        a[i] = A[i];
-        b[i] = B[i];
+        return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
     }
-    static LL *c = new LL[limit + 5];
-    mem(c, 0);
-
-    FFT(a, limit, 1, rev);
-    FFT(b, limit, 1, rev);
-
-    for (auto i = 0; i <= limit; i++)
-        a[i] *= b[i];
-
-    FFT(a, limit, -1, rev); // 1是FFT变化，-1是逆变换
-    for (auto i = 0; i <= limit; i++)
-        c[i] = (LL)(a[i].real() / limit + 0.5); // +0.5即四舍五入
-    return c;                                   // 左对齐多项式卷积结果有效位数为n+m-1
-}
-
-string FFTBigNumMul(string &A, string &B)
-{
-
-    auto max_length = max(A.length(), B.length());
-
-    LL limit = 1;
-    LL bit = 0;
-
-    while (limit < max_length << 1)
-        bit++, limit <<= 1;
-
-    LL rev[limit + 5] = {0};
-
-    for (auto i = 0; i <= limit; i++)
-        rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (bit - 1));
-
-    complex<double> a[limit + 5], b[limit + 5];
-
-    for (auto i = 0; i < limit; i++)
+    inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
+    inline Complex operator=(T x)
     {
-        a[i] = i >= A.length() ? 0 : A[A.length() - i - 1] ^ 0x30;
-        b[i] = i >= B.length() ? 0 : B[B.length() - i - 1] ^ 0x30;
+        this->im_ag = 0;
+        this->re_al = x;
+        return *this;
     }
-
-    LL c[limit + 5] = {0};
-
-    FFT(a, limit, 1, rev);
-    FFT(b, limit, 1, rev);
-    for (auto i = 0; i <= limit; i++)
-        a[i] *= b[i];
-    FFT(a, limit, -1, rev); // 1是FFT变化，-1是逆变换
-
-    for (auto i = 0; i <= limit; i++)
-        c[i] = (LL)(a[i].real() / limit + 0.5); // +0.5即四舍五入
-    bool zerofliter = false;
-    for (auto i = 0; i < limit; i++)
-    {
-        c[i + 1] += c[i] / 10;
-        c[i] %= 10;
-    }
-    char output[limit + 5] = {0};
-    LL outputPtr = 0;
-    // mem(output, 0);
-    for (auto i = limit; i >= 0; i--)
-    {
-        if (c[i] == 0 and zerofliter == 0) // 去前导零
-            continue;
-        zerofliter = true;
-        output[outputPtr++] = c[i] ^ 0x30;
-    }
-    string res(output);
-    if (!res.length())
-        res = string("0");
-    return res;
-}
+    inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
+};
+using _MTT = Complex<double>;
+using _NTT = long long;
 ```
 
 ### NTT
@@ -5793,6 +6751,33 @@ $$
 $$
 \sum_{n=0}{C_{n+m}^{n}}x^n=\frac{1}{(1-x)^{m+1}}
 $$
+
+### 自然数幂和表
+```py
+MP = {
+    0:"1 1 0",
+    1:"2 1 1 0",
+    2:"6 2 3 1 0",
+    3:"4 1 2 1 0 0",
+    4:"30 6 15 10 0 -1 0",
+    5:"12 2 6 5 0 -1 0 0",
+    6:"42 6 21 21 0 -7 0 1 0",
+    7:"24 3 12 14 0 -7 0 2 0 0",
+    8:"90 10 45 60 0 -42 0 20 0 -3 0",
+    9:"20 2 10 15 0 -14 0 10 0 -3 0 0",
+    10:"66 6 33 55 0 -66 0 66 0 -33 0 5 0",
+    11:"24 2 12 22 0 -33 0 44 0 -33 0 10 0 0",
+    12:"2730 210 1365 2730 0 -5005 0 8580 0 -9009 0 4550 0 -691 0",
+    13:"420 30 210 455 0 -1001 0 2145 0 -3003 0 2275 0 -691 0 0",
+    14:"90 6 45 105 0 -273 0 715 0 -1287 0 1365 0 -691 0 105 0",
+    15:"48 3 24 60 0 -182 0 572 0 -1287 0 1820 0 -1382 0 420 0 0",
+    16:"510 30 255 680 0 -2380 0 8840 0 -24310 0 44200 0 -46988 0 23800 0 -3617 0",
+    17:"180 10 90 255 0 -1020 0 4420 0 -14586 0 33150 0 -46988 0 35700 0 -10851 0 0",
+    18:"3990 210 1995 5985 0 -27132 0 135660 0 -529074 0 1469650 0 -2678316 0 2848860 0 -1443183 0 219335 0",
+    19:"840 42 420 1330 0 -6783 0 38760 0 -176358 0 587860 0 -1339158 0 1899240 0 -1443183 0 438670 0 0",
+    20:"6930 330 3465 11550 0 -65835 0 426360 0 -2238390 0 8817900 0 -24551230 0 44767800 0 -47625039 0 24126850 0 -3666831 0"
+}
+```
 
 ### 来自bot的球盒问题
 
