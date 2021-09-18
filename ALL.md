@@ -2435,113 +2435,12 @@ int main() {
 }
 ```
 
-
-
-
-
-### 主席树//待替换
+### 主席树//lqy待补
 
 ```cpp
-LL Array[M], SORTED[M];
-LL COUNT = 0;
 
-struct segtreeModel
-{
-    LL val;
-    segtreeModel *l, *r;
-} T[M << 5];
 
-segtreeModel *headers[M];
 
-inline segtreeModel *build(const LL rg1, const LL rg2) //从0开始的主席树()
-{
-    LL tmp = COUNT++;
-    T[tmp].val = 0;
-    if (rg2 > rg1)
-    {
-        T[tmp].l = build(rg1, DMID(rg1, rg2));
-        T[tmp].r = build(DMID(rg1, rg2) + 1, rg2);
-    }
-    return &T[tmp];
-}
-
-inline segtreeModel *modify(const LL rg1, const LL rg2,
-                            const LL &x, const segtreeModel *pre) //x:排在第几
-{
-    LL tmp = COUNT++;
-    T[tmp].l = pre->l;
-    T[tmp].r = pre->r; //拷贝上一个时间的状态
-    T[tmp].val = pre->val + 1;
-    if (rg2 > rg1)
-    {
-        if (x <= DMID(rg1, rg2))
-            T[tmp].l = modify(rg1, DMID(rg1, rg2), x, pre->l);
-        else
-            T[tmp].r = modify(DMID(rg1, rg2) + 1, rg2, x, pre->r);
-    }
-    return &T[tmp];
-}
-
-inline LL queryPosition(const LL rg1, const LL rg2,
-                segtreeModel *u, segtreeModel *v, LL rank)
-{
-    if (rg1 >= rg2)
-        return rg1;
-    LL x = v->l->val - u->l->val;
-    if (x >= rank) //左节点元素个数
-        return query(rg1, DMID(rg1, rg2), u->l, v->l, rank);
-    else
-        return query(DMID(rg1, rg2) + 1, rg2, u->r, v->r, rank - x);
-}
-
-inline LL querySum
-
-LL positions[M];
-LL father[M];
-
-int main()
-{
-    LL n, m, t, _T, ans;
-    t = qr();
-    F(_T, t, 1)
-    {
-        printf("Case #%lld:", _T + 1);
-        n = qr();
-        m = qr();
-        COUNT = ans = 0;
-        mem(father, 0);
-        mem(positions, 0);
-        LL i;
-        F(i, n, 1)
-        {
-            Array[i] = qr();
-            // SORTED[i] = Array[i];
-        }
-        headers[0] = build(0, n - 1);
-        for (i = n - 1; i; i--)
-        {
-            if(!positions[Array[i]])
-            modify(headers[0],)
-        }
-        // std::sort(SORTED, SORTED + n);
-        LL len = std::unique(SORTED, SORTED + n) - SORTED;
-        
-        F(i, n, 1)
-        { //lower_bound:大于等于
-            LL t = std::lower_bound(SORTED, SORTED + len, Array[i]) - SORTED;
-            headers[i + 1] = modify(0, len - 1, t, headers[i]);
-        }
-
-        while (m--)
-        {
-            LL o1 = qr();
-            LL o2 = qr();
-            LL o3 = qr(); //rank不能减，因为主席树内存的是元素个数，而且这个query查询的时间区间已经从1起排了
-            LL index = query(0, len - 1, headers[o1 - 1], headers[o2], o3);
-            printf("%lld\n", SORTED[index]);
-        }
-    }
-}
 ```
 
 ### 线段树
@@ -2811,228 +2710,198 @@ namespace Tree
 
 ```
 
-### 树链剖分//？
+### 树链剖分
 
 ```cpp
-LL ARRAY[M << 1];
-LL CNT = 0;
-LL n;
-LL mod;
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+#define pii pair<int,int>
+using namespace std;
+const int maxn=1e5+10;
+struct Node{
+    int sum,lazy,l,r,ls,rs;
+}node[2*maxn];
+int rt,n,m,r,p,a[maxn],cnt,f[maxn],d[maxn],siz[maxn],son[maxn],rk[maxn],top[maxn],id[maxn];
 
-struct NodeModel
+vector<int>g[maxn];
+int mod(int a,int b)
 {
-    LL size, height, dfs_order, value;
-    NodeModel *son, *fa, *top;
-    vector<NodeModel *> E;
-    void d1(NodeModel *father)
+    return (a+b)%p;
+}
+inline void add_edge(int x,int y)
+{
+    g[x].push_back(y);
+}
+void dfs1(int u,int fa,int depth)
+{
+    f[u]=fa;
+    d[u]=depth;
+    siz[u]=1;
+    for(auto &v:g[u])
     {
-        this->size = 1;
-        this->son = NULL;
-        this->fa = father;
-        this->height = father->height + 1;
-        for (auto cur : this->E)
+        if(v==fa)
+            continue;
+        dfs1(v,u,depth+1);
+        siz[u]+=siz[v];
+        if(siz[v]>siz[son[u]])
+            son[u]=v;
+    }
+}
+void dfs2(int u,int t)
+{
+    top[u]=t;
+    id[u]=++cnt;
+    rk[cnt]=u;
+    if(!son[u])
+        return;
+    dfs2(son[u],t);
+    for(auto &v:g[u])
+    {
+        if(v!=son[u]&&v!=f[u])
+            dfs2(v,v);
+    }
+}
+void pushup(int x)
+{
+    node[x].sum=(node[node[x].ls].sum+node[node[x].rs].sum+node[x].lazy*(node[x].r-node[x].l+1))%p;
+}
+void build(int li,int ri,int cur)
+{
+    if(li==ri)
+    {
+        node[cur].l=node[cur].r=li;
+        node[cur].sum=a[rk[li]];
+        return;
+    }
+    int mid=(li+ri)>>1;
+    node[cur].ls=cnt++;
+    node[cur].rs=cnt++;
+    build(li,mid,node[cur].ls);
+    build(mid+1,ri,node[cur].rs);
+    node[cur].l=node[node[cur].ls].l;
+    node[cur].r=node[node[cur].rs].r;
+    pushup(cur);
+}
+void update(int li,int ri,int c,int cur)
+{
+    if(li<=node[cur].l&&node[cur].r<=ri)
+    {
+        node[cur].sum=mod(node[cur].sum,c*(node[cur].r-node[cur].l+1));
+        node[cur].lazy=mod(node[cur].lazy,c);
+        return;
+    }
+    int mid=(node[cur].l+node[cur].r)>>1;
+    if(li<=mid)
+        update(li,ri,c,node[cur].ls);
+    if(mid<ri)
+        update(li,ri,c,node[cur].rs);
+    pushup(cur);
+}
+int query(int li,int ri,int cur)
+{
+    if(li<=node[cur].l&&node[cur].r<=ri)
+        return node[cur].sum;
+    int tot=node[cur].lazy*(min(node[cur].r,ri)-max(node[cur].l,li)+1)%p;
+    int mid=(node[cur].l+node[cur].r)>>1;
+    if(li<=mid)
+        tot=mod(tot,query(li,ri,node[cur].ls));
+    if(mid<ri)
+        tot=mod(tot,query(li,ri,node[cur].rs));
+    return tot%p;
+}
+int sum(int x,int y)
+{
+    int ans=0;
+    int fx=top[x],fy=top[y];
+    while(fx!=fy)
+    {
+        if(d[fx]>=d[fy])
         {
-            // auto dst = N[E[cur].to];
-            if (cur != father)
-            {
-                cur->d1(this);
-                this->size += cur->size;
-                if (this->son == NULL || cur->size > this->son->size)
-                    this->son = cur;
-            }
+            ans=mod(ans,query(id[fx],id[x],rt));
+            x=f[fx],fx=top[x];
         }
-    }
-    void d2(NodeModel *father, NodeModel *k)
-    {
-        this->top = k;
-        this->dfs_order = CNT;
-        ARRAY[CNT++] = this->value;
-        if (this->son != NULL)
-            this->son->d2(this, k);
-        for (auto i : this->E)
-            if (i != father && i != this->son)
-                i->d2(this, i);
-    }
-
-    void add_edge(NodeModel *dst)
-    {
-        this->E.push_back(dst);
-    }
-} N[M << 2];
-
-LL NODECNT = 0;
-struct SegmentTreeNode
-{
-    SegmentTreeNode *l, *r;
-    LL value, lazy, max_value;
-    LL query_sum(LL rg1, LL rg2, LL operation_l, LL operation_r, LL add_val)
-    {
-        if (operation_l > operation_r)
-            swap(operation_l, operation_r);
-        if (operation_l <= rg1 && rg2 <= operation_r)
-            return (this->value + (LL)(rg2 - rg1 + 1) * (add_val % mod)) % mod;
         else
         {
-            LL v1 = (DMID(rg1, rg2) >= operation_l) ? this->l->query_sum(rg1, DMID(rg1, rg2), operation_l, operation_r, (add_val + this->lazy) % mod) : 0;
-            LL v2 = (DMID(rg1, rg2) + 1 <= operation_r) ? this->r->query_sum(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, (add_val + this->lazy) % mod) : 0;
-            return ((v1 + v2) % mod + mod) % mod;
+            ans=mod(ans,query(id[fy],id[y],rt));
+            y=f[fy],fy=top[y];
         }
     }
-    LL query_max(LL rg1, LL rg2, LL operation_l, LL operation_r, LL add_val)
-    {
-        if (operation_l > operation_r)
-            swap(operation_l, operation_r);
-        if (operation_l <= rg1 && rg2 <= operation_r)
-            return this->max_value /*+ add_val*/;
-        else
-        {
-            LL v1 = (DMID(rg1, rg2) >= operation_l) ? this->l->query_max(rg1, DMID(rg1, rg2), operation_l, operation_r, add_val + this->lazy) : -INF;
-            LL v2 = (DMID(rg1, rg2) + 1 <= operation_r) ? this->r->query_max(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, add_val + this->lazy) : -INF;
-            return max(v1, v2);
-        }
-    }
-    void modify(LL rg1, LL rg2, LL operation_l, LL operation_r, LL x) // 单点修改
-    {
-        if (operation_l <= rg1 && rg2 <= operation_r)
-        {
-            this->value += x * (rg2 - rg1 + 1);
-            this->value %= mod;
-            this->lazy += x;
-            this->lazy %= mod;
-            return;
-        }
-        if (operation_l <= DMID(rg1, rg2))
-            this->l->modify(rg1, DMID(rg1, rg2), operation_l, operation_r, x);
-        if (DMID(rg1, rg2) + 1 <= operation_r)
-            this->r->modify(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, x);
-        this->value = this->l->value + this->r->value + this->lazy * (rg2 - rg1 + 1);
-        this->value %= mod;
-        // this->max_value = max(this->l->max_value, this->r->max_value);
-    }
-
-} T[M];
-SegmentTreeNode *build(LL rg1, LL rg2)
-{
-    LL tmp = NODECNT++;
-    if (rg2 > rg1)
-    {
-        T[tmp].l = build(rg1, DMID(rg1, rg2));
-        T[tmp].r = build(DMID(rg1, rg2) + 1, rg2);
-        T[tmp].value = (T[tmp].l->value + T[tmp].r->value) % mod;
-        T[tmp].max_value = max(T[tmp].l->max_value, T[tmp].r->max_value);
-    }
+    if(id[x]<=id[y])
+        ans=mod(ans,query(id[x],id[y],rt));
     else
-    {
-        T[tmp].value = T[tmp].max_value = ARRAY[rg1];
-    }
-    T[tmp].lazy = 0;
-    return &T[tmp];
+        ans=mod(ans,query(id[y],id[x],rt));
+    return ans%p;
 }
-
-LL query_SUM(NodeModel *u, NodeModel *v)
+void updates(int x,int y,int c)
 {
-    LL ans = 0;
-    while (u->top != v->top) // top相同应该是在一条链上
+    int fx=top[x],fy=top[y];
+    while(fx!=fy)
     {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        ans += T[0].query_sum(0, n - 1, u->top->dfs_order, u->dfs_order, 0);
-        ans %= mod;
-        u = u->top->fa;
+        if(d[fx]>=d[fy])
+        {
+            update(id[fx],id[x],c,rt);
+            x=f[fx],fx=top[x];
+        }
+        else
+        {
+            update(id[fy],id[y],c,rt);
+            y=f[fy],fy=top[y];
+        }
     }
-    if (v->height > u->height)
-        swap(u, v);
-    ans += T[0].query_sum(0, n - 1, v->dfs_order, u->dfs_order, 0);
-    ans %= mod;
-    return (ans + mod) % mod;
+    if(id[x]<=id[y])
+        update(id[x],id[y],c,rt);
+    else
+        update(id[y],id[x],c,rt);
 }
-
-void MODIFY(NodeModel *u, NodeModel *v, LL x)
-{
-    LL ans = 0;
-    while (u->top != v->top) // top相同应该是在一条链上
-    {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        T[0].modify(0, n - 1, u->top->dfs_order, u->dfs_order, x);
-        u = u->top->fa;
-    }
-    if (v->height > u->height)
-        swap(u, v);
-    T[0].modify(0, n - 1, v->dfs_order, u->dfs_order, x);
-}
-
-LL query_MAX(NodeModel *u, NodeModel *v)
-{
-    LL ans = -INF;
-    while (u->top != v->top) // top相同应该是在一条链上
-    {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        ans = max(ans, T[0].query_max(0, n - 1, u->top->dfs_order, u->dfs_order, 0));
-        u = u->top->fa;
-    }
-    if (v->height > u->height)
-        swap(u, v);
-    ans = max(ans, T[0].query_max(0, n - 1, v->dfs_order, u->dfs_order, 0));
-    return ans;
-}
-char cmd[10];
 signed main()
 {
-    n = qr();
-    LL m = qr();
-    LL root = qr();
-    mod = qr();
-    CNT = NODECNT = 0;
-    mem(T, 0);
-    mem(ARRAY, 0);
-    mem(N, 0);
-
-    for (auto i = 1; i <= n; i++)
+    ios::sync_with_stdio(false);
+    cin>>n>>m>>r>>p;
+    for(int i=1;i<=n;i++)
+        cin>>a[i];
+    for(int i=1;i<n;i++)
     {
-        N[i].value = qr();
+        int x,y;
+        cin>>x>>y;
+        add_edge(x,y);
+        add_edge(y,x);
     }
-    for (auto i = 1; i < n; i++)
+    cnt=0;
+    dfs1(r,0,1);
+    dfs2(r,r);
+    cnt=0;
+    rt=cnt++;
+    build(1,n,rt);
+    for(int i=1;i<=m;i++)
     {
-        LL src = qr();
-        LL dst = qr();
-        N[src].add_edge(&N[dst]);
-        N[dst].add_edge(&N[src]);
-    }
-    N[root].d1(&N[0]);
-    N[root].d2(&N[0], &N[root]);
-    build(0, n - 1);
-    LL o1, o2, o3, o4;
-    while (m--)
-    {
-        o1 = qr();
-        switch (o1)
+        int op,x,y,z;
+        cin>>op;
+        if(op==1)
         {
-        case 1:
-            o2 = qr();
-            o3 = qr();
-            o4 = qr();
-            MODIFY(&N[o2], &N[o3], o4);
-            break;
-        case 2:
-            o2 = qr();
-            o3 = qr();
-            printf("%lld\n", query_SUM(&N[o2], &N[o3]) % mod);
-            break;
-        case 3:
-            o2 = qr();
-            o3 = qr();
-            T[0].modify(0, n - 1, N[o2].dfs_order, N[o2].dfs_order + N[o2].size - 1, o3);
-            break;
-        default:
-            o2 = qr();
-            printf("%lld\n", T[0].query_sum(0, n - 1, N[o2].dfs_order, N[o2].dfs_order + N[o2].size - 1, 0) % mod);
-            break;
+            cin>>x>>y>>z;
+            updates(x,y,z);
+        }
+        else if(op==2)
+        {
+            cin>>x>>y;
+            cout<<sum(x,y)<<'\n';
+        }
+        else if(op==3)
+        {
+            cin>>x>>z;
+            //子树也有连续区间的性质
+            update(id[x],id[x]+siz[x]-1,z,rt);
+        }
+        else if(op==4)
+        {
+            cin>>x;
+            cout<<query(id[x],id[x]+siz[x]-1,rt)<<'\n';
         }
     }
     return 0;
 }
+
 ```
 
 ### Splay
@@ -7423,12 +7292,12 @@ else
 |149	|1061	|10093	|100151	|1000151|
 |151	|1063	|10099	|100153	|1000159|
 
-
-|1e7	|1e8	|1e9	|1e10	|1e11	|1e12|
-| ---- | ---- | ---- | ---- | ---- | ----|
-10000019	|100000007	|1000000007|	10000000019	|100000000003|	1000000000039|
+| 1e7  | 1e8  | 1e10 | 1e11 | 1e12 |
+| ---- | ---- | ---- | ---- | ---- |
+|10000019	|100000007	|1000000007 |	10000000019	|100000000003  |	1000000000039|
 |10000079	|100000037	|1000000009	|10000000033	|100000000019	|1000000000061|
 |10000103	|100000039	|1000000021	|10000000061	|100000000057	|1000000000063|
+
 
 |1e13	|1e14	|1e15	|1e16|
 | ---- | ---- | ---- | ---- |
