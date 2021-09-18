@@ -2861,6 +2861,112 @@ struct PersistentSengmentTreeR
 
 ### 线段树
 
+- simple线段树
+```cpp
+/*
+初始化可以传vector
+vector 从1-n
+区间修改 modify(l,r,k) 默认区间加
+单点修改 modify(p,k)
+区间查询 modify(l,r)
+单点查询 modify(p)
+
+*/
+
+
+using i64=long long ;
+#pragma GCC optimize(2)
+#define lson rt<<1
+#define rson rt<<1|1
+template<class Info,
+    class Merge = plus<Info>>
+struct SegmentTree{
+    const int n;
+    const Merge merge;
+    vector<Info> info;
+    SegmentTree(int n) :n(n) ,merge(Merge()),info(4 << __lg(n)) {}
+    SegmentTree(vector<Info> init) : SegmentTree(init.size()-1) {
+        function<void(int,int,int)> build = [&](int rt,int l,int r) {
+            if (r == l) {
+                info[rt] = init[l];
+                return;
+            }
+            int mid = (l + r) / 2;
+            build(lson,l,mid);
+            build(rson,mid+1,r);
+            pull(rt); 
+        };
+        build(1,1,n);
+    }
+    void pull(int rt) { info[rt] = merge(info[lson],info[rson]); }
+    void push(int rt)
+    {
+        pushDown(info[rt],info[lson]);
+        pushDown(info[rt],info[rson]);
+        cleanLazy(info[rt]);
+    }
+    void pushDown(Info &a,Info &b){
+        if(a.lazy){
+            b.s += a.lazy*(b.r-b.l+1);
+            b.lazy += a.lazy;
+        }
+    }
+    void cleanLazy(Info &a){ a.lazy=0; }
+    void modify(int rt,int l,int r,int L,int R,const int &v) {
+        if (L <= l && r <= R) {
+            info[rt] = info[rt] + v;
+            return;
+        }
+        push(rt);
+        int mid = (l + r) / 2;
+        if(L > mid)
+            modify(rson,mid+1,r,L,R,v);
+        else if (R <= mid) 
+            modify(lson, l,mid,L,R,v);
+        else 
+            modify(lson,l,mid,L,mid,v),modify(rson,mid+1,r,mid+1,R,v);
+        pull(rt);
+    }
+    void modify(int l,int r,const int &v) { modify(1,1,n,l,r,v); }
+    void modify(int p,const int & v) {modify(1,1,n,p,p,v);}
+    Info rangeQuery(int rt,int l,int r,int L,int R){
+        if(R < l || r < L )
+            return Info(l,r,0);
+        if(L <= l && r <= R) 
+            return info[rt];
+        push(rt);
+        int mid = (l + r) / 2;
+        return merge(rangeQuery(lson,l,mid,L,R),rangeQuery(rson,mid+1,r,L,R));
+    }
+    Info rangeQuery(int l,int r) 
+    {
+        return rangeQuery(1,1,n,l,r);
+    }
+    
+};
+
+struct Info {
+    int l,r;
+    i64 s,lazy;
+    Info() : l(0),r(0),s(0),lazy(0) {}
+    Info(int x,i64 val) : l(x),r(x),s(val),lazy(0) {}
+    Info(i64 val) : l(0),r(0),s(val),lazy(0) {}
+    Info(int L,int R,i64 val) : l(L),r(R),s(val),lazy(0) {}
+    Info(int L,int R,i64 val,i64 lz) : l(L),r(R),s(val),lazy(lz) {}
+};
+
+Info operator+ (const Info &a,const int& b) // lazy下标的运算符重载
+{
+    return Info(a.l,a.r,a.s+b*(a.r-a.l+1),a.lazy+b);
+}
+
+Info operator+ (const Info &a,const Info &b) { // 区间合并的运算符重载
+    return Info(a.l,b.r,a.s+b.s);
+}
+```
+
+
+- 区间平方和线段树
 ```cpp
 
 // 4a3629edbc4bfda9ca2df0ff11f870e4 2021.8.10 线段树区间平方和
