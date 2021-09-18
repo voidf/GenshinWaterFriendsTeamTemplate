@@ -1,3 +1,7 @@
 !ALL.docx
 *.docx
 *temp*
+*.in
+*.out
+*.exe
+data.txt
