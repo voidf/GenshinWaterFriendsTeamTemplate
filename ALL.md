@@ -7795,7 +7795,76 @@ else
 
 阶梯博弈等效为奇数号阶梯的尼姆博弈
 
+### 对拍
+- check.cpp (Windows)
 
+```cpp
+#include <windows.h>
+#include <bits/stdc++.h>
+
+using namespace std;
+int main()
+{
+    system("g++ data.cpp -o data --std=c++17");
+    system("g++ std.cpp -o std --std=c++17");
+    system("g++ test.cpp -o test --std=c++17");
+    int t = 10000;
+    while (t--)
+    {
+        system("data.exe > data.txt");
+        clock_t st=clock();
+        system("test.exe < P3372_8.in > test.out");
+        clock_t end=clock();
+        system("std.exe < data.txt > std.txt");
+        if (system("fc P3372_8.out test.out"))
+            t=-1;
+            break;
+        cout<<"TIME: "<<end-st<<" ms\n\n";
+    }
+    if (t == 0)
+        cout << "Accepted!" << endl;
+    else
+        cout << "Wrong Answer!" << endl;
+    return 0;
+}
+
+```
+
+- check.cpp (Linux)
+
+```cpp
+重点！数据比较器
+#include <bits/stdc++.h>
+using namespace std;
+int main()
+{
+    system("g++ ./data.cpp -o data --std=c++17");
+    system("g++ ./std.cpp -o std --std=c++17");
+    system("g++ ./test.cpp -o test --std=c++17");
+    int t = 10000;
+    while (t--)
+    {
+        system("./data.exe > ./data.txt");
+        clock_t st = clock();
+        system("./test.exe < ./data.txt > ./test.txt");
+        clock_t end = clock();
+        system("./std.exe < ./data.txt > ./std.txt");
+        if (system("diff ./std.txt ./test.txt"))
+            t=-1;
+            break;
+        cout << "TIME: " << end - st << " ms\n\n";
+    }
+    if (t == 0)
+        cout << "Accepted!" << endl;
+    else
+        cout << "Wrong Answer!" << endl;
+    return 0;
+}
+```
+
+- data.cpp 生成数据
+- std.cpp 暴力程序
+- test.cpp 需确认正确性
 
 ### 质数表
 
