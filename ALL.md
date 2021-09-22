@@ -3698,184 +3698,255 @@ int main() {
 ### Splay
 
 ```cpp
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
 
 const int N = 100010;
-int rt, tot, fa[N], ch[N][2], val[N], cnt[N], sz[N]; // cnt 权值出现次数
-struct Splay {
-	void maintain(int x)
-	{
-		sz[x] = sz[ch[x][0]] + sz[ch[x][1]] + cnt[x];
-	}
-	// 右儿子返回1 左儿子返回0 
-	bool get(int x) {return x == ch[fa[x]][1];}
-	void clear(int x) 
-	{
-		ch[x][0] = ch[x][1] = fa[x] = val[x] = sz[x] = cnt[x] = 0;
-	}
-	// 旋转操作
-	void rotate(int x)
-	{
-		int y = fa[x] ,z = fa[y], chk = get(x);
-		// x是左儿子右旋，右儿子左旋
-		ch[y][chk] = ch[x][chk^1];
-		if (ch[x][chk^1]) fa[ch[x][chk^1]] = y;
-		ch[x][chk ^ 1] = y;
-		fa[y] = x;
-		fa[x] = z;
-		if (z) ch[z][y == ch[z][1]] = x;
-		maintain(x);
-		maintain(y); 
-	}
-	
-	// Slpay操作
-	void splay(int x)
-	{
-		for (int f = fa[x]; f = fa[x], f; rotate(x))
-			if (fa[f]) rotate(get(x) == get(f) ? f : x);
-		rt = x;
-	}
+int m,n;
+struct Splay
+{
+    int rt, tot, fa[N], ch[N][2], val[N], cnt[N], sz[N]; // cnt 权值出现次数
+    int maxVal=-0x3f3f3f3f;
+    bool rev[N];
+    void pushdown(int x)
+    {
+        if (rev[x])
+        {
+            swap(ch[x][0], ch[x][1]);
+            rev[ch[x][0]] ^= 1;
+            rev[ch[x][1]] ^= 1;
+            rev[x] = 0;
+        }
+    }
 
-	// 插入
-	void ins(int k)
-	{
-		// 树空
-		if (!rt) {
-			val[++tot] = k;
-			cnt[tot]++;
-			rt = tot;
-			maintain(rt);
-			return;
-		}
-		int cur = rt, f = 0;
-		while (1) {
-			if (val[cur] == k) {
-				cnt[cur] ++ ;
-				maintain(cur);
-				maintain(f);
-				splay(cur);
-				break;
-			}
-			f = cur;
-			cur = ch[cur][val[cur]<k];
-			if (!cur) {
-				val[++tot] = k;
-				cnt[tot]++;
-				fa[tot] = f;
-				ch[f][val[f] < k] = tot;
-				maintain(tot);
-				maintain(f);
-				splay(tot);
-				break;
-			} 
-		}
-	}
-	// 查询排名
-	int rk(int k)
-	{
-		int res = 0, cur = rt;
-		while(1) {
-			if (k < val[cur]) {
-				cur = ch[cur][0];
-			} else {
-				res += sz[ch[cur][0]];
-				if (k == val[cur]){
-					splay(cur);
-					return res + 1;
-				}
-				res += cnt[cur];
-				cur = ch[cur][1];
-			}
-		}
-	}
-	// 查询第k大
-	int kth(int k)
-	{
-		int cur = rt;
-		while (1) {
-			if (ch[cur][0] && k <= sz[ch[cur][0]]) {
-				cur = ch[cur][0];
-			} else {
-				k -= cnt[cur] + sz[ch[cur][0]];
-				if (k <= 0) {
-					splay(cur);
-					return val[cur];
-				}
-				cur = ch[cur][1];
-			}
-		}
-	}
-	// 查询前驱
-	int pre() 
-	{
-		int cur = ch[rt][0];
-		if (!cur) return cur;
-		while (ch[cur][1]) cur = ch[cur][1];
-		splay(cur);
-		return cur;
-	}
-	// 查询后继
-	int nxt()
-	{
-		int cur = ch[rt][1];
-		if (!cur) return cur;
-		while (ch[cur][0]) cur = ch[cur][0];
-		splay(cur);
-		return cur;
-	}
-	// pre封装
-	int q_pre(int x)
-	{
-		ins(x);
-		int ret = val[pre()];
-		del(x);
-		return ret;
-	}
-	// nxt封装
-	int q_nxt(int x)
-	{
-		ins(x);
-		int ret = val[nxt()];
-		del(x);
-		return ret;
-	}
-	// 删除
-	void del(int k)
-	{
-		rk(k);
-		if (cnt[rt] > 1){
-			cnt[rt]--;
-			maintain(rt);
-			return;
-		}
-		if (!ch[rt][0] && !ch[rt][1]) {
-			clear(rt);
-			rt = 0;
-			return;
-		}
-		if (!ch[rt][0]) {
-			int cur = rt;
-			rt = ch[rt][1];
-			fa[rt] = 0;
-			clear(cur);
-			return;
-		}
-		if (!ch[rt][1]) {
-			int cur = rt;
-			rt = ch[rt][0];
-			fa[rt] = 0;
-			clear(cur);
-			return;
-		}
-		int cur = rt, x = pre();
-		fa[ch[cur][1]] = x;
-		ch[x][1] = ch[cur][1];
-		clear(cur);
-		maintain(rt);
-	}
+    void maintain(int x)
+    {
+        sz[x] = sz[ch[x][0]] + sz[ch[x][1]] + cnt[x];
+    }
+    // 右儿子返回1 左儿子返回0
+    bool get(int x) { return x == ch[fa[x]][1]; }
+    void clear(int x)
+    {
+        ch[x][0] = ch[x][1] = fa[x] = val[x] = sz[x] = cnt[x] = 0;
+    }
+    // 旋转操作
+    void rotate(int x)
+    {
+        int y = fa[x], z = fa[y], chk = get(x);
+        // x是左儿子右旋，右儿子左旋
+        ch[y][chk] = ch[x][chk ^ 1];
+        if (ch[x][chk ^ 1])
+            fa[ch[x][chk ^ 1]] = y;
+        ch[x][chk ^ 1] = y;
+        fa[y] = x;
+        fa[x] = z;
+        if (z)
+            ch[z][y == ch[z][1]] = x;
+        maintain(x);
+        maintain(y);
+    }
+
+    // Slpay操作
+    void splay(int x, int goal = 0)
+    {
+        for (int f = fa[x]; f = fa[x], f != goal; rotate(x))
+            if (fa[f] != goal)
+                rotate(get(x) == get(f) ? f : x);
+        if (!goal)
+            rt = x;
+    }
+
+    // 插入
+    void ins(int k)
+    {
+        maxVal=max(maxVal,k);
+        // 树空
+        if (!rt)
+        {
+            val[++tot] = k;
+            cnt[tot]++;
+            rt = tot;
+            maintain(rt);
+            return;
+        }
+        int cur = rt, f = 0;
+        while (1)
+        {
+            if (val[cur] == k)
+            {
+                cnt[cur]++;
+                maintain(cur);
+                maintain(f);
+                splay(cur);
+                break;
+            }
+            f = cur;
+            cur = ch[cur][val[cur] < k];
+            if (!cur)
+            {
+                val[++tot] = k;
+                cnt[tot]++;
+                fa[tot] = f;
+                ch[f][val[f] < k] = tot;
+                maintain(tot);
+                maintain(f);
+                splay(tot);
+                break;
+            }
+        }
+    }
+    // 查询排名  等价于find
+    int rk(int k)
+    {
+        int res = 0, cur = rt;
+        while (1)
+        {
+            if (k < val[cur])
+            {
+                cur = ch[cur][0];
+            }
+            else
+            {
+                res += sz[ch[cur][0]];
+                if (k == val[cur])
+                {
+                    splay(cur);
+                    return res + 1;
+                }
+                res += cnt[cur];
+                cur = ch[cur][1];
+            }
+        }
+    }
+    // 查询第k大 索引
+    int kth_idx(int k)
+    {
+        int cur = rt;
+        while (1)
+        {
+            pushdown(cur);
+            if (ch[cur][0] && k <= sz[ch[cur][0]])
+            {
+                cur = ch[cur][0];
+            }
+            else
+            {
+                k -= cnt[cur] + sz[ch[cur][0]];
+                if (k <= 0)
+                {
+                    splay(cur);
+                    return cur;
+                }
+                cur = ch[cur][1];
+            }
+        }
+    }
+    // 查询第k大 值
+    int kth_val(int k) { return val[kth_idx(k)]; }
+    // 查询前驱
+    int pre()
+    {
+        int cur = ch[rt][0];
+        if (!cur)
+            return cur;
+        while (ch[cur][1])
+            cur = ch[cur][1];
+        splay(cur);
+        return cur;
+    }
+    // 查询后继
+    int nxt()
+    {
+        int cur = ch[rt][1];
+        if (!cur)
+            return cur;
+        while (ch[cur][0])
+            cur = ch[cur][0];
+        splay(cur);
+        return cur;
+    }
+    // pre封装
+    int q_pre(int x)
+    {
+        ins(x);
+        int ret = val[pre()];
+        del(x);
+        return ret;
+    }
+    // nxt封装
+    int q_nxt(int x)
+    {
+        ins(x);
+        int ret = val[nxt()];
+        del(x);
+        return ret;
+    }
+    // 删除
+    void del(int k)
+    {
+        rk(k);
+        if (cnt[rt] > 1)
+        {
+            cnt[rt]--;
+            maintain(rt);
+            return;
+        }
+        if (!ch[rt][0] && !ch[rt][1])
+        {
+            clear(rt);
+            rt = 0;
+            return;
+        }
+        if (!ch[rt][0])
+        {
+            int cur = rt;
+            rt = ch[rt][1];
+            fa[rt] = 0;
+            clear(cur);
+            return;
+        }
+        if (!ch[rt][1])
+        {
+            int cur = rt;
+            rt = ch[rt][0];
+            fa[rt] = 0;
+            clear(cur);
+            return;
+        }
+        int cur = rt, x = pre();
+        fa[ch[cur][1]] = x;
+        ch[x][1] = ch[cur][1];
+        clear(cur);
+        maintain(rt);
+    }
+
+    void reverse(int l, int r)
+    {
+        int x = kth_idx(l), y = kth_idx(r + 2);
+        splay(x);
+        splay(y, x);
+        rev[ch[y][0]] ^= 1;
+    }
+    // 打印索引为x的节点及其子树
+    void output(int x)
+    {
+        pushdown(x);
+        if (ch[x][0])
+            output(ch[x][0]);
+        if (val[x] && val[x] <= n)
+            cout << val[x] <<" ";
+        if (ch[x][1])
+            output(ch[x][1]);
+    }
+    //打印整颗树
+    void print_tree()
+    {
+        output(rt);
+    }
 } tree;
+
+
 ```
 
 ### LCA
