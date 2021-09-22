@@ -3423,154 +3423,459 @@ signed main()
 }
 
 ```
+### FHQ-Treap
+
+#### 区间翻转(可以部分替代splay)
+
+```c++
+# include<iostream>
+# include<cstdio>
+# include<cstring>
+# include<cstdlib>
+using namespace std;
+const int MAX=1e5+1;
+int n,m,tot,rt;
+struct Treap{
+    int pos[MAX],siz[MAX],w[MAX];
+    int son[MAX][2];
+    bool fl[MAX];
+    void pus(int x)
+    {
+        siz[x]=siz[son[x][0]]+siz[son[x][1]]+1;
+    }
+    int build(int x)
+    {
+        w[++tot]=x,siz[tot]=1,pos[tot]=rand();
+        return tot;
+    }
+    void down(int x)
+    {
+        swap(son[x][0],son[x][1]);
+        if(son[x][0]) fl[son[x][0]]^=1;
+        if(son[x][1]) fl[son[x][1]]^=1;
+        fl[x]=0;
+    }
+    int merge(int x,int y)
+    {
+        if(!x||!y) return x+y;
+        if(pos[x]<pos[y])
+        {
+            if(fl[x]) down(x);
+            son[x][1]=merge(son[x][1],y);
+            pus(x);
+            return x;
+        }
+        if(fl[y]) down(y);
+        son[y][0]=merge(x,son[y][0]);
+        pus(y);
+        return y;
+    }
+    void split(int i,int k,int &x,int &y)
+    {
+        if(!i)
+        {
+            x=y=0;
+            return;
+        }
+        if(fl[i]) down(i);
+        if(siz[son[i][0]]<k)
+        x=i,split(son[i][1],k-siz[son[i][0]]-1,son[i][1],y);
+        else
+        y=i,split(son[i][0],k,x,son[i][0]);
+        pus(i);
+    }
+    void coutt(int i)
+    {
+        if(!i) return;
+        if(fl[i]) down(i);
+        coutt(son[i][0]);
+        printf("%d ",w[i]);
+        coutt(son[i][1]);
+    }
+}Tree;
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;i++)
+      rt=Tree.merge(rt,Tree.build(i));
+    for(int i=1;i<=m;i++)
+      {
+          int l,r,a,b,c;
+          scanf("%d%d",&l,&r);
+          Tree.split(rt,l-1,a,b);
+        Tree.split(b,r-l+1,b,c);
+        Tree.fl[b]^=1;
+        rt=Tree.merge(a,Tree.merge(b,c));
+      }
+    Tree.coutt(rt);
+    return 0;
+}
+```
+
+#### 可持久化
+
+```c++
+#include<cstdio>
+#include<cctype>
+#include<cstring>
+#include<cstdlib>
+#include<ctime>
+#include<utility>
+#include<algorithm>
+using namespace std;
+typedef pair<int,int> Pair;
+int read() {
+    int x=0,f=1;
+    char c=getchar();
+    for (;!isdigit(c);c=getchar()) if (c=='-') f=-1;
+    for (;isdigit(c);c=getchar()) x=x*10+c-'0';
+    return x*f;
+}
+const int maxn=5e4+5;
+const int nlogn=1.3e7+5;
+struct node {
+    int x,hp,l,r,sum,size;
+    bool rev;
+    void clear() {
+        x=hp=l=r=sum=size=rev=0;
+    }
+};
+struct TREAP {
+    int pool[nlogn];
+    int pooler;
+    node t[nlogn];
+    int now,all;
+    int root[maxn];
+    TREAP ():now(0),pooler(1) {
+        for (int i=1;i<nlogn;++i) pool[i]=i;
+        root[now]=pool[pooler++];
+    }
+    int newroot() {
+        int ret=pool[pooler++];
+        return ret;
+    }
+    int newnode(int x) {
+        int ret=pool[pooler++];
+        t[ret].hp=rand();
+        t[ret].size=1;
+        t[ret].x=t[ret].sum=x;
+        return ret;
+    }
+    void delnode(int x) {
+        t[x].clear();
+        pool[--pooler]=x;
+    }
+    void next() {
+        root[++all]=newroot();
+        t[root[all]]=t[root[now]];
+        now=all;
+    }
+    void back(int x) {
+        now=x;
+    }
+    void update(int x) {
+        t[x].sum=t[x].x+t[t[x].l].sum+t[t[x].r].sum;
+        t[x].size=t[t[x].l].size+t[t[x].r].size+1;
+    }
+    void pushdown(int x) {
+        if (!t[x].rev) return;
+        if (t[x].l) {
+            int tx=newnode(t[t[x].l].x);
+            t[tx]=t[t[x].l];
+            t[tx].rev^=true;
+            t[x].l=tx;
+        }
+        if (t[x].r) {
+            int tx=newnode(t[t[x].r].x);
+            t[tx]=t[t[x].r];
+            t[tx].rev^=true;
+            t[x].r=tx;
+        }
+        swap(t[x].l,t[x].r);
+        t[x].rev=false;
+    }
+    int merge(int x,int y) {
+        if (!x) return y;
+        if (!y) return x;
+        int now;
+        if (t[x].hp<=t[y].hp) {
+            now=newnode(t[x].x);
+            t[now]=t[x];
+            pushdown(now);
+            t[now].r=merge(t[now].r,y);
+        } else {
+            now=newnode(t[y].x);
+            t[now]=t[y];
+            pushdown(now);
+            t[now].l=merge(x,t[now].l);
+        }
+        update(now);
+        return now;
+    }
+    Pair split(int x,int p) {
+        if (t[x].size==p) return make_pair(x,0);
+        int now=newnode(t[x].x);
+        t[now]=t[x];
+        pushdown(now);
+        int l=t[now].l,r=t[now].r;
+        if (t[l].size>=p) {
+            t[now].l=0;
+            update(now);
+            Pair g=split(l,p);
+            now=merge(g.second,now);
+            return make_pair(g.first,now);
+        } else if (t[l].size+1==p) {
+            t[now].r=0;
+            update(now);
+            return make_pair(now,r);
+        } else {
+            t[now].r=0;
+            update(now);
+            Pair g=split(r,p-t[l].size-1);
+            now=merge(now,g.first);
+            pushdown(now);
+            return make_pair(now,g.second);
+        }
+    }
+    void rever(int l,int r) {
+        ++l,++r;
+        Pair g=split(root[now],l-1);
+        Pair h=split(g.second,r-l+1);
+        int want=h.first;
+        int here=newnode(t[want].x);
+        t[here]=t[want];
+        t[here].rev^=true;
+        int fi=merge(g.first,here);
+        int se=merge(fi,h.second);
+        root[now]=se;
+    }
+    int query(int l,int r) {
+        ++l,++r;
+        Pair g=split(root[now],l-1);
+        Pair h=split(g.second,r-l+1);
+        int want=h.first;
+        int ret=t[want].sum;
+        int fi=merge(g.first,want);
+        int se=merge(fi,h.second);
+        root[now]=se;
+        return ret;
+    }
+    void insert(int x) {
+        int k=newnode(x);
+        root[now]=merge(root[now],k);
+    }
+} Treap;
+int main() {
+#ifndef ONLINE_JUDGE
+    freopen("test.in","r",stdin);
+    freopen("my.out","w",stdout);
+#endif
+    srand(time(0));
+    int n=read(),m=read();
+    for (int i=1;i<=n;++i) {
+        int x=read();
+        Treap.insert(x);
+    } 
+    while (m--) {
+        int op=read();
+        if (op==1) {
+            Treap.next();
+            int l=read(),r=read();
+            Treap.rever(l,r);
+        } else if (op==2) {
+            int l=read(),r=read();
+            int ans=Treap.query(l,r);
+            printf("%d\n",ans);
+        } else if (op==3) {
+            Treap.back(read());
+        }
+    }
+    return 0;
+}
+```
+
 
 ### Splay
 
 ```cpp
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-const int N = 100005;
-int rt, tot, fa[N], ch[N][2], val[N], cnt[N], sz[N],mark[N];
-int n, m;
-struct Splay
-{
-    void maintain(int x) { sz[x] = sz[ch[x][0]] + sz[ch[x][1]] + cnt[x]; }
-    bool get(int x) { return x == ch[fa[x]][1]; }
-    void pushdown(int x)
-    {
-        if(mark[x])
-        {
-            mark[ch[x][0]]^=1;
-            mark[ch[x][1]]^=1;
-            mark[x]=0;
-            swap(ch[x][1],ch[x][0]);
-        }
-    }
-    void clear(int x)
-    {
-        ch[x][0] = ch[x][1] = fa[x] = val[x] = sz[x] = cnt[x] = 0;
-    }
-    void write(int u)
-    {
-        pushdown(u);
-        if(ch[u][0])
-            write(ch[u][0]);
-        if(val[u]>1&&val[u]<n+2)
-            cout<<val[u]-1<<" ";
+typedef long long ll;
 
-        if(ch[u][1])
-            write(ch[u][1]);
+const int N = 100010;
+int rt, tot, fa[N], ch[N][2], val[N], cnt[N], sz[N]; // cnt 权值出现次数
+struct Splay {
+	void maintain(int x)
+	{
+		sz[x] = sz[ch[x][0]] + sz[ch[x][1]] + cnt[x];
+	}
+	// 右儿子返回1 左儿子返回0 
+	bool get(int x) {return x == ch[fa[x]][1];}
+	void clear(int x) 
+	{
+		ch[x][0] = ch[x][1] = fa[x] = val[x] = sz[x] = cnt[x] = 0;
+	}
+	// 旋转操作
+	void rotate(int x)
+	{
+		int y = fa[x] ,z = fa[y], chk = get(x);
+		// x是左儿子右旋，右儿子左旋
+		ch[y][chk] = ch[x][chk^1];
+		if (ch[x][chk^1]) fa[ch[x][chk^1]] = y;
+		ch[x][chk ^ 1] = y;
+		fa[y] = x;
+		fa[x] = z;
+		if (z) ch[z][y == ch[z][1]] = x;
+		maintain(x);
+		maintain(y); 
+	}
+	
+	// Slpay操作
+	void splay(int x)
+	{
+		for (int f = fa[x]; f = fa[x], f; rotate(x))
+			if (fa[f]) rotate(get(x) == get(f) ? f : x);
+		rt = x;
+	}
 
-    }
-    void rotate(int x)
-    {
-        int y = fa[x], z = fa[y], chk = get(x);
-        ch[y][chk] = ch[x][chk ^ 1];
-        if (ch[x][chk ^ 1])
-            fa[ch[x][chk ^ 1]] = y;
-        ch[x][chk ^ 1] = y;
-        fa[y] = x;
-        fa[x] = z;
-        if (z)
-            ch[z][y == ch[z][1]] = x;
-        maintain(x);
-        maintain(y);
-    }
-    inline void splay(int x,int goal)
-    {
-        while(fa[x]!=goal)
-        {
-            int y=fa[x];int z=fa[y];
-            if(z!=goal)
-                (ch[z][1]==y)^(ch[y][1]==x)?rotate(x):rotate(y);
-            rotate(x);
-        }
-        if(goal==0)
-            rt=x;
-    }
-    void ins(int k)
-    {
-        if (!rt)
-        {
-            val[++tot] = k;
-            cnt[tot]++;
-            rt = tot;
-            maintain(rt);
-            return;
-        }
-        int cur = rt, f = 0;
-        while (1)
-        {
-            if (val[cur] == k)
-            {
-                cnt[cur]++;
-                maintain(cur);
-                maintain(f);
-                splay(cur,0);
-                break;
-            }
-            f = cur;
-            cur = ch[cur][val[cur] < k];
-            if (!cur)
-            {
-                val[++tot] = k;
-                cnt[tot]++;
-                fa[tot] = f;
-                ch[f][val[f] < k] = tot;
-                maintain(tot);
-                maintain(f);
-                splay(tot,0);
-                break;
-            }
-        }
-    }
-    int kth(int k)
-    {
-        int cur = rt;
-        while (1)
-        {
-            pushdown(cur);
-            if (ch[cur][0] && k <= sz[ch[cur][0]])
-            {
-                cur = ch[cur][0];
-            }
-            else
-            {
-                k -= cnt[cur] + sz[ch[cur][0]];
-                if (k <= 0)
-                {
-                    //splay(cur,0);
-                    return val[cur];
-                }
-                cur = ch[cur][1];
-            }
-        }
-    }
-    void reverse(int l,int r)
-    {
-        l=kth(l);r=kth(r+2);
-        splay(l,0);
-        splay(r,l);
-        int tmp=ch[rt][1];
-        mark[ch[tmp][0]]^=1;
-    }
+	// 插入
+	void ins(int k)
+	{
+		// 树空
+		if (!rt) {
+			val[++tot] = k;
+			cnt[tot]++;
+			rt = tot;
+			maintain(rt);
+			return;
+		}
+		int cur = rt, f = 0;
+		while (1) {
+			if (val[cur] == k) {
+				cnt[cur] ++ ;
+				maintain(cur);
+				maintain(f);
+				splay(cur);
+				break;
+			}
+			f = cur;
+			cur = ch[cur][val[cur]<k];
+			if (!cur) {
+				val[++tot] = k;
+				cnt[tot]++;
+				fa[tot] = f;
+				ch[f][val[f] < k] = tot;
+				maintain(tot);
+				maintain(f);
+				splay(tot);
+				break;
+			} 
+		}
+	}
+	// 查询排名
+	int rk(int k)
+	{
+		int res = 0, cur = rt;
+		while(1) {
+			if (k < val[cur]) {
+				cur = ch[cur][0];
+			} else {
+				res += sz[ch[cur][0]];
+				if (k == val[cur]){
+					splay(cur);
+					return res + 1;
+				}
+				res += cnt[cur];
+				cur = ch[cur][1];
+			}
+		}
+	}
+	// 查询第k大
+	int kth(int k)
+	{
+		int cur = rt;
+		while (1) {
+			if (ch[cur][0] && k <= sz[ch[cur][0]]) {
+				cur = ch[cur][0];
+			} else {
+				k -= cnt[cur] + sz[ch[cur][0]];
+				if (k <= 0) {
+					splay(cur);
+					return val[cur];
+				}
+				cur = ch[cur][1];
+			}
+		}
+	}
+	// 查询前驱
+	int pre() 
+	{
+		int cur = ch[rt][0];
+		if (!cur) return cur;
+		while (ch[cur][1]) cur = ch[cur][1];
+		splay(cur);
+		return cur;
+	}
+	// 查询后继
+	int nxt()
+	{
+		int cur = ch[rt][1];
+		if (!cur) return cur;
+		while (ch[cur][0]) cur = ch[cur][0];
+		splay(cur);
+		return cur;
+	}
+	// pre封装
+	int q_pre(int x)
+	{
+		ins(x);
+		int ret = val[pre()];
+		del(x);
+		return ret;
+	}
+	// nxt封装
+	int q_nxt(int x)
+	{
+		ins(x);
+		int ret = val[nxt()];
+		del(x);
+		return ret;
+	}
+	// 删除
+	void del(int k)
+	{
+		rk(k);
+		if (cnt[rt] > 1){
+			cnt[rt]--;
+			maintain(rt);
+			return;
+		}
+		if (!ch[rt][0] && !ch[rt][1]) {
+			clear(rt);
+			rt = 0;
+			return;
+		}
+		if (!ch[rt][0]) {
+			int cur = rt;
+			rt = ch[rt][1];
+			fa[rt] = 0;
+			clear(cur);
+			return;
+		}
+		if (!ch[rt][1]) {
+			int cur = rt;
+			rt = ch[rt][0];
+			fa[rt] = 0;
+			clear(cur);
+			return;
+		}
+		int cur = rt, x = pre();
+		fa[ch[cur][1]] = x;
+		ch[x][1] = ch[cur][1];
+		clear(cur);
+		maintain(rt);
+	}
 } tree;
-
-int main()
-{
-    ios::sync_with_stdio(false);
-    cin >> n >> m;
-    for(int i=1;i<=n+2;i++)
-        tree.ins(i);
-    while(m--)
-    {
-        int l,r;
-        cin>>l>>r;
-        tree.reverse(l,r);
-    }
-    tree.write(rt);
-    return 0;
-}
 ```
 
 ### LCA
@@ -7474,278 +7779,6 @@ int main()
 	if(now==n-1) ans+=(a[n-1]+a[n]); 
     printf("%lld\n",ans);
 	return 0;
-}
-```
-
-
-### Add fhq-Treap
-
-#### 区间翻转(可以部分替代splay)
-
-```c++
-# include<iostream>
-# include<cstdio>
-# include<cstring>
-# include<cstdlib>
-using namespace std;
-const int MAX=1e5+1;
-int n,m,tot,rt;
-struct Treap{
-    int pos[MAX],siz[MAX],w[MAX];
-    int son[MAX][2];
-    bool fl[MAX];
-    void pus(int x)
-    {
-        siz[x]=siz[son[x][0]]+siz[son[x][1]]+1;
-    }
-    int build(int x)
-    {
-        w[++tot]=x,siz[tot]=1,pos[tot]=rand();
-        return tot;
-    }
-    void down(int x)
-    {
-        swap(son[x][0],son[x][1]);
-        if(son[x][0]) fl[son[x][0]]^=1;
-        if(son[x][1]) fl[son[x][1]]^=1;
-        fl[x]=0;
-    }
-    int merge(int x,int y)
-    {
-        if(!x||!y) return x+y;
-        if(pos[x]<pos[y])
-        {
-            if(fl[x]) down(x);
-            son[x][1]=merge(son[x][1],y);
-            pus(x);
-            return x;
-        }
-        if(fl[y]) down(y);
-        son[y][0]=merge(x,son[y][0]);
-        pus(y);
-        return y;
-    }
-    void split(int i,int k,int &x,int &y)
-    {
-        if(!i)
-        {
-            x=y=0;
-            return;
-        }
-        if(fl[i]) down(i);
-        if(siz[son[i][0]]<k)
-        x=i,split(son[i][1],k-siz[son[i][0]]-1,son[i][1],y);
-        else
-        y=i,split(son[i][0],k,x,son[i][0]);
-        pus(i);
-    }
-    void coutt(int i)
-    {
-        if(!i) return;
-        if(fl[i]) down(i);
-        coutt(son[i][0]);
-        printf("%d ",w[i]);
-        coutt(son[i][1]);
-    }
-}Tree;
-int main()
-{
-    scanf("%d%d",&n,&m);
-    for(int i=1;i<=n;i++)
-      rt=Tree.merge(rt,Tree.build(i));
-    for(int i=1;i<=m;i++)
-      {
-          int l,r,a,b,c;
-          scanf("%d%d",&l,&r);
-          Tree.split(rt,l-1,a,b);
-        Tree.split(b,r-l+1,b,c);
-        Tree.fl[b]^=1;
-        rt=Tree.merge(a,Tree.merge(b,c));
-      }
-    Tree.coutt(rt);
-    return 0;
-}
-```
-
-#### 可持久化
-
-```c++
-#include<cstdio>
-#include<cctype>
-#include<cstring>
-#include<cstdlib>
-#include<ctime>
-#include<utility>
-#include<algorithm>
-using namespace std;
-typedef pair<int,int> Pair;
-int read() {
-    int x=0,f=1;
-    char c=getchar();
-    for (;!isdigit(c);c=getchar()) if (c=='-') f=-1;
-    for (;isdigit(c);c=getchar()) x=x*10+c-'0';
-    return x*f;
-}
-const int maxn=5e4+5;
-const int nlogn=1.3e7+5;
-struct node {
-    int x,hp,l,r,sum,size;
-    bool rev;
-    void clear() {
-        x=hp=l=r=sum=size=rev=0;
-    }
-};
-struct TREAP {
-    int pool[nlogn];
-    int pooler;
-    node t[nlogn];
-    int now,all;
-    int root[maxn];
-    TREAP ():now(0),pooler(1) {
-        for (int i=1;i<nlogn;++i) pool[i]=i;
-        root[now]=pool[pooler++];
-    }
-    int newroot() {
-        int ret=pool[pooler++];
-        return ret;
-    }
-    int newnode(int x) {
-        int ret=pool[pooler++];
-        t[ret].hp=rand();
-        t[ret].size=1;
-        t[ret].x=t[ret].sum=x;
-        return ret;
-    }
-    void delnode(int x) {
-        t[x].clear();
-        pool[--pooler]=x;
-    }
-    void next() {
-        root[++all]=newroot();
-        t[root[all]]=t[root[now]];
-        now=all;
-    }
-    void back(int x) {
-        now=x;
-    }
-    void update(int x) {
-        t[x].sum=t[x].x+t[t[x].l].sum+t[t[x].r].sum;
-        t[x].size=t[t[x].l].size+t[t[x].r].size+1;
-    }
-    void pushdown(int x) {
-        if (!t[x].rev) return;
-        if (t[x].l) {
-            int tx=newnode(t[t[x].l].x);
-            t[tx]=t[t[x].l];
-            t[tx].rev^=true;
-            t[x].l=tx;
-        }
-        if (t[x].r) {
-            int tx=newnode(t[t[x].r].x);
-            t[tx]=t[t[x].r];
-            t[tx].rev^=true;
-            t[x].r=tx;
-        }
-        swap(t[x].l,t[x].r);
-        t[x].rev=false;
-    }
-    int merge(int x,int y) {
-        if (!x) return y;
-        if (!y) return x;
-        int now;
-        if (t[x].hp<=t[y].hp) {
-            now=newnode(t[x].x);
-            t[now]=t[x];
-            pushdown(now);
-            t[now].r=merge(t[now].r,y);
-        } else {
-            now=newnode(t[y].x);
-            t[now]=t[y];
-            pushdown(now);
-            t[now].l=merge(x,t[now].l);
-        }
-        update(now);
-        return now;
-    }
-    Pair split(int x,int p) {
-        if (t[x].size==p) return make_pair(x,0);
-        int now=newnode(t[x].x);
-        t[now]=t[x];
-        pushdown(now);
-        int l=t[now].l,r=t[now].r;
-        if (t[l].size>=p) {
-            t[now].l=0;
-            update(now);
-            Pair g=split(l,p);
-            now=merge(g.second,now);
-            return make_pair(g.first,now);
-        } else if (t[l].size+1==p) {
-            t[now].r=0;
-            update(now);
-            return make_pair(now,r);
-        } else {
-            t[now].r=0;
-            update(now);
-            Pair g=split(r,p-t[l].size-1);
-            now=merge(now,g.first);
-            pushdown(now);
-            return make_pair(now,g.second);
-        }
-    }
-    void rever(int l,int r) {
-        ++l,++r;
-        Pair g=split(root[now],l-1);
-        Pair h=split(g.second,r-l+1);
-        int want=h.first;
-        int here=newnode(t[want].x);
-        t[here]=t[want];
-        t[here].rev^=true;
-        int fi=merge(g.first,here);
-        int se=merge(fi,h.second);
-        root[now]=se;
-    }
-    int query(int l,int r) {
-        ++l,++r;
-        Pair g=split(root[now],l-1);
-        Pair h=split(g.second,r-l+1);
-        int want=h.first;
-        int ret=t[want].sum;
-        int fi=merge(g.first,want);
-        int se=merge(fi,h.second);
-        root[now]=se;
-        return ret;
-    }
-    void insert(int x) {
-        int k=newnode(x);
-        root[now]=merge(root[now],k);
-    }
-} Treap;
-int main() {
-#ifndef ONLINE_JUDGE
-    freopen("test.in","r",stdin);
-    freopen("my.out","w",stdout);
-#endif
-    srand(time(0));
-    int n=read(),m=read();
-    for (int i=1;i<=n;++i) {
-        int x=read();
-        Treap.insert(x);
-    } 
-    while (m--) {
-        int op=read();
-        if (op==1) {
-            Treap.next();
-            int l=read(),r=read();
-            Treap.rever(l,r);
-        } else if (op==2) {
-            int l=read(),r=read();
-            int ans=Treap.query(l,r);
-            printf("%d\n",ans);
-        } else if (op==3) {
-            Treap.back(read());
-        }
-    }
-    return 0;
 }
 ```
 
