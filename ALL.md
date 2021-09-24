@@ -3944,9 +3944,23 @@ struct Splay
     {
         output(rt);
     }
+    // 已知序列建树
+    int build(int l,int r)
+    {
+        int x=++tot;
+        int mid=(l+r)/2;
+        cnt[tot]++;
+        // val[tot]=xxxx;
+        if(l==r){
+            maintain(x);
+            return x;
+        }
+        ch[x][0]=build(l,mid-1);
+        ch[x][1]=build(mid+1,r);
+        maintain(x);
+        return x;
+    }
 } tree;
-
-
 ```
 
 ### LCA
