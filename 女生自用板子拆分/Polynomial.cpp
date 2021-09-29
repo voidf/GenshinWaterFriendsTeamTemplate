@@ -1,7 +1,7 @@
 #include "Headers.cpp"
 #include "MathTheoryMisc.cpp"
 #include "foreach.cpp"
-
+#include "Cipolla.cpp"
 /*
 g 是mod(r*2^k+1)的原根
 素数  r  k  g
@@ -63,6 +63,7 @@ struct Polynomial
     inline LL msub(LL x, LL y) { return (x -= y) < 0 ? x + mod : x; }
 
     Polynomial() {}
+    Polynomial(int siz) : cof(siz) {}
 
     /* n^2 拉格朗日插值 */
     void interpolation()
@@ -95,6 +96,52 @@ struct Polynomial
             }
         }
     }
+
+    /* P5667 给f(0)~f(n)，算f(m)~f(m+n)，nlogn，int安全，1.6e5下710ms */
+    Polynomial interpolation_continuity(T m)
+    {
+        Polynomial B;
+
+        T n = cof.size() - 1;
+        T nbound = n << 1 | 1;
+        B.cof.resize(nbound);
+        vector<T> fac(nbound + 1);     // 阶乘
+        vector<T> facinv(nbound + 1);  // 阶乘的逆元
+        vector<T> Bfac(nbound + 1);    // B数组的分母前缀积
+        vector<T> Bfacinv(nbound + 1); // B数组的分母前缀积的逆元
+        // vector<T> Binv(nbound + 1);    // B数组的分母的逆元，即B真正存的东西
+        fac[0] = Bfac[0] = 1;
+        for (int i = 1; i <= nbound; ++i)
+        {
+            fac[i] = (LL)fac[i - 1] * i % mod;
+            Bfac[i] = (LL)Bfac[i - 1] * (m - n + i - 1) % mod;
+        }
+
+        Bfacinv.back() = inv(Bfac.back(), mod);
+        facinv.back() = inv(fac.back(), mod);
+
+        for (int i = nbound; i; --i)
+        {
+            facinv[i - 1] = (LL)facinv[i] * i % mod;
+            Bfacinv[i - 1] = (LL)Bfacinv[i] * (m - n + i - 1) % mod;
+            // Binv[i]
+            B.cof[i - 1] = (LL)Bfacinv[i] * Bfac[i - 1] % mod;
+        }
+        for (int i = 0; i <= n; ++i)
+        {
+            cof[i] = (LL)cof[i] * facinv[i] % mod * facinv[n-i] % mod;
+            if (n - i & 1)
+                cof[i] = mod - cof[i];
+        }
+        Polynomial C = NTTMul(*this, B);
+        for (int i = n; i < nbound; ++i)
+        {
+            B.cof[i - n] = (LL)Bfac[i + 1] * Bfacinv[i - n] % mod * C.cof[i] % mod;
+        }
+        B.cof.resize(nbound-n);
+        return B;
+    }
+
     /* 计算多项式在x这点的值 */
     T eval(T x)
     {
@@ -336,7 +383,7 @@ struct Polynomial
         A.NTT(rev, lim, 0);
         B.NTT(rev, lim, 0);
         for (auto i : range(lim))
-            A.cof[i] = (A.cof[i] * B.cof[i] % A.mod);
+            A.cof[i] = ((LL)A.cof[i] * B.cof[i] % A.mod);
         A.NTT(rev, lim, 1);
 
         A.cof.resize(retsiz - 1);

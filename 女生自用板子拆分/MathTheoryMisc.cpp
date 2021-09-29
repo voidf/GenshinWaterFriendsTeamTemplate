@@ -5,15 +5,29 @@ inline LL madd(LL x, LL y) { return (x += y) >= mo ? x - mo : x; }
 inline LL modsub(LL &x, LL y) { return (x -= y) < 0 ? x += mo : x; }
 inline LL msub(LL x, LL y) { return (x -= y) < 0 ? x + mo : x; }
 
-template <typename IntegerType>
-inline IntegerType power(IntegerType a, IntegerType n)
+template <typename I>
+inline I power(I a, I n)
 {
-    IntegerType res = 1;
+    I res = 1;
     while (n)
     {
         if (n & 1)
             res = res * a;
         a = a * a;
+        n >>= 1;
+    }
+    return res;
+}
+
+template <typename I> // int安全
+inline I power(I a, I n, I mo)
+{
+    I res = 1;
+    while (n)
+    {
+        if (n & 1)
+            res = (LL)res * a % mo;
+        a = (LL)a * a % mo;
         n >>= 1;
     }
     return res;
