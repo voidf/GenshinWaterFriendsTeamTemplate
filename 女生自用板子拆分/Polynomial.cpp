@@ -51,7 +51,7 @@ template <typename T>
 struct Polynomial
 {
     std::vector<T> cof; // 各项系数 coefficient 低次在前高次在后
-    LL mod = 998244353; // 模数
+    LL mod = 998244353;   // 模数
     LL G = 3;           // 原根
     LL Gi = 332748118;  // 原根的逆元
     using pointval = std::pair<T, T>;
@@ -96,6 +96,40 @@ struct Polynomial
             }
         }
     }
+    /* 给f(0)~f(n)，求f(m) */
+    T interpolation_continuity_single(T m, T beg = 0)
+    {
+        T n = cof.size();
+        if (m >= beg and m <= beg + n - 1)
+            return cof[m - beg];
+        vector<T> fac(beg + n + 1, 1);
+        vector<T> facinv(beg + n + 1, 1);
+
+        for (int i = 2; i <= fac.size() - 1; ++i)
+            fac[i] = ((LL)fac[i - 1] * i % mod);
+        facinv[n] = inv(fac[n], mod);
+        for (int i = facinv.size() - 1; i > 1; --i)
+            facinv[i - 1] = (LL)facinv[i] * (i) % mod;
+        vector<T> krr(1, m - beg);
+        for (int i = 1; i < n; ++i)
+            krr.emplace_back(((m - beg - i) % mod + mod) % mod);
+        vector<T> pre(1, 1);
+        vector<T> suf(1, 1);
+        for (auto i : krr)
+            pre.emplace_back((LL)pre.back() * i % mod);
+        for (auto i = krr.rbegin(); i != krr.rend(); ++i)
+            suf.emplace_back((LL)suf.back() * (*i) % mod);
+        reverse(suf.begin(), suf.end());
+        T ret = 0;
+        for (int i = 0; i < n; ++i)
+        {
+            T cur = (LL)cof[i] * pre[i] % mod * suf[i + 1] % mod * facinv[i] % mod * (facinv[n - i - 1]) % mod;
+            if (n - i - 1 & 1)
+                cur = msub(mod, cur);
+            ret = madd(ret, cur);
+        }
+        return ret;
+    }
 
     /* P5667 给f(0)~f(n)，算f(m)~f(m+n)，nlogn，int安全，1.6e5下710ms */
     Polynomial interpolation_continuity(T m)
@@ -129,7 +163,7 @@ struct Polynomial
         }
         for (int i = 0; i <= n; ++i)
         {
-            cof[i] = (LL)cof[i] * facinv[i] % mod * facinv[n-i] % mod;
+            cof[i] = (LL)cof[i] * facinv[i] % mod * facinv[n - i] % mod;
             if (n - i & 1)
                 cof[i] = mod - cof[i];
         }
@@ -138,7 +172,7 @@ struct Polynomial
         {
             B.cof[i - n] = (LL)Bfac[i + 1] * Bfacinv[i - n] % mod * C.cof[i] % mod;
         }
-        B.cof.resize(nbound-n);
+        B.cof.resize(nbound - n);
         return B;
     }
 
