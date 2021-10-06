@@ -56,6 +56,89 @@ inline LL inv(LL a, LL mo)
     return x >= 0 ? x : x + mo; // 为0时无解
 }
 
+/* 静态模数类，只能用有符号类型做T和EXT参数 */
+template <int mod, class T = int, class EXT = long long>
+struct mint
+{
+	T x;
+	template <class TT>
+	mint(TT _x)
+	{
+		x = EXT(_x) % mod;
+		if (x < 0)
+			x += mod;
+	}
+	mint() : x(0) {}
+	mint &operator++()
+	{
+		++x;
+		if (x == mod)
+			x = 0;
+		return *this;
+	}
+	mint &operator--()
+	{
+		x = (x == 0 ? mod - 1 : x - 1);
+		return *this;
+	}
+	mint operator++(int)
+	{
+		mint tmp = *this;
+		++*this;
+		return tmp;
+	}
+	mint operator--(int)
+	{
+		mint tmp = *this;
+		--*this;
+		return tmp;
+	}
+	mint &operator+=(const mint &rhs)
+	{
+		x += rhs.x;
+		if (x >= mod)
+			x -= mod;
+		return *this;
+	}
+	mint &operator-=(const mint &rhs)
+	{
+		x -= rhs.x;
+		if (x < 0)
+			x += mod;
+		return *this;
+	}
+	mint &operator*=(const mint &rhs)
+	{
+		x = EXT(x) * rhs.x % mod;
+		return *this;
+	}
+	mint &operator/=(const mint &rhs)
+	{
+		x = EXT(x) * inv(rhs.x, mod) % mod;
+		return *this;
+	}
+	mint operator+() const { return *this; }
+	mint operator-() const { return mod - *this; }
+	friend mint operator+(const mint &lhs, const mint &rhs) { return mint(lhs) += rhs; }
+	friend mint operator-(const mint &lhs, const mint &rhs) { return mint(lhs) -= rhs; }
+	friend mint operator*(const mint &lhs, const mint &rhs) { return mint(lhs) *= rhs; }
+	friend mint operator/(const mint &lhs, const mint &rhs) { return mint(lhs) /= rhs; }
+	friend bool operator==(const mint &lhs, const mint &rhs) { return lhs._v == rhs.x; }
+	friend bool operator!=(const mint &lhs, const mint &rhs) { return lhs._v != rhs.x; }
+	friend std::ostream &operator<<(std::ostream &o, const mint &m) { return o << m.x; }
+	friend std::istream &operator>>(std::istream &i, const mint &m)
+	{
+		i >> m.x;
+		m.x %= mod;
+		if (m.x < 0)
+			m.x += mod;
+		return i;
+	}
+};
+using m998 = mint<998244353>;
+using m1e9_7 = mint<1000000007>;
+using m1e9_9 = mint<1000000009>;
+
 //递推求法
 std::vector<LL> getInvRecursion(LL upp, LL mod)
 {

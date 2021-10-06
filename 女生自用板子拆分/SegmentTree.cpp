@@ -20,6 +20,8 @@ namespace Tree
         using _Node = _iNode<T>;
         int len;       // 线段树实际节点数
         int valid_len; // 原有效数据长度
+        int QL, QR;    // 暂存询问避免递归下传
+        T TMP;
         std::vector<_Node> _D;
         // template <typename AllocationPlaceType = void>
         SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
@@ -38,71 +40,67 @@ namespace Tree
 
         static int mid(int l, int r) { return l + r >> 1; }
 
-        void update_mul(int l,
-                        int r,
-                        T v,
-                        int node_l,
-                        int node_r,
-                        int x)
+        void update_mul(int node_l, int node_r, int x)
         {
-            if (l <= node_l and node_r <= r)
+            if (QL <= node_l and node_r <= QR)
             {
-                _D[x].lazy_add *= v;
-                _D[x].sum_content *= v;
-                _D[x].lazy_mul *= v;
-                _D[x].min_content *= v;
+                _D[x].lazy_add *= TMP;
+                _D[x].sum_content *= TMP;
+                _D[x].lazy_mul *= TMP;
+                _D[x].min_content *= TMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content * v * v;
+                _D[x].sqrt_content = _D[x].sqrt_content * TMP * TMP;
             }
             else
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
-                if (l <= mi)
-                    update_mul(l, r, v, node_l, mi, x << 1);
-                if (r > mi)
-                    update_mul(l, r, v, mi + 1, node_r, x << 1 | 1);
+                if (QL <= mi)
+                    update_mul(node_l, mi, x << 1);
+                if (QR > mi)
+                    update_mul(mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
 
-        void update_add(int l,
-                        int r,
-                        T v,
-                        int node_l,
-                        int node_r,
-                        int x)
+        void update_add(int node_l, int node_r, int x)
         {
-            if (l <= node_l and node_r <= r)
+            if (QL <= node_l and node_r <= QR)
             {
                 LL my_length = node_r - node_l + 1;
-                _D[x].lazy_add += v;
+                _D[x].lazy_add += TMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content + 2 * v * _D[x].sum_content + (my_length * v * v);
+                _D[x].sqrt_content = _D[x].sqrt_content + 2 * TMP * _D[x].sum_content + (my_length * TMP * TMP);
 
-                _D[x].sum_content += my_length * v;
-                _D[x].min_content += v;
+                _D[x].sum_content += my_length * TMP;
+                _D[x].min_content += TMP;
             }
             else
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
-                if (l <= mi)
-                    update_add(l, r, v, node_l, mi, x << 1);
-                if (r > mi)
-                    update_add(l, r, v, mi + 1, node_r, x << 1 | 1);
+                if (QL <= mi)
+                    update_add(node_l, mi, x << 1);
+                if (QR > mi)
+                    update_add(mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
 
         void range_mul(int l, int r, T v)
         {
-            update_mul(l, r, v, 1, valid_len, 1);
+            QL = l;
+            QR = r;
+            TMP = v;
+            update_mul(1, valid_len, 1);
         }
 
         void range_add(int l, int r, T v)
         {
-            update_add(l, r, v, 1, valid_len, 1);
+            QL = l;
+            QR = r;
+            TMP = v;
+            update_add(1, valid_len, 1);
         }
 
         inline void maintain(int i)
@@ -111,7 +109,6 @@ namespace Tree
             int r = l | 1;
             _D[i].sum_content = (_D[l].sum_content + _D[r].sum_content);
             _D[i].min_content = min(_D[l].min_content, _D[r].min_content);
-
             _D[i].sqrt_content = (_D[l].sqrt_content + _D[r].sqrt_content);
         }
 
@@ -166,14 +163,12 @@ namespace Tree
         }
 
         void _query_sum(
-            int l,
-            int r,
             T &res,
             int node_l,
             int node_r,
             int x)
         {
-            if (l <= node_l and node_r <= r)
+            if (QL <= node_l and node_r <= QR)
             {
                 res += _D[x].sum_content;
             }
@@ -181,22 +176,20 @@ namespace Tree
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
-                if (l <= mi)
-                    _query_sum(l, r, res, node_l, mi, x << 1);
-                if (r > mi)
-                    _query_sum(l, r, res, mi + 1, node_r, x << 1 | 1);
+                if (QL <= mi)
+                    _query_sum(res, node_l, mi, x << 1);
+                if (QR > mi)
+                    _query_sum(res, mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
         void _query_min(
-            int l,
-            int r,
             T &res,
             int node_l,
             int node_r,
             int x)
         {
-            if (l <= node_l and node_r <= r)
+            if (QL <= node_l and node_r <= QR)
             {
                 res = min(res, _D[x].min_content);
             }
@@ -204,23 +197,21 @@ namespace Tree
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
-                if (l <= mi)
-                    _query_min(l, r, res, node_l, mi, x << 1);
-                if (r > mi)
-                    _query_min(l, r, res, mi + 1, node_r, x << 1 | 1);
+                if (QL <= mi)
+                    _query_min(res, node_l, mi, x << 1);
+                if (QR > mi)
+                    _query_min(res, mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
 
         void _query_sqrt(
-            int l,
-            int r,
             T &res,
             int node_l,
             int node_r,
             int x)
         {
-            if (l <= node_l and node_r <= r)
+            if (QL <= node_l and node_r <= QR)
             {
                 res += _D[x].sqrt_content;
             }
@@ -228,10 +219,10 @@ namespace Tree
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
-                if (l <= mi)
-                    _query_sqrt(l, r, res, node_l, mi, x << 1);
-                if (r > mi)
-                    _query_sqrt(l, r, res, mi + 1, node_r, x << 1 | 1);
+                if (QL <= mi)
+                    _query_sqrt(res, node_l, mi, x << 1);
+                if (QR > mi)
+                    _query_sqrt(res, mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
@@ -239,7 +230,9 @@ namespace Tree
         T query_sum(int l, int r)
         {
             T res = 0;
-            _query_sum(l, r, res, 1, valid_len, 1);
+            QL = l;
+            QR = r;
+            _query_sum(res, 1, valid_len, 1);
             return res;
         }
 
@@ -247,14 +240,18 @@ namespace Tree
         {
             T res;
             memset(&res, 0x3f, sizeof(res));
-            _query_min(l, r, res, 1, valid_len, 1);
+            QL = l;
+            QR = r;
+            _query_min(res, 1, valid_len, 1);
             return res;
         }
 
         T query_sqrt(int l, int r)
         {
             T res = 0;
-            _query_sqrt(l, r, res, 1, valid_len, 1);
+            QL = l;
+            QR = r;
+            _query_sqrt(res, 1, valid_len, 1);
             return res;
         }
     };
