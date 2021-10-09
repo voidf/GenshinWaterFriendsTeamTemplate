@@ -1,5 +1,6 @@
 #include "Headers.cpp"
 
+// #define use_ptr
 namespace BalancedTree
 {
 /* 指定宏use_ptr使用指针定位左右儿子，指针可能会被搬家表传统艺能影响导致找不到地址 */
@@ -12,9 +13,9 @@ namespace BalancedTree
 	template <class T>
 	struct Node
 	{
-		T v, su;
-		int siz;
-		bool rev;
+		T v = 0, su = 0, alz = 0, mlz = 1;
+		unsigned siz = 1;
+		bool rev = 0;
 		P f;
 		P son[2];
 		Node() {}
@@ -53,18 +54,35 @@ namespace BalancedTree
 		inline void pushup(ND &x)
 		{
 			x.siz = 1 + lson(x).siz + rson(x).siz;
-			x.su = lson(x).su ^ rson(x).su ^ x.v;
+			x.su = lson(x).su + rson(x).su + x.v;
 		}
 		inline void pinrev(ND &x)
 		{
+			std::swap(x.son[0], x.son[1]);
 			x.rev ^= 1;
+		}
+		inline void pinmul(ND &x, const T c)
+		{
+			x.su *= c;
+			x.v *= c;
+			x.mlz *= c;
+			x.alz *= c;
+		}
+		inline void pinadd(ND &x, const T c)
+		{
+			x.su += c * T(x.siz);
+			x.v += c;
+			x.alz += c;
 		}
 
 		inline void pushdown(ND &x)
 		{
+			if (x.mlz != T(1))
+				pinmul(lson(x), x.mlz), pinmul(rson(x), x.mlz), x.mlz = 1;
+			if (x.alz)
+				pinadd(lson(x), x.alz), pinadd(rson(x), x.alz), x.alz = 0;
 			if (x.rev)
 			{
-				std::swap(x.son[0], x.son[1]);
 				if (x.son[0] != NIL)
 					pinrev(lson(x));
 				if (x.son[1] != NIL)
@@ -252,6 +270,8 @@ namespace BalancedTree
 		using Splay<T>::father;
 		using Splay<T>::pushup;
 		using Splay<T>::pinrev;
+		using Splay<T>::pinadd;
+		using Splay<T>::pinmul;
 		using Splay<T>::pushdown;
 		using Splay<T>::NIL;
 		LCT(int size) : Splay<T>(size) {}
@@ -331,6 +351,21 @@ namespace BalancedTree
 			chroot(x);
 			access(y);
 			splay(y);
+		}
+		inline void path_add(ND &x, ND &y, const T c)
+		{
+			split(x, y);
+			pinadd(y, c);
+		}
+		inline void path_mul(ND &x, ND &y, const T c)
+		{
+			split(x, y);
+			pinmul(y, c);
+		}
+		inline T path_query(ND &x, ND &y)
+		{
+			split(x, y);
+			return y.su;
 		}
 		inline bool link(ND &x, ND &y)
 		{
