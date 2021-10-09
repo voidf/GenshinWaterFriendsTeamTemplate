@@ -419,7 +419,7 @@ namespace Persistent_seg
 		Node(T _v) : v(_v), alz(0), mlz(1) {}
 	};
 	inline int mid(int l, int r) { return l + r >> 1; }
-
+	/* 用法:构造后用auto_reserve分配空间,然后build初始化,此时初始版本被填入H[0]中 */
 	template <class T>
 	struct PST_trad
 	{
@@ -448,6 +448,7 @@ namespace Persistent_seg
 #endif
 		}
 		PST_trad() {}
+		PST_trad(int n, int m) { auto_reserve(n, m); }
 		void auto_reserve(int n, int m)
 		{
 			D.reserve((1 + ceil(log2(n))) * m + 2 * n);
@@ -505,6 +506,7 @@ namespace Persistent_seg
 			// cerr << "REF c:" << rr << endl;
 			return rr;
 		}
+		/* 建默认空树可以给rf填nullptr */
 		void build(T *rf, int l, int r)
 		{
 			refarr = rf;
