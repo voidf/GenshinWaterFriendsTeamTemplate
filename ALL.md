@@ -277,6 +277,26 @@ void cw(int x, int y)//拆位
     dfs(pos1 - 1, 1, 1, 0);
 }
 ```
+### 枚举子集
+```c++
+for(int now=S;S!=0;now=(now-1)&S)
+{
+	tmp=S^now;//now为子集，tmp为now的补集
+}
+```
+
+
+### SOSDP（高维前缀和）
+```c++
+/*
+f[i]代表i所代表的所有子集之和
+*/
+for(int j=0;j<n;j++)//枚举每一位
+	for(int i=0;i<1<<n;i++)//枚举每个可能的集合
+		if(i>>j&1)//该位为1
+			f[i]+=f[i^(1<<j)];//代表i中缺少了任意一个物品的集合
+```
+
 ## 字符串
 
 ### Manacher
