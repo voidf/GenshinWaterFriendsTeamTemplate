@@ -1,6 +1,5 @@
 #include "Headers.cpp"
 
-// #define use_ptr
 namespace BalancedTree
 {
 /* 指定宏use_ptr使用指针定位左右儿子，指针可能会被搬家表传统艺能影响导致找不到地址 */
@@ -13,7 +12,8 @@ namespace BalancedTree
 	template <class T>
 	struct Node
 	{
-		T v = 0, su = 0, alz = 0, mlz = 1;
+		// si: 虚子树信息总和
+		T v = 0, su = 0 /*, alz = 0, mlz = 1*/, si = 0;
 		unsigned siz = 1;
 		bool rev = 0;
 		P f;
@@ -53,34 +53,40 @@ namespace BalancedTree
 		inline ND &rson(ND &x) { return resolve(x.son[1]); }
 		inline void pushup(ND &x)
 		{
+			if (getref(x) == NIL)
+				return;
 			x.siz = 1 + lson(x).siz + rson(x).siz;
-			x.su = lson(x).su + rson(x).su + x.v;
+			// 下面的是LCT用的
+			// 维护树链
+			// x.su = lson(x).su + rson(x).su + x.v;
+			// 维护子树
+			x.su = lson(x).su + rson(x).su + x.v + x.si;
 		}
 		inline void pinrev(ND &x)
 		{
 			std::swap(x.son[0], x.son[1]);
 			x.rev ^= 1;
 		}
-		inline void pinmul(ND &x, const T c)
-		{
-			x.su *= c;
-			x.v *= c;
-			x.mlz *= c;
-			x.alz *= c;
-		}
-		inline void pinadd(ND &x, const T c)
-		{
-			x.su += c * T(x.siz);
-			x.v += c;
-			x.alz += c;
-		}
+		// inline void pinmul(ND &x, const T c)
+		// {
+		// 	x.su *= c;
+		// 	x.v *= c;
+		// 	x.mlz *= c;
+		// 	x.alz *= c;
+		// }
+		// inline void pinadd(ND &x, const T c)
+		// {
+		// 	x.su += c * T(x.siz);
+		// 	x.v += c;
+		// 	x.alz += c;
+		// }
 
 		inline void pushdown(ND &x)
 		{
-			if (x.mlz != T(1))
-				pinmul(lson(x), x.mlz), pinmul(rson(x), x.mlz), x.mlz = 1;
-			if (x.alz)
-				pinadd(lson(x), x.alz), pinadd(rson(x), x.alz), x.alz = 0;
+			// if (x.mlz != T(1))
+			// 	pinmul(lson(x), x.mlz), pinmul(rson(x), x.mlz), x.mlz = 1;
+			// if (x.alz)
+			// 	pinadd(lson(x), x.alz), pinadd(rson(x), x.alz), x.alz = 0;
 			if (x.rev)
 			{
 				if (x.son[0] != NIL)
@@ -106,6 +112,7 @@ namespace BalancedTree
 			if (gc.size())
 			{
 				ND &b = D[gc.back()];
+				b.si = 0;
 				b.su = b.v = val;
 				b.siz = 1;
 				b.f = father;
@@ -118,6 +125,7 @@ namespace BalancedTree
 			{
 				D.emplace_back();
 				ND &b = D.back();
+				b.si = 0;
 				b.su = b.v = val;
 				b.siz = 1;
 				b.f = father;
@@ -270,8 +278,8 @@ namespace BalancedTree
 		using Splay<T>::father;
 		using Splay<T>::pushup;
 		using Splay<T>::pinrev;
-		using Splay<T>::pinadd;
-		using Splay<T>::pinmul;
+		// using Splay<T>::pinadd;
+		// using Splay<T>::pinmul;
 		using Splay<T>::pushdown;
 		using Splay<T>::NIL;
 		LCT(int size) : Splay<T>(size) {}
@@ -296,6 +304,8 @@ namespace BalancedTree
 			y.f = getref(x);
 			x.f = getref(z);
 			pushup(y);
+			// pushup(x);
+			// pushup(z);
 		}
 
 		inline void splay(ND &x)
@@ -304,6 +314,7 @@ namespace BalancedTree
 			vector<P> stk(1, ry);
 			while (isnot_root(resolve(ry)))
 				stk.emplace_back(ry = resolve(ry).f);
+			// pushdown((resolve(ry)));
 			while (stk.size())
 			{
 				pushdown(resolve(stk.back()));
@@ -325,7 +336,15 @@ namespace BalancedTree
 		{
 			P rx = getref(x);
 			for (P ry = NIL; rx != NIL; rx = resolve(ry = rx).f)
-				splay(resolve(rx)), resolve(rx).son[1] = ry, pushup(resolve(rx));
+			{
+				splay(resolve(rx));
+				// resolve(rx).son[1] = ry;
+				// 维护虚子树改成下两句
+				resolve(rx).si += resolve(resolve(rx).son[1]).su;
+				resolve(rx).si -= resolve(resolve(rx).son[1] = ry).su;
+				//
+				pushup(resolve(rx));
+			}
 		}
 
 		inline void chroot(ND &x)
@@ -351,17 +370,19 @@ namespace BalancedTree
 			chroot(x);
 			access(y);
 			splay(y);
+			//
+			pushup(x);
 		}
-		inline void path_add(ND &x, ND &y, const T c)
-		{
-			split(x, y);
-			pinadd(y, c);
-		}
-		inline void path_mul(ND &x, ND &y, const T c)
-		{
-			split(x, y);
-			pinmul(y, c);
-		}
+		// inline void path_add(ND &x, ND &y, const T c)
+		// {
+		// 	split(x, y);
+		// 	pinadd(y, c);
+		// }
+		// inline void path_mul(ND &x, ND &y, const T c)
+		// {
+		// 	split(x, y);
+		// 	pinmul(y, c);
+		// }
 		inline T path_query(ND &x, ND &y)
 		{
 			split(x, y);
@@ -372,7 +393,12 @@ namespace BalancedTree
 			chroot(x);
 			if (getref(findroot(y)) != getref(x))
 			{
-				x.f = getref(y);
+				// x.f = getref(y);
+				// LCT子树
+				chroot(y);
+				resolve(x.f = getref(y)).si += x.su;
+				//
+				pushup(y);
 				return true;
 			}
 			return false;
