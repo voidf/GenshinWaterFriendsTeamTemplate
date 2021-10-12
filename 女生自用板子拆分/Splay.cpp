@@ -25,32 +25,87 @@ namespace BalancedTree
 	template <class T>
 	struct Splay
 	{
-		int siz;
 		using ND = Node<T>;
 		std::vector<ND> D;
 		std::vector<int> gc; // 删除节点垃圾收集
-
+		int siz;
 		P root;
 		P NIL; // 0号点是保留的哨兵点
-		inline ND &resolve(P x)
-		{
 #ifdef use_ptr
-			return *x;
+		;
+		inline ND &resolve(P x) { return *x; }
+		inline P getref(ND &x) { return &x; }
 #else
-			return D[x];
+		;
+		inline ND &resolve(P x) { return D[x]; }
+		inline P getref(ND &x) { return &x - &D.front(); }
 #endif
-		}
-		inline P getref(ND &x)
+
+		inline ND &father(ND &x)
 		{
-#ifdef use_ptr
-			return &x;
-#else
-			return &x - &D.front();
-#endif
+			return resolve(x.f);
 		}
-		inline ND &father(ND &x) { return resolve(x.f); }
 		inline ND &lson(ND &x) { return resolve(x.son[0]); }
 		inline ND &rson(ND &x) { return resolve(x.son[1]); }
+		/* 按中序遍历往后（reversed填true来往前）移动一个节点，对pushdown不安全 */
+
+		inline ND &move(ND &x, bool reversed = false)
+		{
+			// if (reversed == 0)
+			// return x;
+			bool s = reversed;
+			pushdown(x);
+			if (x.son[!s] != NIL)
+			{
+				P p = x.son[!s];
+				while (resolve(p).son[s] != NIL)
+					pushdown(resolve(p)), p = resolve(p).son[s];
+				return resolve(p);
+			}
+			else
+			{
+				P p = getref(x);
+				P y = x.f;
+				while (resolve(y).son[!s] == p)
+					p = y, y = resolve(p).f;
+				if (resolve(p).son[!s] != y)
+					p = y;
+				return resolve(p);
+			}
+		}
+		/* 注意begin不是O1的 */
+		// using NDP = Node *;
+		struct iterator
+		{
+			Splay *self;
+			P _;
+			iterator(ND &x, Splay *s) : _(resolve(x)), self(s) {}
+			iterator(P x, Splay *s) : _(x), self(s) {}
+			// iterator(P &&x) : _(x) {}
+			inline operator ND &() { return self->resolve(_); }
+			inline operator P() { return _; }
+			inline ND &operator*() { return self->resolve(_); }
+			inline iterator &operator++()
+			{
+				_ = self->getref(self->move(self->resolve(_)));
+				return *this;
+			}
+			inline iterator &operator--()
+			{
+				_ = self->getref(self->move(self->resolve(_), true));
+				return *this;
+			}
+			inline bool operator!=(const iterator &rhs) const { return _ != rhs._; }
+		};
+		inline iterator begin()
+		{
+			P p = root;
+			while (resolve(p).son[0] != NIL)
+				pushdown(resolve(p)), p = resolve(p).son[0];
+			return iterator(p, this);
+		}
+		inline iterator end() { return iterator(NIL, this); }
+
 		inline void pushup(ND &x)
 		{
 			if (getref(x) == NIL)
@@ -201,10 +256,10 @@ namespace BalancedTree
 			{
 				resolve(ff).son[resolve(ff).v < x] = u;
 			}
-			splay(U, D[0]);
+			splay(U, resolve(NIL));
 			// ++siz;
 		}
-		/* 从0开始 */
+		/* 从0开始,与键值无关,只与左右儿子的子树siz有关,若k>=树的大小则返回最靠右的点 */
 		inline ND &kth(int k)
 		{
 			P u = root;
@@ -215,7 +270,7 @@ namespace BalancedTree
 				ND &ls = lson(U);
 				if (ls.siz > k)
 					u = U.son[0];
-				else if (ls.siz == k)
+				else if (ls.siz == k or U.son[1] == NIL)
 					return U;
 				else
 					k -= ls.siz + 1, u = U.son[1];
@@ -230,22 +285,77 @@ namespace BalancedTree
 			}
 			else if (l <= 0)
 			{
-				splay(kth(r + 1), D[0]);
+				splay(kth(r + 1), resolve(NIL));
 				pinrev(lson(resolve(root)));
 			}
 			else if (r >= siz - 1)
 			{
-				splay(kth(l - 1), D[0]);
+				splay(kth(l - 1), resolve(NIL));
 				pinrev(rson(resolve(root)));
 			}
 			else
 			{
 				ND &L = kth(l - 1);
 				ND &R = kth(r + 1);
-				splay(L, D[0]);
+				splay(L, resolve(NIL));
 				splay(R, L);
 				pinrev(lson(rson(resolve(root))));
 			}
+		}
+
+		/* 区间平移,将原序列第[l, r](从0开始算排名)的元素移动至除开这段序列后的第k位置的左边 */
+		inline void translate(int l, int r, int k)
+		{
+			P cutdown;
+			if (l <= 0 and r >= siz - 1)
+				return;
+			if (l <= 0)
+			{
+				splay(kth(r + 1), resolve(NIL));
+				cutdown = resolve(root).son[0];
+				resolve(root).son[0] = NIL;
+			}
+			else if (r >= siz - 1)
+			{
+				splay(kth(l - 1), resolve(NIL));
+				cutdown = resolve(root).son[1];
+				resolve(root).son[1] = NIL;
+			}
+			else
+			{
+				ND &L = kth(l - 1);
+				ND &R = kth(r + 1);
+				splay(L, resolve(NIL));
+				splay(R, L);
+				cutdown = R.son[0];
+				R.son[0] = NIL;
+			}
+			ND &CD = resolve(cutdown);
+			pushup(father(CD));
+			pushup(father(father(CD)));
+			if (k >= siz - CD.siz)
+			{
+				splay(kth(siz - CD.siz - 1), resolve(NIL));
+				resolve(root).son[1] = cutdown;
+				CD.f = root;
+			}
+			else if (k <= 0)
+			{
+				splay(kth(0), resolve(NIL));
+				resolve(root).son[0] = cutdown;
+				CD.f = root;
+			}
+			else
+			{
+				ND &L = kth(k - 1);
+				ND &R = kth(k);
+				splay(L, resolve(NIL));
+				splay(R, L);
+				R.son[0] = cutdown;
+				CD.f = L.son[1];
+			}
+			pushup(father(CD));
+			pushup(father(father(CD)));
 		}
 
 		std::function<void(T)> tempf;
