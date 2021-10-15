@@ -123,8 +123,8 @@ struct mint
 	friend mint operator-(const mint &lhs, const mint &rhs) { return mint(lhs) -= rhs; }
 	friend mint operator*(const mint &lhs, const mint &rhs) { return mint(lhs) *= rhs; }
 	friend mint operator/(const mint &lhs, const mint &rhs) { return mint(lhs) /= rhs; }
-	friend bool operator==(const mint &lhs, const mint &rhs) { return lhs._v == rhs.x; }
-	friend bool operator!=(const mint &lhs, const mint &rhs) { return lhs._v != rhs.x; }
+	friend bool operator==(const mint &lhs, const mint &rhs) { return lhs.x == rhs.x; }
+	friend bool operator!=(const mint &lhs, const mint &rhs) { return lhs.x != rhs.x; }
 	friend std::ostream &operator<<(std::ostream &o, const mint &m) { return o << m.x; }
 	friend std::istream &operator>>(std::istream &i, const mint &m)
 	{

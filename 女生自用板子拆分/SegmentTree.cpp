@@ -1,27 +1,33 @@
 
-// 4a3629edbc4bfda9ca2df0ff11f870e4 2021.8.10 线段树区间平方和
+//  2021.8.10 线段树区间平方和
 namespace Tree
 {
-    template <typename T>
+#define Add0 0
+#define Mul1 1
+
+    // #define Add0 Geometry::Matrix<m998>(1, 3)
+    // #define Mul1 Geometry::SquareMatrix<m998>::eye(3)
+    template <typename T, typename Tadd = T, typename Tmul = T>
     struct _iNode
     {
-        T lazy_add;
+        Tadd lazy_add;
         T sum_content;
-        T lazy_mul;
+        Tmul lazy_mul;
         // T max_content;
         T min_content;
         T sqrt_content;
-        _iNode() : lazy_add(0), sum_content(0), lazy_mul(1), min_content(0x3f3f3f3f), sqrt_content(0) {}
+        _iNode() : lazy_add(Add0), sum_content(Add0), lazy_mul(Mul1), min_content(Add0), sqrt_content(Add0) {}
     };
 
-    template <typename T>
+    template <typename T, typename Tadd = T, typename Tmul = T>
     struct SegmentTree
     {
-        using _Node = _iNode<T>;
+        using _Node = _iNode<T, Tadd, Tmul>;
         int len;       // 线段树实际节点数
         int valid_len; // 原有效数据长度
         int QL, QR;    // 暂存询问避免递归下传
-        T TMP;
+        Tmul MTMP;
+		Tadd ATMP;
         std::vector<_Node> _D;
         // template <typename AllocationPlaceType = void>
         SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
@@ -44,12 +50,12 @@ namespace Tree
         {
             if (QL <= node_l and node_r <= QR)
             {
-                _D[x].lazy_add *= TMP;
-                _D[x].sum_content *= TMP;
-                _D[x].lazy_mul *= TMP;
-                _D[x].min_content *= TMP;
+                _D[x].lazy_add *= MTMP;
+                _D[x].sum_content *= MTMP;
+                _D[x].lazy_mul *= MTMP;
+                _D[x].min_content *= MTMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content * TMP * TMP;
+                _D[x].sqrt_content = _D[x].sqrt_content * MTMP * MTMP;
             }
             else
             {
@@ -67,13 +73,13 @@ namespace Tree
         {
             if (QL <= node_l and node_r <= QR)
             {
-                LL my_length = node_r - node_l + 1;
-                _D[x].lazy_add += TMP;
+                int my_length = node_r - node_l + 1;
+                _D[x].lazy_add += ATMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content + 2 * TMP * _D[x].sum_content + (my_length * TMP * TMP);
+                _D[x].sqrt_content = _D[x].sqrt_content + 2 * ATMP * _D[x].sum_content + (ATMP * ATMP * my_length);
 
-                _D[x].sum_content += my_length * TMP;
-                _D[x].min_content += TMP;
+                _D[x].sum_content += ATMP * my_length;
+                _D[x].min_content += ATMP;
             }
             else
             {
@@ -87,19 +93,19 @@ namespace Tree
             }
         }
 
-        void range_mul(int l, int r, T v)
+        void range_mul(int l, int r, const Tmul &v)
         {
             QL = l;
             QR = r;
-            TMP = v;
+            MTMP = v;
             update_mul(1, valid_len, 1);
         }
 
-        void range_add(int l, int r, T v)
+        void range_add(int l, int r, const Tadd &v)
         {
             QL = l;
             QR = r;
-            TMP = v;
+            ATMP = v;
             update_add(1, valid_len, 1);
         }
 
@@ -119,7 +125,7 @@ namespace Tree
             int mi = mid(my_left_bound, my_right_bound);
             int lson_length = (mi - my_left_bound + 1);
             int rson_length = (my_right_bound - mi);
-            if (_D[ind].lazy_mul != 1)
+            if (_D[ind].lazy_mul != Mul1)
             {
                 // 区间和
                 _D[l].sum_content *= _D[ind].lazy_mul;
@@ -142,9 +148,9 @@ namespace Tree
 
                 _D[r].sqrt_content = _D[r].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
 
-                _D[ind].lazy_mul = 1;
+                _D[ind].lazy_mul = Mul1;
             }
-            if (_D[ind].lazy_add)
+            if (_D[ind].lazy_add != Add0)
             {
                 // 平方和，先于区间和处理
                 _D[l].sqrt_content = _D[l].sqrt_content + 2 * _D[ind].lazy_add * _D[l].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * lson_length;
@@ -158,7 +164,7 @@ namespace Tree
 
                 _D[l].min_content += _D[ind].lazy_add;
                 _D[r].min_content += _D[ind].lazy_add;
-                _D[ind].lazy_add = 0;
+                _D[ind].lazy_add = Add0;
             }
         }
 
@@ -229,7 +235,7 @@ namespace Tree
 
         T query_sum(int l, int r)
         {
-            T res = 0;
+            T res = Add0;
             QL = l;
             QR = r;
             _query_sum(res, 1, valid_len, 1);
@@ -248,7 +254,7 @@ namespace Tree
 
         T query_sqrt(int l, int r)
         {
-            T res = 0;
+            T res = Add0;
             QL = l;
             QR = r;
             _query_sqrt(res, 1, valid_len, 1);

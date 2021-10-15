@@ -3,7 +3,7 @@
 
 namespace Geometry
 {
-    
+
     template <typename VALUETYPE = FLOAT_>
     struct Matrix : VectorN<VectorN<VALUETYPE>>
     {
@@ -206,7 +206,7 @@ namespace Geometry
         }
 
         /*矩阵乘法*/
-        Matrix dot(Matrix &&rhs, long long mod = 0)
+        inline Matrix dot(Matrix &&rhs, long long mod = 0)
         {
             if (this->COL != rhs.ROW)
                 throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
@@ -224,7 +224,43 @@ namespace Geometry
                 }
             return ret;
         }
-        Matrix dot(Matrix &rhs, long long mod = 0) { return dot(std::move(rhs), mod); }
+        inline Matrix dot(Matrix &rhs, long long mod = 0) { return dot(std::move(rhs), mod); }
+        inline Matrix operator*(Matrix &rhs) { return dot(rhs); }
+        inline Matrix operator*(Matrix &&rhs) { return dot(rhs); }
+        inline Matrix &operator*=(Matrix &rhs) { return (*this) = dot(rhs); }
+        inline Matrix &operator*=(VALUETYPE &rhs)
+        {
+            for (auto &i : *this)
+                i *= rhs;
+            return (*this);
+        }
+        inline Matrix operator*(VALUETYPE &rhs) { return Matrix(*this) *= rhs; }
+        inline Matrix operator*(VALUETYPE &&rhs) { return Matrix(*this) *= rhs; }
+        inline friend Matrix operator*(VALUETYPE &rhs, Matrix mat) { return mat * rhs; }
+        inline friend Matrix operator*(VALUETYPE &&rhs, Matrix mat) { return mat * rhs; }
+        inline Matrix &operator*=(Matrix &&rhs) { return (*this) = dot(rhs); }
+        inline Matrix operator+(Matrix rhs)
+        {
+            for (int i = 0; i < ROW; ++i)
+                for (int j = 0; j < COL; ++j)
+                    rhs[i][j] += (*this)[i][j];
+            return rhs;
+        }
+        inline Matrix &operator+=(Matrix &&rhs)
+        {
+            for (int i = 0; i < ROW; ++i)
+                for (int j = 0; j < COL; ++j)
+                    (*this)[i][j] += rhs[i][j];
+            return *this;
+        }
+        inline Matrix &operator+=(VALUETYPE &rhs)
+        {
+            for (int i = 0; i < ROW; ++i)
+                for (int j = 0; j < COL; ++j)
+                    (*this)[i][j] += rhs;
+            return *this;
+        }
+        inline Matrix &operator+=(Matrix &rhs) { return (*this) += std::move(rhs); }
     };
 
 }
