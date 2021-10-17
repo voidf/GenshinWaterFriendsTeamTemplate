@@ -911,23 +911,24 @@ template <class T>
 inline void qr(T &n)
 {
     n = 0;
-    register char c = getchar();
-    LL sgn = 1;
+    int c = getchar();
+    bool sgn = 0;
 
-    while (c > '9' || c < '0')
+    while (!isdigit(c))
     {
         if (c == '-')
-            sgn = -1;
+            sgn ^= 1;
         c = getchar();
     }
 
-    while (c <= '9' && c >= '0')
+    while (isdigit(c))
     {
-        n = (n << 3) + (n << 1) + (c ^ 0x30);
+        n = (n * 10) + (c ^ 0x30);
         c = getchar();
     }
 
-    n *= sgn;
+    if (sgn)
+        n = -n;
 }
 
 inline char qrc()
