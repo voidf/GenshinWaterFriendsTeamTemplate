@@ -193,10 +193,10 @@ namespace Geometry
 		inline static FLOAT_ Angle(const Vector2 &from, const Vector2 &to) { return abs(Vector2::SignedAngle(from, to)); }
 
 		/*返回俩向量中x的最大值和y的最大值构造而成的向量*/
-		inline static Vector2 Max(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(max(lhs.x, rhs.x), max(lhs.y, rhs.y)); }
+		inline static Vector2 Max(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::max(lhs.x, rhs.x), std::max(lhs.y, rhs.y)); }
 
 		/*返回俩向量中x的最小值和y的最小值构造而成的向量*/
-		inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(min(lhs.x, rhs.x), min(lhs.y, rhs.y)); }
+		inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y)); }
 
 		/*获得vector在onNormal方向的投影，onNormal需要单位化*/
 		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
