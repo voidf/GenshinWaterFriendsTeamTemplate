@@ -24,11 +24,6 @@ namespace Geometry
             {
                 while (stk.size() >= 2 and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
                 {
-                    // if (stk.size() >= 2)
-                    // {
-                    //     auto c = Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back());
-                    //     cerr << "c:" << c << endl;
-                    // }
                     used[uid.back()] = 0;
                     uid.pop_back();
                     stk.pop_back();
@@ -60,26 +55,19 @@ namespace Geometry
             return ret;
         }
 
-        /*凸多边形用逆时针排序*/
+        /* 凸多边形用逆时针排序 */
         inline void autoanticlockwiselize()
         {
             accordance = average();
             anticlockwiselize();
         }
 
-        // typedef bool(Polygon2::*comparator);
-
         inline void anticlockwiselize()
         {
-            // comparator cmp = &Polygon2::anticlock_comparator;
             auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool {
                 return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
             };
             std::sort(points.begin(), points.end(), anticlock_comparator);
-            // for (auto i : points)
-            // {
-            //     cerr << (i - accordance).toPolarCoordinate() << "\t" << i << endl;
-            // }
         }
 
         inline Vector2 average() const
@@ -92,7 +80,7 @@ namespace Geometry
             return avg / points.size();
         }
 
-        /*求周长*/
+        /* 求周长 */
         inline FLOAT_ perimeter() const
         {
             FLOAT_ ret = Vector2::Distance(points.front(), points.back());
@@ -100,7 +88,7 @@ namespace Geometry
                 ret += Vector2::Distance(points[i], points[i - 1]);
             return ret;
         }
-        /*面积*/
+        /* 面积 */
         inline FLOAT_ area() const
         {
             FLOAT_ ret = Vector2::Cross(points.back(), points.front());
@@ -108,7 +96,7 @@ namespace Geometry
                 ret = ret + Vector2::Cross(points[i - 1], points[i]);
             return ret / 2;
         }
-        /*求几何中心（形心、重心）*/
+        /* 求几何中心（形心、重心） */
         inline Vector2 center() const
         {
             Vector2 ret = (points.back() + points.front()) * Vector2::Cross(points.back(), points.front());
@@ -116,7 +104,7 @@ namespace Geometry
                 ret = ret + (points[i - 1] + points[i]) * Vector2::Cross(points[i - 1], points[i]);
             return ret / area() / 6;
         }
-        /*求边界整点数*/
+        /* 求边界整点数 */
         inline long long boundary_points() const
         {
             long long b = 0;
@@ -126,7 +114,7 @@ namespace Geometry
             }
             return b;
         }
-        /*Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数*/
+        /* Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数 */
         inline long long interior_points(FLOAT_ A = -1, long long b = -1) const
         {
             if (A < 0)
