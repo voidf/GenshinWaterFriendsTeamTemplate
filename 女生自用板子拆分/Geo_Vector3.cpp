@@ -19,7 +19,7 @@ namespace Geometry
         }
         inline bool operator==(const Vector3 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y) and round_compare(this->z, b.z); }
         inline bool operator!=(const Vector3 &b) const { return not((*this) == b); }
-        inline FLOAT_ &operator[](const int ind) const
+        inline FLOAT_ &operator[](const int ind)
         {
             switch (ind)
             {
@@ -86,18 +86,18 @@ namespace Geometry
             x /= n, y /= n, z /= n;
             return (*this);
         }
-        inline Vector3 operator+(const Vector3 &b) const { return Vector3(*this) + b; }
-        inline Vector3 operator-(const Vector3 &b) const { return Vector3(*this) - b; }
-        inline Vector3 operator*(const Vector3 &b) const { return Vector3(*this) * b; }
-        inline Vector3 operator/(const Vector3 &b) const { return Vector3(*this) / b; }
-        inline Vector3 operator+(const FLOAT_ &n) const { return Vector3(*this) + n; }
-        inline Vector3 operator-(const FLOAT_ &n) const { return Vector3(*this) - n; }
-        inline Vector3 operator*(const FLOAT_ &n) const { return Vector3(*this) * n; }
-        inline Vector3 operator/(const FLOAT_ &n) const { return Vector3(*this) / n; }
-        inline friend Vector3 operator+(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) + b; }
-        inline friend Vector3 operator-(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) - b; }
-        inline friend Vector3 operator*(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) * b; }
-        inline friend Vector3 operator/(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) / b; }
+        inline Vector3 operator+(const Vector3 &b) const { return Vector3(*this) += b; }
+        inline Vector3 operator-(const Vector3 &b) const { return Vector3(*this) -= b; }
+        inline Vector3 operator*(const Vector3 &b) const { return Vector3(*this) *= b; }
+        inline Vector3 operator/(const Vector3 &b) const { return Vector3(*this) /= b; }
+        inline Vector3 operator+(const FLOAT_ &n) const { return Vector3(*this) += n; }
+        inline Vector3 operator-(const FLOAT_ &n) const { return Vector3(*this) -= n; }
+        inline Vector3 operator*(const FLOAT_ &n) const { return Vector3(*this) *= n; }
+        inline Vector3 operator/(const FLOAT_ &n) const { return Vector3(*this) /= n; }
+        inline friend Vector3 operator+(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) += b; }
+        inline friend Vector3 operator-(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) -= b; }
+        inline friend Vector3 operator*(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) *= b; }
+        inline friend Vector3 operator/(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) /= b; }
 
         /* 向量的平方模 */
         inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2); }

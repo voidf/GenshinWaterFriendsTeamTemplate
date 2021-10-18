@@ -1,8 +1,16 @@
+#pragma once
+
 #include "Headers.cpp"
+
+// #include <cmath>
+// #include <algorithm>
+// #include <iostream>
 
 namespace Geometry
 {
     using FLOAT_ = double;
+    template <class T>
+    T gcd(T a, T b) { return !b ? a : gcd(b, a % b); }
 
     constexpr const FLOAT_ Infinity = INFINITY;
     const FLOAT_ decimal_round = 1e-8; // 精度参数

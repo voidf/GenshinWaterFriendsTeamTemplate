@@ -17,28 +17,35 @@ namespace Geometry
 		}
 		inline bool operator==(const Vector2 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y); }
 		inline bool operator!=(const Vector2 &b) const { return not((*this) == b); }
-		inline FLOAT_ &operator[](const int ind) const
+		inline FLOAT_ &operator[](const int ind)
 		{
 			switch (ind)
 			{
 			case 0:
-				return this->x;
+				return (this->x);
 				break;
 			case 1:
-				return this->y;
+				return (this->y);
 				break;
 			case 'x':
-				return this->x;
+				return (this->x);
 				break;
 			case 'y':
-				return this->y;
+				return (this->y);
 				break;
 			default:
 				throw "无法理解除0,1外的索引";
 				break;
 			}
 		}
-		inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) const { return o << v.ToString(); }
+		/*转为字符串*/
+		inline std::string ToString() const
+		{
+			std::ostringstream ostr;
+			ostr << "Vector2(" << this->x << ", " << this->y << ")";
+			return ostr.str();
+		}
+		inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) { return o << v.ToString(); }
 		inline Vector2 &operator+=(const Vector2 &b)
 		{
 			x += b.x, y += b.y;
@@ -79,21 +86,21 @@ namespace Geometry
 			x /= n, y /= n;
 			return (*this);
 		}
-		inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) + b; }
-		inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) - b; }
-		inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) * b; }
-		inline Vector2 operator/(const Vector2 &b) const { return Vector2(*this) / b; }
-		inline Vector2 operator+(const FLOAT_ &n) const { return Vector2(*this) + n; }
-		inline Vector2 operator-(const FLOAT_ &n) const { return Vector2(*this) - n; }
-		inline Vector2 operator*(const FLOAT_ &n) const { return Vector2(*this) * n; }
-		inline Vector2 operator/(const FLOAT_ &n) const { return Vector2(*this) / n; }
-		inline friend Vector2 operator+(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) + b; }
-		inline friend Vector2 operator-(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) - b; }
-		inline friend Vector2 operator*(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) * b; }
-		inline friend Vector2 operator/(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) / b; }
+		inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) += b; }
+		inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) -= b; }
+		inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) *= b; }
+		inline Vector2 operator/(const Vector2 &b) const { return Vector2(*this) /= b; }
+		inline Vector2 operator+(const FLOAT_ &n) const { return Vector2(*this) += n; }
+		inline Vector2 operator-(const FLOAT_ &n) const { return Vector2(*this) -= n; }
+		inline Vector2 operator*(const FLOAT_ &n) const { return Vector2(*this) *= n; }
+		inline Vector2 operator/(const FLOAT_ &n) const { return Vector2(*this) /= n; }
+		inline friend Vector2 operator+(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) += b; }
+		inline friend Vector2 operator-(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) -= b; }
+		inline friend Vector2 operator*(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) *= b; }
+		inline friend Vector2 operator/(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) /= b; }
 
 		/* 绕原点逆时针旋转多少度 */
-		inline void rotate(const FLOAT_ &theta, bool use_degree = false)
+		inline void rotate(FLOAT_ theta, bool use_degree = false)
 		{
 			FLOAT_ ox = x;
 			FLOAT_ oy = y;
@@ -145,14 +152,6 @@ namespace Geometry
 			this->y /= _m;
 		}
 
-		/*转为字符串*/
-		inline std::string ToString() const
-		{
-			std::ostringstream ostr;
-			ostr << "Vector2(" << this->x << ", " << this->y << ")";
-			return ostr.str();
-		}
-
 		/* 返回与该向量方向同向的单位向量 */
 		inline Vector2 normalized() const
 		{
@@ -167,7 +166,7 @@ namespace Geometry
 		inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
 		/*向量圆形插值*/
-		inline static Vector2 SlerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t)
+		inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
 		{
 			// Vector2 c = b - a;
 			a = a.toPolarCoordinate();
@@ -177,7 +176,7 @@ namespace Geometry
 		}
 
 		/* 拿它的垂直向量（逆时针旋转90°） */
-		inline static Vector2 Perpendicular(const Vector2 &inDirection) const { return Vector2(-inDirection.y, inDirection.x); }
+		inline static Vector2 Perpendicular(const Vector2 &inDirection) { return Vector2(-inDirection.y, inDirection.x); }
 		/*根据inNormal法向反射inDirection向量，参考光的平面镜反射，入射光为inDirection，平面镜的法线为inNormal*/
 		inline static Vector2 Reflect(const Vector2 &inDirection, const Vector2 &inNormal) { return inDirection - 2 * Vector2::Dot(inDirection, inNormal) * inNormal; }
 		/* 点积 */

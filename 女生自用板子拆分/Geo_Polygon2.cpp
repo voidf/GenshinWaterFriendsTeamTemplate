@@ -12,7 +12,7 @@ namespace Geometry
         Vector2 accordance;
 
     public:
-        Polygon2 ConvexHull()
+        inline Polygon2 ConvexHull()
         {
             Polygon2 ret;
             std::sort(points.begin(), points.end());
@@ -61,7 +61,7 @@ namespace Geometry
         }
 
         /*凸多边形用逆时针排序*/
-        void autoanticlockwiselize()
+        inline void autoanticlockwiselize()
         {
             accordance = average();
             anticlockwiselize();
@@ -69,7 +69,7 @@ namespace Geometry
 
         // typedef bool(Polygon2::*comparator);
 
-        void anticlockwiselize()
+        inline void anticlockwiselize()
         {
             // comparator cmp = &Polygon2::anticlock_comparator;
             auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool {
@@ -82,10 +82,10 @@ namespace Geometry
             // }
         }
 
-        Vector2 average()
+        inline Vector2 average() const
         {
             Vector2 avg(0, 0);
-            for (auto i : points)
+            for (auto &i : points)
             {
                 avg += i;
             }
@@ -93,7 +93,7 @@ namespace Geometry
         }
 
         /*求周长*/
-        FLOAT_ perimeter()
+        inline FLOAT_ perimeter() const
         {
             FLOAT_ ret = Vector2::Distance(points.front(), points.back());
             for (int i = 1; i < points.size(); i++)
@@ -101,7 +101,7 @@ namespace Geometry
             return ret;
         }
         /*面积*/
-        FLOAT_ area()
+        inline FLOAT_ area() const
         {
             FLOAT_ ret = Vector2::Cross(points.back(), points.front());
             for (int i = 1; i < points.size(); i++)
@@ -109,7 +109,7 @@ namespace Geometry
             return ret / 2;
         }
         /*求几何中心（形心、重心）*/
-        Vector2 center()
+        inline Vector2 center() const
         {
             Vector2 ret = (points.back() + points.front()) * Vector2::Cross(points.back(), points.front());
             for (int i = 1; i < points.size(); i++)
@@ -117,7 +117,7 @@ namespace Geometry
             return ret / area() / 6;
         }
         /*求边界整点数*/
-        long long boundary_points()
+        inline long long boundary_points() const
         {
             long long b = 0;
             for (int i = 0; i < points.size() - 1; i++)
@@ -127,13 +127,39 @@ namespace Geometry
             return b;
         }
         /*Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数*/
-        long long interior_points(FLOAT_ A = -1, long long b = -1)
+        inline long long interior_points(FLOAT_ A = -1, long long b = -1) const
         {
             if (A < 0)
                 A = area();
             if (b < 0)
                 b = boundary_points();
             return (long long)A + 1 - (b / 2);
+        }
+
+        inline bool is_inner(const Vector2 &p) const
+        {
+            bool res = false;
+            Vector2 j = points.back();
+            for (auto &i : points)
+            {
+                if ((i.y < p.y and j.y >= p.y or j.y < p.y and i.y >= p.y) and (i.x <= p.x or j.x <= x))
+                    res ^= (i.x + (p.y - i.y) / (j.y - i.y) * (j.x - i.x) < p.x);
+                j = i;
+            }
+            return res;
+        }
+
+        inline std::vector<FLOAT_> to_vec3_array() const
+        {
+            std::vector<FLOAT_> ret;
+            ret.reserve(3 * points.size());
+            for (auto &i : points)
+            {
+                ret.emplace_back(i.x);
+                ret.emplace_back(i.y);
+                ret.emplace_back(0);
+            }
+            return ret;
         }
     };
 
