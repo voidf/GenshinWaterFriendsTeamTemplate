@@ -64,7 +64,8 @@ namespace Geometry
 
         inline void anticlockwiselize()
         {
-            auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool {
+            auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool
+            {
                 return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
             };
             std::sort(points.begin(), points.end(), anticlock_comparator);
@@ -136,7 +137,7 @@ namespace Geometry
             }
             return res;
         }
-
+        /* 对接图形库的转换成vec3 float序列 */
         inline std::vector<FLOAT_> to_vec3_array() const
         {
             std::vector<FLOAT_> ret;
@@ -146,6 +147,18 @@ namespace Geometry
                 ret.emplace_back(i.x);
                 ret.emplace_back(i.y);
                 ret.emplace_back(0);
+            }
+            return ret;
+        }
+        /* 极坐标割圆术返回一个细分subdivision个顶点近似的圆 */
+        inline static Polygon2 cyclotomic(Vector2 center = 0, FLOAT_ radius = 1, int subdivision = 40)
+        {
+            Polygon2 ret;
+            FLOAT_ step = 2 * PI / subdivision, cur = 0;
+            while (subdivision--)
+            {
+                ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(radius, cur), false));
+                cur += step;
             }
             return ret;
         }
