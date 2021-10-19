@@ -296,6 +296,15 @@ for(int j=0;j<n;j++)//枚举每一位
 		if(i>>j&1)//该位为1
 			f[i]+=f[i^(1<<j)];//代表i中缺少了任意一个物品的集合
 ```
+### 随机数
+```c++
+unsigned seed=std::chrono::system_clock::now().time_since_epoch().count();
+   	mt19937 rand(seed);
+    uniform_int_distribution<int> dis(0,1000000000);
+    dis(rand);//最后生成的随机数
+```
+### 
+
 
 ## 字符串
 
