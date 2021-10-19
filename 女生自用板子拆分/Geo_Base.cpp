@@ -46,4 +46,25 @@ namespace Geometry
             return std::make_pair(x1, x2);
         }
     }
+    /* GL用，如果输入合法可以逆时针序生成多边形一个三角剖分 */
+    std::vector<unsigned int> generate_EBO(unsigned int polygonsize)
+    {
+        std::vector<unsigned int> V;
+        V.reserve(3 * polygonsize);
+        if (polygonsize)
+        {
+            unsigned int c = polygonsize;
+            V.emplace_back(c);
+            V.emplace_back(polygonsize - 1);
+            V.emplace_back(0);
+
+            for (unsigned i = 0; i < polygonsize - 1; ++i)
+            {
+                V.emplace_back(c);
+                V.emplace_back(i);
+                V.emplace_back(i + 1);
+            }
+        }
+        return V;
+    }
 }

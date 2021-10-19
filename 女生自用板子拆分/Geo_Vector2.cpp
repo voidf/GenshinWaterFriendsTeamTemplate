@@ -8,6 +8,8 @@ namespace Geometry
 		FLOAT_ x, y;
 		Vector2(FLOAT_ _x, FLOAT_ _y) : x(_x), y(_y) {}
 		Vector2(FLOAT_ n) : x(n), y(n) {}
+		// Vector2(const glm::vec2& v) : x(v.x), y(v.y) {}
+		// inline glm::vec2 toglm(){return {x, y};}
 		Vector2() : x(0.0), y(0.0) {}
 		inline Vector2 &operator=(const Vector2 &b)
 		{
@@ -173,7 +175,6 @@ namespace Geometry
 			// Vector2 c = b - a;
 			a = a.toPolarCoordinate();
 			b = b.toPolarCoordinate();
-
 			return LerpUnclamped(a, b, t).toCartesianCoordinate();
 		}
 
@@ -205,6 +206,7 @@ namespace Geometry
 
 		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude(); }
 	};
+	
 	struct PolarSortCmp
 	{
 		inline bool operator()(const Vector2 &a, const Vector2 &b) const { return a.toPolarAngle(0) < b.toPolarAngle(0); }

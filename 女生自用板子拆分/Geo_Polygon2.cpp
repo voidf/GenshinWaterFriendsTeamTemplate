@@ -154,10 +154,26 @@ namespace Geometry
         inline static Polygon2 cyclotomic(Vector2 center = 0, FLOAT_ radius = 1, int subdivision = 40)
         {
             Polygon2 ret;
+            ret.points.reserve(subdivision);
             FLOAT_ step = 2 * PI / subdivision, cur = 0;
             while (subdivision--)
             {
                 ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(radius, cur), false));
+                cur += step;
+            }
+            return ret;
+        }
+
+        /* 割圆星型 */
+        inline static Polygon2 cyclotomic_star(Vector2 center = 0, FLOAT_ inner_radius = 1, FLOAT_ outer_radius = 3, int subdivision = 5)
+        {
+            Polygon2 ret;
+            ret.points.reserve(subdivision*2);
+            FLOAT_ step = 2 * PI / subdivision, cur = 0;
+            while (subdivision--)
+            {
+                ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(outer_radius, cur), false));
+                ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(inner_radius, cur + step/2), false));
                 cur += step;
             }
             return ret;
