@@ -45,8 +45,9 @@ struct MCMF // 费用流(Dinic)zkw板子
 
     bool SPFA()
     {
-        std::deque<int> Q;
-        Q.emplace_back(s);
+        std::queue<int> Q; // 非重贴标号版本SLF可能失效，因此用裸spfa
+        // Q.emplace_back(s);
+		Q.emplace(s);
         // memset(Dis, INF, sizeof(T) * (N + 1));
         Dis.assign(N + 1, INF);
         Dis[s] = 0;
@@ -54,7 +55,8 @@ struct MCMF // 费用流(Dinic)zkw板子
         while (!Q.empty())
         {
             k = Q.front();
-            Q.pop_front();
+            // Q.pop_front();
+			Q.pop();
             vis.reset(k);
             // for (auto [to, f, w, rev] : E[k])s
             for (auto &i : E[k])
@@ -68,12 +70,14 @@ struct MCMF // 费用流(Dinic)zkw板子
                     Dis[to] = Dis[k] + w;
                     if (!vis.test(to))
                     {
-                        if (Q.size() and Dis[Q.front()] > Dis[to])
-                        {
-                            Q.emplace_front(to);
-                        }
-                        else
-                            Q.emplace_back(to);
+
+                        // if (Q.size() and Dis[Q.front()] > Dis[to])
+                        // {
+                        //     Q.emplace_front(to);
+                        // }
+                        // else
+                        //     Q.emplace_back(to);
+						Q.emplace(to);
                         vis.set(to);
                     }
                 }
@@ -194,14 +198,26 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 			// first_spfa = false;
 			// std::queue<int> Q;
 			// Q.emplace(s);
-			std::deque<int> Q;
-			Q.emplace_back(s);
+			// std::deque<int> Q;
+			// vector实现循环队列可以快0.5%
+			int qsiz = N + 1;
+			std::vector<int> Q(qsiz);
+			int lptr = 0;
+            int rptr = 0;
+
+			// Q.emplace_back(s);
+			Q[rptr++] = s;
+
 			inqueue[s] = 1;
-			while (Q.size())
+			while (lptr != rptr)
+            // while (Q.size())
 			{
-				k = Q.front();
+				k = Q[lptr++];
+                if (lptr >= (qsiz))
+                    lptr = 0;
+				// k = Q.front();
 				// Q.pop();
-				Q.pop_front();
+				// Q.pop_front();
 				for (auto &i : E[k])
 				{
 					auto &to = i.to;
@@ -213,11 +229,22 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 						Dis[to] = Dis[k] + w;
 						if (!inqueue[to])
 						{
-							if (Q.size() and Dis[Q.front()] >= Dis[to])
-								Q.emplace_front(to);
-							else
-								Q.emplace_back(to);
-							Q.emplace(to);
+							// if (Q.size() and Dis[Q.front()] >= Dis[to])
+                            if (lptr != rptr and Dis[Q[lptr]] >= Dis[to])
+                            {
+                                // Q.emplace_front(to);
+                                if (--lptr < 0)
+                                    lptr += qsiz;
+                                Q[lptr] = to;
+                            }
+                            else
+                            {
+                                // Q.emplace_back(to);
+                               	Q[rptr++] = to;
+                                if (rptr >= (qsiz))
+                                    rptr = 0;
+                            }
+							// Q.emplace(to);
 							inqueue[to] = 1;
 						}
 					}
@@ -263,6 +290,10 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 			int ato = N + 1;
 			while (ato--)
 			{
+				// auto kpos = max_element(ato.begin(), ato.end(), [&](const int &a, const int &b) -> bool
+                //                     { return Dis[a] > Dis[b]; });
+                // int k = *kpos;
+                // ato.erase(kpos);
 				int k = -1;
 				for (int i = 0; i <= N; ++i)
 					if (!dvis[i] and (k == -1 or Dis[i] < Dis[k]))
