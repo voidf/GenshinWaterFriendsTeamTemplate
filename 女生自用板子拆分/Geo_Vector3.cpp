@@ -1,3 +1,6 @@
+#ifndef Geo_Vector3_H
+#define Geo_Vector3_H
+
 #include "Geo_Base.cpp"
 
 namespace Geometry
@@ -140,9 +143,9 @@ namespace Geometry
         inline static Vector3 Reflect(const Vector3 &inDirection, const Vector3 &inNormal) { return inDirection - 2 * Vector3::Dot(inDirection, inNormal) * inNormal; }
 
         /* 点积 */
-        inline static FLOAT_ Dot(const Vector3 &lhs, const Vector3 &rhs) const { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
+        inline static FLOAT_ Dot(const Vector3 &lhs, const Vector3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
         /* 叉积 */
-        inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) const { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
+        inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
 
         /*无符号弧度夹角*/
         inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Dot(from, to) / (from.magnitude() * to.magnitude())); }
@@ -258,3 +261,5 @@ namespace Geometry
     };
 
 }
+
+#endif
