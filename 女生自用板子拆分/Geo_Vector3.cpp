@@ -106,7 +106,7 @@ namespace Geometry
         inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2); }
         /* 向量的模 */
         inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-        /*判等*/
+        /* 判等 */
         inline bool equals(const Vector3 &b) const { return (*this) == b; }
         /* 向量单位化 */
         inline void Normalize()
@@ -117,7 +117,7 @@ namespace Geometry
             this->z /= _m;
         }
 
-        /*转为字符串*/
+        /* 转为字符串 */
         inline std::string ToString() const
         {
             std::ostringstream ostr;
@@ -134,7 +134,7 @@ namespace Geometry
         /* 距离 */
         inline static FLOAT_ Distance(const Vector3 &a, const Vector3 &b) { return (a - b).magnitude(); }
 
-        /*向量线性插值*/
+        /* 向量线性插值 */
         inline static Vector3 LerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
         /* 拿它的垂直向量（逆时针旋转90°） */
@@ -147,13 +147,13 @@ namespace Geometry
         /* 叉积 */
         inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
 
-        /*无符号弧度夹角*/
+        /* 无符号弧度夹角 */
         inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Dot(from, to) / (from.magnitude() * to.magnitude())); }
 
-        /*无符号角度夹角*/
+        /* 无符号角度夹角 */
         inline static FLOAT_ Angle(const Vector3 &from, const Vector3 &to) { return Rad(from, to) * 180 / PI; }
 
-        /*返回该方向上最大不超过maxLength长度的向量*/
+        /* 返回该方向上最大不超过maxLength长度的向量 */
         inline static Vector3 ClampMagnitude(const Vector3 &vector, const FLOAT_ &maxLength)
         {
             if (vector.magnitude() <= maxLength)
@@ -161,16 +161,16 @@ namespace Geometry
             else
                 return vector.normalized() * maxLength;
         }
-        /*返回俩向量中x的最大值和y的最大值构造而成的向量*/
+        /* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
         inline static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(max(lhs.x, rhs.x), max(lhs.y, rhs.y), max(lhs.z, rhs.z)); }
 
-        /*返回俩向量中x的最小值和y的最小值构造而成的向量*/
+        /* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
         inline static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(min(lhs.x, rhs.x), min(lhs.y, rhs.y), min(lhs.z, rhs.z)); }
 
-        /*获得vector在onNormal(请自己单位化)方向的投影*/
+        /* 获得vector在onNormal(请自己单位化)方向的投影 */
         inline static Vector3 Project(const Vector3 &vector, const Vector3 &onNormal) { return vector.magnitude() * cos(Rad(vector, onNormal)) * onNormal; }
 
-        /*正交化：将两个向量单位化，并调整切线位置使之垂直于法向*/
+        /* 正交化：将两个向量单位化，并调整切线位置使之垂直于法向 */
         inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
         {
             normal.Normalize();
@@ -178,7 +178,7 @@ namespace Geometry
             tangent.Normalize();
         }
 
-        /*正交化：将三个向量单位化，并调整使之两两垂直*/
+        /* 正交化：将三个向量单位化，并调整使之两两垂直 */
         inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent, Vector3 &binormal)
         {
             normal.Normalize();
@@ -189,7 +189,7 @@ namespace Geometry
             binormal.Normalize();
         }
 
-        /*获得vector在以planeNormal为法向量的平面的投影*/
+        /* 获得vector在以planeNormal为法向量的平面的投影 */
         inline static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
         {
             FLOAT_ mag = vector.magnitude();
@@ -198,7 +198,7 @@ namespace Geometry
             return mag * sin(s) * vector;
         }
 
-        /*罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义*/
+        /* 罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义 */
         inline static Vector3 Rotate(const Vector3 &current, const Vector3 &normal, const FLOAT_ &degree, bool use_degree = 1)
         {
             FLOAT_ r = use_degree ? degree / 180 * PI : degree;
@@ -206,7 +206,7 @@ namespace Geometry
             return c * current + (1.0 - c) * Dot(normal, current) * normal + Cross(sin(r) * normal, current);
         }
 
-        /*将current向target转向degree度，如果大于夹角则返回target方向长度为current的向量*/
+        /* 将current向target转向degree度，如果大于夹角则返回target方向长度为current的向量 */
         inline static Vector3 RotateTo(const Vector3 &current, const Vector3 &target, const FLOAT_ &degree, bool use_degree = 1)
         {
             FLOAT_ r = use_degree ? degree / 180 * PI : degree;
@@ -220,7 +220,7 @@ namespace Geometry
             }
         }
 
-        /*球面插值*/
+        /* 球面插值 */
         inline static Vector3 SlerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t)
         {
             Vector3 rot = RotateTo(a, b, Rad(a, b) * t, false);
@@ -228,16 +228,16 @@ namespace Geometry
             return rot.normalized() * l;
         }
 
-        /*根据经纬，拿一个单位化的三维向量，以北纬和东经为正*/
+        /* 根据经纬，拿一个单位化的三维向量，以北纬和东经为正 */
         inline static Vector3 FromLongitudeAndLatitude(const FLOAT_ &longitude, const FLOAT_ &latitude)
         {
             Vector3 lat = Rotate(Vector3(1, 0, 0), Vector3(0, -1, 0), latitude);
             return Rotate(lat, Vector3(0, 0, 1), longitude);
         }
 
-        /*球坐标转换为xyz型三维向量*/
+        /* 球坐标转换为xyz型三维向量 */
         inline static Vector3 FromSphericalCoordinate(const Vector3 &spherical, bool use_degree = 1) { return FromSphericalCoordinate(spherical.x, spherical.y, spherical.z, use_degree); }
-        /*球坐标转换为xyz型三维向量，半径r，theta倾斜角（纬度），phi方位角（经度），默认输出角度*/
+        /* 球坐标转换为xyz型三维向量，半径r，theta倾斜角（纬度），phi方位角（经度），默认输出角度 */
         inline static Vector3 FromSphericalCoordinate(const FLOAT_ &r, FLOAT_ theta, FLOAT_ phi, bool use_degree = 1)
         {
             theta = use_degree ? theta / 180 * PI : theta;
@@ -247,7 +247,7 @@ namespace Geometry
                 r * sin(theta) * sin(phi),
                 r * cos(theta));
         }
-        /*直角坐标转换为球坐标，默认输出角度*/
+        /* 直角坐标转换为球坐标，默认输出角度 */
         inline static Vector3 ToSphericalCoordinate(const Vector3 &coordinate, bool use_degree = 1)
         {
             FLOAT_ r = coordinate.magnitude();
@@ -256,7 +256,7 @@ namespace Geometry
                 acos(coordinate.z / r) * (use_degree ? 180.0 / PI : 1),
                 atan2(coordinate.y, coordinate.x) * (use_degree ? 180.0 / PI : 1));
         }
-        /*直角坐标转换为球坐标，默认输出角度*/
+        /* 直角坐标转换为球坐标，默认输出角度 */
         inline Vector3 toSphericalCoordinate(bool use_degree = 1) { return ToSphericalCoordinate(*this, use_degree); }
     };
 

@@ -8,25 +8,22 @@ namespace Geometry
     struct Matrix : VectorN<VectorN<VALUETYPE>>
     {
         int ROW, COL;
-        // std::vector<VectorN<VALUETYPE>> data;
 
-        std::string ToString()
-        {
-            std::ostringstream ostr;
-            ostr << "Matrix" << ROW << "x" << COL << "[\n";
-            for (auto &i : *this)
-                ostr << '\t' << i.ToString();
-            ostr << "]";
-            return ostr.str();
-        }
+		inline std::string ToString() const
+		{
+			std::ostringstream ostr;
+			ostr << "Matrix" << ROW << "x" << COL << "[\n";
+			for (auto &i : *this)
+				ostr << '\t' << i.ToString();
+			ostr << "]";
+			return ostr.str();
+		}
 
-        friend std::ostream &operator<<(std::ostream &o, Matrix &m) { return o << m.ToString(); }
-        friend std::ostream &operator<<(std::ostream &o, Matrix &&m) { return o << m.ToString(); }
+        inline friend std::ostream &operator<<(std::ostream &o, const Matrix &m) { return o << m.ToString(); }
 
-        Matrix(VectorN<VectorN<VALUETYPE>> &&v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
-        Matrix(VectorN<VectorN<VALUETYPE>> &v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
+        Matrix(const VectorN<VectorN<VALUETYPE>> &v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
 
-        Matrix(int r, int c, VALUETYPE default_val = 0) : ROW(r), COL(c)
+        Matrix(int r, int c, const VALUETYPE &default_val = 0) : ROW(r), COL(c)
         {
             this->resize(r);
             for (r--; r >= 0; r--)
@@ -34,14 +31,12 @@ namespace Geometry
         }
         Matrix() = default;
 
-        /*交换两行*/
-        void swap_rows(int from, int to)
-        {
-            std::swap((*this)[from], (*this)[to]);
-        }
+        /* 交换两行 */
+		inline void swap_rows(int from, int to) { std::swap((*this)[from], (*this)[to]); }
 
-        /*化为上三角矩阵*/
-        void triangularify(bool unitriangularify = false)
+
+        /* 化为上三角矩阵 */
+        inline void triangularify(bool unitriangularify = false)
         {
             int mx;
             int done_rows = 0;
@@ -75,58 +70,10 @@ namespace Geometry
             }
         }
 
-        /*化为上三角矩阵，模意义版*/
-        void triangularify(long long mod, bool unitriangularify = false)
+        /* 化为行最简型 */
+        void row_echelonify()
         {
-            int mx;
-            int done_rows = 0;
-            for (int j = 0; j < COL; j++) // 化为上三角
-            {
-                mx = done_rows;
-
-                if ((*this)[done_rows][j] < 0)
-                    (*this)[done_rows][j] = ((*this)[done_rows][j] % mod + mod) % mod;
-
-                for (int i = done_rows + 1; i < ROW; i++)
-                {
-                    if ((*this)[i][j] < 0)
-                        (*this)[i][j] = ((*this)[i][j] % mod + mod) % mod;
-                    if ((*this)[i][j] > (*this)[mx][j])
-                        mx = i;
-                }
-                if ((*this)[mx][j] == 0)
-                    continue;
-
-                if (mx != done_rows)
-                    swap_rows(mx, done_rows);
-
-                for (int i = done_rows + 1; i < ROW; i++)
-                {
-                    VALUETYPE tmp = (*this)[i][j] * inv((*this)[done_rows][j], mod) % mod;
-                    if (tmp != 0)
-                    {
-                        (*this)[i] -= (*this)[done_rows] * tmp;
-                        (*this)[i] %= mod;
-                    }
-                }
-                if (unitriangularify)
-                {
-                    auto tmp = (*this)[done_rows][j];
-                    (*this)[done_rows] *= inv(tmp, mod);
-                    (*this)[done_rows] %= mod;
-                }
-                done_rows++;
-                if (done_rows == ROW)
-                    break;
-            }
-        }
-        /*化为行最简型*/
-        void row_echelonify(long long mod = 0)
-        {
-            if (mod)
-                triangularify(mod, true);
-            else
-                triangularify(true);
+            triangularify(true);
             int valid_pos = 1;
             for (int i = 1; i < ROW; i++)
             {
@@ -143,16 +90,16 @@ namespace Geometry
             }
         }
 
-        /*返回一个自身化为上三角矩阵的拷贝*/
-        Matrix triangular(bool unitriangularify = false)
+        /* 返回一个自身化为上三角矩阵的拷贝 */
+        inline Matrix triangular(bool unitriangularify = false) const
         {
             Matrix ret(*this);
             ret.triangularify(unitriangularify);
             return ret;
         }
 
-        /*求秩，得先上三角化*/
-        int _rank()
+        /* 求秩，得先上三角化 */
+        inline int _rank() const
         {
             int res = 0;
             for (auto &i : (*this))
@@ -160,11 +107,11 @@ namespace Geometry
             return res;
         }
 
-        /*求秩*/
-        int rank() { return triangular()._rank(); }
+        /* 求秩 */
+        int rank() const { return triangular()._rank(); }
 
-        /*高斯消元解方程组*/
-        bool solve()
+        /* 高斯消元解方程组 */
+        inline bool solve()
         {
             if (COL != ROW + 1)
                 throw "dimension error!";
@@ -183,8 +130,8 @@ namespace Geometry
             return true;
         }
 
-        /*矩阵连接*/
-        void rconcat(Matrix &&rhs)
+        /* 矩阵连接 */
+        inline void rconcat(const Matrix &rhs)
         {
             COL += rhs.COL;
             for (int i = 0; i < ROW; i++)
@@ -192,12 +139,11 @@ namespace Geometry
                 (*this)[i].rconcat(rhs[i]);
             }
         }
-        void rconcat(Matrix &rhs) { rconcat(std::move(rhs)); }
 
-        /*左截断*/
-        void lerase(int ctr)
+        /* 左截断 */
+        inline void lerase(int ctr)
         {
-            assert(COL >= ctr);
+            // assert(COL >= ctr);
             COL -= ctr;
             for (int i = 0; i < ROW; i++)
             {
@@ -205,62 +151,46 @@ namespace Geometry
             }
         }
 
-        /*矩阵乘法*/
-        inline Matrix dot(Matrix &&rhs, long long mod = 0)
-        {
-            if (this->COL != rhs.ROW)
-                throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
-            Matrix ret(this->ROW, rhs.COL, 0);
-            for (int i = 0; i < ret.ROW; ++i)
-                for (int k = 0; k < this->COL; ++k)
-                {
-                    VALUETYPE &s = (*this)[i][k];
-                    for (int j = 0; j < ret.COL; ++j)
-                    {
-                        ret[i][j] += s * rhs[k][j];
-                        if (mod)
-                            ret[i][j] %= mod;
-                    }
-                }
-            return ret;
-        }
-        inline Matrix dot(Matrix &rhs, long long mod = 0) { return dot(std::move(rhs), mod); }
-        inline Matrix operator*(Matrix &rhs) { return dot(rhs); }
-        inline Matrix operator*(Matrix &&rhs) { return dot(rhs); }
-        inline Matrix &operator*=(Matrix &rhs) { return (*this) = dot(rhs); }
-        inline Matrix &operator*=(VALUETYPE &rhs)
-        {
-            for (auto &i : *this)
-                i *= rhs;
-            return (*this);
-        }
-        inline Matrix operator*(VALUETYPE &rhs) { return Matrix(*this) *= rhs; }
-        inline Matrix operator*(VALUETYPE &&rhs) { return Matrix(*this) *= rhs; }
-        inline friend Matrix operator*(VALUETYPE &rhs, Matrix mat) { return mat * rhs; }
-        inline friend Matrix operator*(VALUETYPE &&rhs, Matrix mat) { return mat * rhs; }
-        inline Matrix &operator*=(Matrix &&rhs) { return (*this) = dot(rhs); }
-        inline Matrix operator+(Matrix rhs)
-        {
-            for (int i = 0; i < ROW; ++i)
-                for (int j = 0; j < COL; ++j)
-                    rhs[i][j] += (*this)[i][j];
-            return rhs;
-        }
-        inline Matrix &operator+=(Matrix &&rhs)
-        {
-            for (int i = 0; i < ROW; ++i)
-                for (int j = 0; j < COL; ++j)
-                    (*this)[i][j] += rhs[i][j];
-            return *this;
-        }
-        inline Matrix &operator+=(VALUETYPE &rhs)
-        {
-            for (int i = 0; i < ROW; ++i)
-                for (int j = 0; j < COL; ++j)
-                    (*this)[i][j] += rhs;
-            return *this;
-        }
-        inline Matrix &operator+=(Matrix &rhs) { return (*this) += std::move(rhs); }
+        /* 矩阵乘法 */
+		inline Matrix dot(const Matrix &rhs) const
+		{
+			// if (this->COL != rhs.ROW)
+			// throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
+			Matrix ret(this->ROW, rhs.COL, 0);
+			for (int i = 0; i < ret.ROW; ++i)
+				for (int k = 0; k < this->COL; ++k)
+				{
+					const VALUETYPE &s = (*this)[i][k];
+					for (int j = 0; j < ret.COL; ++j)
+						ret[i][j] += s * rhs[k][j];
+				}
+			return ret;
+		}
+
+        inline Matrix operator*(const Matrix &rhs) const { return dot(rhs); }
+		inline Matrix &operator*=(const Matrix &rhs) { return (*this) = dot(rhs); }
+		inline Matrix &operator*=(const VALUETYPE &rhs)
+		{
+			for (auto &i : *this)
+				i *= rhs;
+			return (*this);
+		}
+		inline Matrix operator*(const VALUETYPE &rhs) const { return Matrix(*this) *= rhs; }
+		inline friend Matrix operator*(const VALUETYPE &rhs, const Matrix &mat) { return mat * rhs; }
+		inline Matrix operator+(Matrix rhs) const
+		{
+			for (int i = 0; i < ROW; ++i)
+				for (int j = 0; j < COL; ++j)
+					rhs[i][j] += (*this)[i][j];
+			return rhs;
+		}
+		inline Matrix &operator+=(const Matrix &rhs)
+		{
+			for (int i = 0; i < ROW; ++i)
+				for (int j = 0; j < COL; ++j)
+					(*this)[i][j] += rhs[i][j];
+			return *this;
+		}
     };
 
 }

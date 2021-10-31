@@ -122,7 +122,7 @@ namespace Geometry
 		inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2); }
 		/* 向量的模 */
 		inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-		/*判等*/
+		/* 判等 */
 		inline bool equals(const Vector2 &b) { return (*this) == b; }
 
 		/* 用极坐标换算笛卡尔坐标 */

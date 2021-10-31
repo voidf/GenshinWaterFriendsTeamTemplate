@@ -5,16 +5,14 @@ namespace Geometry
     template <typename VALUETYPE = FLOAT_>
     struct VectorN : std::vector<VALUETYPE>
     {
-        void init(int siz, VALUETYPE default_val = 0)
+        inline void init(int siz, const VALUETYPE &default_val = 0)
         {
-            this->clear();
             this->assign(siz, default_val);
             this->resize(siz);
         }
-        VectorN(int siz, VALUETYPE default_val = 0) { init(siz, default_val); }
         VectorN() = default;
 
-        bool any()
+        inline bool any() const
         {
             for (auto &i : *this)
             {
@@ -25,7 +23,7 @@ namespace Geometry
             }
             return false;
         }
-        bool is_all_nan()
+        inline bool is_all_nan() const
         {
             for (auto &i : *this)
             {
@@ -35,133 +33,86 @@ namespace Geometry
             return true;
         }
 
-        void rconcat(VectorN &&r)
-        {
-            this->insert(this->end(), r.begin(), r.end());
-        }
-        void rconcat(VectorN &r) { rconcat(std::move(r)); }
+        inline void rconcat(const VectorN &r) { this->insert(this->end(), r.begin(), r.end()); }
 
-        void lerase(int ctr)
-        {
-            assert(this->size() >= ctr);
-            this->erase(this->begin(), this->begin() + ctr);
-        }
+        inline void lerase(int ctr) { this->erase(this->begin(), this->begin() + ctr); }
 
         // 四则运算赋值重载
-        VectorN &operator*=(VALUETYPE &&operand)
+        inline VectorN &operator*=(const VALUETYPE &operand)
         {
             for (VALUETYPE &i : *this)
                 i *= operand;
             return (*this);
         }
-        VectorN &operator*=(VALUETYPE &operand) { return (*this) *= std::move(operand); }
 
-        VectorN &operator/=(VALUETYPE &&operand)
+        inline VectorN &operator/=(const VALUETYPE &operand)
         {
             for (VALUETYPE &i : *this)
                 i /= operand;
             return (*this);
         }
-        VectorN &operator/=(VALUETYPE &operand) { return (*this) /= std::move(operand); }
 
-        VectorN &operator%=(VALUETYPE &&operand)
+        inline VectorN &operator%=(const VALUETYPE &operand)
         {
             for (VALUETYPE &i : *this)
-                i = (i % operand + operand) % operand;
+                i = i % operand;
             return (*this);
         }
-        VectorN &operator%=(VALUETYPE &operand) { return (*this) %= std::move(operand); }
 
-        VectorN &operator-=(VALUETYPE &&operand)
+        inline VectorN &operator-=(const VALUETYPE &operand)
         {
             for (VALUETYPE &i : *this)
                 i -= operand;
             return (*this);
         }
-        VectorN &operator-=(VALUETYPE &operand) { return (*this) -= std::move(operand); }
 
-        VectorN &operator+=(VALUETYPE &&operand)
+        inline VectorN &operator+=(const VALUETYPE &operand)
         {
             for (VALUETYPE &i : *this)
                 i += operand;
             return (*this);
         }
-        VectorN &operator+=(VALUETYPE &operand) { return (*this) += std::move(operand); }
         // 结束
 
         // 四则运算 和单个数
-
-        VectorN operator*(VALUETYPE &&operand)
-        {
-            VectorN ret(this->size());
-            for (int i = 0; i < this->size(); i++)
-                ret[i] = (*this)[i] * operand;
-            return ret;
-        }
-        VectorN operator*(VALUETYPE &operand) { return (*this) * std::move(operand); }
-        friend VectorN operator*(VALUETYPE &&operand, VectorN &r)
+        inline VectorN operator*(const VALUETYPE &operand) const { return VectorN(*this) *= operand; }
+        inline friend VectorN operator*(const VALUETYPE &operand, const VectorN &r)
         {
             VectorN ret(r.size());
             for (int i = 0; i < r.size(); i++)
                 ret[i] = operand * r[i];
             return ret;
         }
-        friend VectorN operator*(VALUETYPE &operand, VectorN &r) { return std::move(operand) * r; }
 
-        VectorN operator/(VALUETYPE &&operand)
-        {
-            VectorN ret(this->size());
-            for (int i = 0; i < this->size(); i++)
-                ret[i] = (*this)[i] / operand;
-            return ret;
-        }
-        VectorN operator/(VALUETYPE &operand) { return (*this) / std::move(operand); }
-        friend VectorN operator/(VALUETYPE &&operand, VectorN &r)
+        inline VectorN operator/(const VALUETYPE &operand) const { return VectorN(*this) /= operand; }
+        inline friend VectorN operator/(const VALUETYPE &operand, const VectorN &r)
         {
             VectorN ret(r.size());
             for (int i = 0; i < r.size(); i++)
                 ret[i] = operand / r[i];
             return ret;
         }
-        friend VectorN operator/(VALUETYPE &operand, VectorN &r) { return std::move(operand) / r; }
 
-        VectorN operator+(VALUETYPE &&operand)
-        {
-            VectorN ret(this->size());
-            for (int i = 0; i < this->size(); i++)
-                ret[i] = (*this)[i] + operand;
-            return ret;
-        }
-        VectorN operator+(VALUETYPE &operand) { return (*this) + std::move(operand); }
-        friend VectorN operator+(VALUETYPE &&operand, VectorN &r)
+        inline VectorN operator+(const VALUETYPE &operand) const { return VectorN(*this) += operand; }
+        inline friend VectorN operator+(const VALUETYPE &operand, const VectorN &r)
         {
             VectorN ret(r.size());
             for (int i = 0; i < r.size(); i++)
                 ret[i] = operand + r[i];
             return ret;
         }
-        friend VectorN operator+(VALUETYPE &operand, VectorN &r) { return std::move(operand) + r; }
 
-        VectorN operator-(VALUETYPE &&operand)
-        {
-            VectorN ret(this->size());
-            for (int i = 0; i < this->size(); i++)
-                ret[i] = (*this)[i] - operand;
-            return ret;
-        }
-        VectorN operator-(VALUETYPE &operand) { return (*this) - std::move(operand); }
-        friend VectorN operator-(VALUETYPE &&operand, VectorN &r)
+        inline VectorN operator-(const VALUETYPE &operand) const { return VectorN(*this) -= operand; }
+        inline friend VectorN operator-(const VALUETYPE &operand, const VectorN &r)
         {
             VectorN ret(r.size());
             for (int i = 0; i < r.size(); i++)
                 ret[i] = operand - r[i];
             return ret;
         }
-        friend VectorN operator-(VALUETYPE &operand, VectorN &r) { return std::move(operand) - r; }
-
         /*不推荐使用的转发算子*/
         template <typename ANYRHS>
-        VectorN operator+(ANYRHS rhs)
+        inline VectorN operator+(const ANYRHS &rhs) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
@@ -169,7 +120,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        VectorN operator-(ANYRHS rhs)
+        inline VectorN operator-(const ANYRHS &rhs) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
@@ -177,7 +128,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        VectorN operator*(ANYRHS rhs)
+        inline VectorN operator*(const ANYRHS &rhs) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
@@ -185,7 +136,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        VectorN operator/(ANYRHS rhs)
+        inline VectorN operator/(const ANYRHS &rhs) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
@@ -193,7 +144,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        friend VectorN operator+(ANYRHS lhs, VectorN &rhs)
+        inline friend VectorN operator+(const ANYRHS &lhs, const VectorN &rhs)
         {
             VectorN ret(rhs.size());
             for (int i = 0; i < rhs.size(); i++)
@@ -201,7 +152,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        friend VectorN operator-(ANYRHS lhs, VectorN &rhs)
+        inline friend VectorN operator-(const ANYRHS &lhs, const VectorN &rhs)
         {
             VectorN ret(rhs.size());
             for (int i = 0; i < rhs.size(); i++)
@@ -209,7 +160,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        friend VectorN operator*(ANYRHS lhs, VectorN &rhs)
+        inline friend VectorN operator*(const ANYRHS &lhs, const VectorN &rhs)
         {
             VectorN ret(rhs.size());
             for (int i = 0; i < rhs.size(); i++)
@@ -217,7 +168,7 @@ namespace Geometry
             return ret;
         }
         template <typename ANYRHS>
-        friend VectorN operator/(ANYRHS lhs, VectorN &rhs)
+        inline friend VectorN operator/(const ANYRHS &lhs, const VectorN &rhs)
         {
             VectorN ret(rhs.size());
             for (int i = 0; i < rhs.size(); i++)
@@ -229,77 +180,67 @@ namespace Geometry
 
         // 四则运算 和同类
 
-        VectorN operator+(VectorN &&operand)
+        inline VectorN operator+(const VectorN &operand) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
                 ret[i] = (*this)[i] + operand[i];
             return ret;
         }
-        VectorN operator+(VectorN &operand) { return *this + std::move(operand); }
 
-        VectorN operator-(VectorN &&operand)
+        inline VectorN operator-(const VectorN &operand) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
                 ret[i] = (*this)[i] - operand[i];
             return ret;
         }
-        VectorN operator-(VectorN &operand) { return *this - std::move(operand); }
 
-        VectorN operator*(VectorN &&operand)
+        inline VectorN operator*(const VectorN &operand) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
                 ret[i] = (*this)[i] * operand[i];
             return ret;
         }
-        VectorN operator*(VectorN &operand) { return *this * std::move(operand); }
 
-        VectorN operator/(VectorN &&operand)
+        inline VectorN operator/(const VectorN &operand) const
         {
             VectorN ret(this->size());
             for (int i = 0; i < this->size(); i++)
                 ret[i] = (*this)[i] / operand[i];
             return ret;
         }
-        VectorN operator/(VectorN &operand) { return *this / std::move(operand); }
-
         // 结束
 
         // 赋值算子
 
-        VectorN &operator+=(VectorN &&operand)
+        inline VectorN &operator+=(const VectorN &operand)
         {
             for (int i = 0; i < this->size(); i++)
                 (*this)[i] += operand[i];
             return (*this);
         }
-        VectorN &operator-=(VectorN &&operand)
+        inline VectorN &operator-=(const VectorN &operand)
         {
             for (int i = 0; i < this->size(); i++)
                 (*this)[i] -= operand[i];
             return (*this);
         }
-        VectorN &operator*=(VectorN &&operand)
+        inline VectorN &operator*=(const VectorN &operand)
         {
             for (int i = 0; i < this->size(); i++)
                 (*this)[i] *= operand[i];
             return (*this);
         }
-        VectorN &operator/=(VectorN &&operand)
+        inline VectorN &operator/=(const VectorN &operand)
         {
             for (int i = 0; i < this->size(); i++)
                 (*this)[i] /= operand[i];
             return (*this);
         }
 
-        VectorN &operator+=(VectorN &operand) { return (*this) += std::move(operand); }
-        VectorN &operator-=(VectorN &operand) { return (*this) -= std::move(operand); }
-        VectorN &operator*=(VectorN &operand) { return (*this) *= std::move(operand); }
-        VectorN &operator/=(VectorN &operand) { return (*this) /= std::move(operand); }
-
-        std::string ToString()
+        inline std::string ToString() const
         {
             std::ostringstream ostr;
             for (int i = 0; i < this->size(); i++)
@@ -309,11 +250,10 @@ namespace Geometry
             }
             return ostr.str();
         }
-        friend std::ostream &operator<<(std::ostream &o, VectorN &m) { return o << m.ToString(); }
-        friend std::ostream &operator<<(std::ostream &o, VectorN &&m) { return o << m.ToString(); }
+        inline friend std::ostream &operator<<(std::ostream &o, const VectorN &m) { return o << m.ToString(); }
 
         /* 向量的平方模 */
-        VALUETYPE sqrMagnitude()
+        inline VALUETYPE sqrMagnitude() const
         {
             VALUETYPE res = 0;
             for (auto &i : (*this))
@@ -322,10 +262,10 @@ namespace Geometry
         }
 
         /* 向量的模 */
-        VALUETYPE magnitude() { return sqrt(this->sqrMagnitude()); }
+        inline VALUETYPE magnitude() const { return sqrt(this->sqrMagnitude()); }
 
         /* 向量单位化 */
-        void Normalize()
+        inline void Normalize()
         {
             VALUETYPE _m = this->magnitude();
             for (auto &i : (*this))
@@ -333,7 +273,7 @@ namespace Geometry
         }
 
         /* 返回与该向量方向同向的单位向量 */
-        VectorN normalized()
+        inline VectorN normalized() const
         {
             VectorN ret(*this);
             ret.Normalize();
@@ -341,64 +281,44 @@ namespace Geometry
         }
 
         /* 距离 */
-        static VALUETYPE Distance(VectorN &a, VectorN &b) { return (a - b).magnitude(); }
-        static VALUETYPE Distance(VectorN &a, VectorN &&b) { return (a - b).magnitude(); }
-        static VALUETYPE Distance(VectorN &&a, VectorN &b) { return (a - b).magnitude(); }
-        static VALUETYPE Distance(VectorN &&a, VectorN &&b) { return (a - b).magnitude(); }
+        inline static VALUETYPE Distance(const VectorN &a, const VectorN &b) { return (a - b).magnitude(); }
 
-        /*向量线性插值*/
-        static VectorN LerpUnclamped(VectorN &a, VectorN &b, VALUETYPE t) { return a + (b - a) * t; }
-        static VectorN LerpUnclamped(VectorN &a, VectorN &&b, VALUETYPE t) { return a + (b - a) * t; }
-        static VectorN LerpUnclamped(VectorN &&a, VectorN &b, VALUETYPE t) { return a + (b - a) * t; }
-        static VectorN LerpUnclamped(VectorN &&a, VectorN &&b, VALUETYPE t) { return a + (b - a) * t; }
+        /* 向量线性插值 */
+        inline static VectorN LerpUnclamped(const VectorN &a, const VectorN &b, const VALUETYPE &t) { return a + (b - a) * t; }
 
         /* 点积 */
-        static VALUETYPE Dot(VectorN &lhs, VectorN &rhs) { return Dot(std::move(lhs), std::move(rhs)); }
-        static VALUETYPE Dot(VectorN &lhs, VectorN &&rhs) { return Dot(std::move(lhs), rhs); }
-        static VALUETYPE Dot(VectorN &&lhs, VectorN &rhs) { return Dot(lhs, std::move(rhs)); }
-        static VALUETYPE Dot(VectorN &&lhs, VectorN &&rhs)
+        inline static VALUETYPE Dot(const VectorN &lhs, const VectorN &rhs)
         {
             VALUETYPE ans = 0;
-            for (auto i = 0; i < lhs._len; i++)
-                ans += lhs.data[i] * rhs.data[i];
+            for (auto i = 0; i < lhs.size(); i++)
+                ans += lhs[i] * rhs[i];
             return ans;
         }
 
-        /*无符号弧度夹角*/
-        static VALUETYPE Rad(VectorN &from, VectorN &to) { return acos(VectorN::Dot(from, to) / (from.magnitude() * to.magnitude())); }
-        static VALUETYPE Rad(VectorN &from, VectorN &&to) { return acos(VectorN::Dot(from, to) / (from.magnitude() * to.magnitude())); }
-        static VALUETYPE Rad(VectorN &&from, VectorN &to) { return acos(VectorN::Dot(from, to) / (from.magnitude() * to.magnitude())); }
-        static VALUETYPE Rad(VectorN &&from, VectorN &&to) { return acos(VectorN::Dot(from, to) / (from.magnitude() * to.magnitude())); }
+        /* 无符号弧度夹角 */
+        inline static VALUETYPE Rad(const VectorN &from, const VectorN &to) { return acos(VectorN::Dot(from, to) / (from.magnitude() * to.magnitude())); }
 
-        /*无符号角度夹角*/
-        static VALUETYPE Angle(VectorN &from, VectorN &to) { return Rad(from, to) * 180.0 / PI; }
-        static VALUETYPE Angle(VectorN &from, VectorN &&to) { return Rad(from, to) * 180.0 / PI; }
-        static VALUETYPE Angle(VectorN &&from, VectorN &to) { return Rad(from, to) * 180.0 / PI; }
-        static VALUETYPE Angle(VectorN &&from, VectorN &&to) { return Rad(from, to) * 180.0 / PI; }
+        /* 无符号角度夹角 */
+        inline static VALUETYPE Angle(const VectorN &from, const VectorN &to) { return Rad(from, to) * 180.0 / PI; }
 
-        /*返回俩向量中x的最大值和y的最大值构造而成的向量*/
-        static VectorN Max(VectorN lhs, VectorN &&rhs)
+        /* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
+        inline static VectorN Max(VectorN lhs, const VectorN &rhs)
         {
-            for (auto &&i : range(lhs._len))
-                lhs.data[i] = std::max(lhs.data[i], rhs.data[i]);
+            for (int i = 0; i < lhs.size(); ++i)
+                lhs[i] = std::max(lhs[i], rhs[i]);
             return lhs;
         }
-        static VectorN Max(VectorN lhs, VectorN &rhs) { return Max(lhs, std::move(rhs)); }
 
-        /*返回俩向量中x的最小值和y的最小值构造而成的向量*/
-        static VectorN Min(VectorN lhs, VectorN &&rhs)
+        /* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
+        inline static VectorN Min(VectorN lhs, const VectorN &rhs)
         {
-            for (auto &&i : range(lhs._len))
-                lhs.data[i] = std::min(lhs.data[i], rhs.data[i]);
+            for (int i = 0; i < lhs.size(); ++i)
+                lhs[i] = std::min(lhs[i], rhs[i]);
             return lhs;
         }
-        static VectorN Min(VectorN lhs, VectorN &rhs) { return Min(lhs, std::move(rhs)); }
 
-        /*获得vector在onNormal方向的投影*/
-        static VectorN Project(VectorN &vector, VectorN &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
-        static VectorN Project(VectorN &vector, VectorN &&onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
-        static VectorN Project(VectorN &&vector, VectorN &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
-        static VectorN Project(VectorN &&vector, VectorN &&onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
+        /* 获得vector在onNormal方向的投影 */
+        inline static VectorN Project(const VectorN &vector, const VectorN &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
     };
 
 }

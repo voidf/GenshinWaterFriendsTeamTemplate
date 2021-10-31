@@ -3,10 +3,6 @@
 template <size_t R, size_t C, typename T = int>
 struct StaticMatrix : std::array<std::array<T, C>, R>
 {
-	// int R, C;
-
-	// std::array<std::array<T, C>, R> D;
-
 	std::string ToString() const
 	{
 		std::ostringstream ostr;
@@ -24,21 +20,18 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 	friend std::ostream &operator<<(std::ostream &o, StaticMatrix &m) { return o << m.ToString(); }
 	friend std::ostream &operator<<(std::ostream &o, StaticMatrix &&m) { return o << m.ToString(); }
 
-	// StaticMatrix(T default_val) : D(std::array<T, C>(default_val)) {}
-	// StaticMatrix() = default;
 	inline static StaticMatrix eye()
 	{
-		// int siz = min(R, C);
 		static_assert(R == C);
 		StaticMatrix ret;
 		for (int i = 0; i < R; ++i)
 			ret[i][i] = 1;
 		return ret;
 	}
-	/*交换两行*/
+	/* 交换两行 */
 	inline void swap_rows(const int from, const int to) { std::swap((*this)[from], (*this)[to]); }
 
-	/*化为上三角矩阵*/
+	/* 化为上三角矩阵 */
 	inline void triangularify(bool unitriangularify = false)
 	{
 		int mx;
@@ -75,7 +68,7 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		}
 	}
 
-	/*化为行最简型*/
+	/* 化为行最简型 */
 	inline void row_echelonify()
 	{
 		triangularify(true);
@@ -94,7 +87,7 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		}
 	}
 
-	/*返回一个自身化为上三角矩阵的拷贝*/
+	/* 返回一个自身化为上三角矩阵的拷贝 */
 	inline StaticMatrix triangular(bool unitriangularify = false) const
 	{
 		StaticMatrix ret(*this);
@@ -102,7 +95,7 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		return ret;
 	}
 
-	/*求秩，得先上三角化*/
+	/* 求秩，得先上三角化 */
 	inline int _rank() const
 	{
 		int res = 0;
@@ -111,16 +104,13 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		return res;
 	}
 
-	/*求秩*/
+	/* 求秩 */
 	inline int rank() const { return triangular()._rank(); }
 
-	/*高斯消元解方程组*/
+	/* 高斯消元解方程组 */
 	inline bool solve()
 	{
-		// if (C != R + 1)
-		// throw "dimension error!";
 		triangularify();
-		// cerr << *this << endl;
 		if (!(*this).back().back())
 			return false;
 		for (int i = R - 1; i >= 0; i--)
@@ -134,13 +124,10 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		return true;
 	}
 
-	// inline std::vector<T> &operator[](const int idx) const { return (*this)[idx]; }
-	/*矩阵乘法*/
+	/* 矩阵乘法 */
 	template <size_t _C>
 	inline StaticMatrix<R, _C, T> dot(const StaticMatrix<C, _C, T> &rhs) const
 	{
-		// if (this->C != rhs.R)
-		// throw "Error at matrix multiply: lhs's column is not equal to rhs's row";
 		StaticMatrix<R, _C, T> ret;
 		for (int i = 0; i < R; ++i)
 			for (int k = 0; k < C; ++k)
@@ -160,7 +147,6 @@ struct StaticMatrix : std::array<std::array<T, C>, R>
 		return false;
 	}
 	inline bool operator==(const StaticMatrix &rhs) const { return !(*this == rhs); }
-	// inline StaticMatrix dot(StaticMatrix &rhs, long long mod = 0) { return dot(std::move(rhs), mod); }
 	template <size_t _C>
 	inline StaticMatrix<R, _C, T> operator*(const StaticMatrix<C, _C, T> &rhs) const { return dot(rhs); }
 	template <size_t _C>

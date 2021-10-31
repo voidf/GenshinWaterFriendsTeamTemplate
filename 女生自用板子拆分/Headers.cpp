@@ -132,15 +132,15 @@ namespace std
         x = 0;
         __int128 sgn = 1;
         int mono = ins.get();
-        while (mono > '9' || mono < '0')
+        while (!isdigit(mono))
         {
             if (mono == '-')
                 sgn = -sgn;
             mono = ins.get();
         }
-        while (mono <= '9' && mono >= '0')
+        while (isdigit(mono))
         {
-            x = (x << 3) + (x << 1) + (mono ^ 0x30);
+            x = (x * 10) + (mono ^ 0x30);
             mono = ins.get();
         }
         x *= sgn;
@@ -150,14 +150,8 @@ namespace std
     ostream &operator<<(ostream &ous, __int128 &x) { return ous << to_string(x); }
 }
 
-int clz(int N)
-{
-    return N ? 32 - __builtin_clz(N) : -INF;
-}
-int clz(unsigned long long N)
-{
-    return N ? 64 - __builtin_clzll(N) : -INF;
-}
+int clz(int N){return N ? 32 - __builtin_clz(N) : -INF;}
+int clz(unsigned long long N){return N ? 64 - __builtin_clzll(N) : -INF;}
 
 int log2int(int x) { return 31 - __builtin_clz(x); }
 int log2ll(long long x) { return 63 - __builtin_clzll(x); }
