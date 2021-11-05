@@ -2001,6 +2001,146 @@ signed main()
 ```
 ### FHQ-Treap
 
+#### FHQ-Treap-ptr
+
+```c++
+#include<random>
+using namespace std;
+
+uniform_int_distribution<unsigned> u(1, 100000000);
+random_device rd;
+mt19937 e(rd());
+struct fhqTreap {
+    struct Node {
+        int val, rnd, siz, num;
+        Node* rs, * ls;
+        Node() {}
+        Node(int x) :val(x), ls(nullptr), rs(nullptr), rnd(u(e)), siz(1), num(1) {}
+        Node(int x, int y) :val(0), ls(nullptr), rs(nullptr), rnd(0), siz(0), num(0) {}
+    };
+    Node* nullnode = new Node(0, 0);
+    Node* root = nullnode;
+    int n;
+    fhqTreap() :n(0) {};
+    Node* newNode(int x) {
+        Node* ret = new Node(x);
+        ret->ls = nullnode;
+        ret->rs = nullnode;
+        return ret;
+    }
+    void pushup(Node* x) {
+        if (x == nullnode) return;
+        x->siz = x->ls->siz + x->rs->siz;
+        x->siz += x->num;
+    }
+    void split(Node* rt, int k, Node** x, Node** y) {
+        if ((rt) == nullnode) { *x = *y = nullnode; return; }
+        if ((rt)->val <= k) *x = rt, split(rt->rs, k, &(rt->rs), y);
+        else *y = rt, split(rt->ls, k, x, &(rt->ls));
+        pushup(rt);
+    }
+    Node* merge(Node* x, Node* y) {
+        if (x == nullnode || y == nullnode) {
+            return x == nullnode ? y : x;
+        }
+        if (x->rnd < y->rnd) {
+            x->rs = merge(x->rs, y);
+            pushup(x);
+            return x;
+        }
+        else {
+            y->ls = merge(x, y->ls);
+            pushup(y);
+            return y;
+        }
+    }
+    void Delete(int k)
+    {
+        Node* x, * y, * z;
+        split(root, k, &x, &y);
+        split(x, k - 1, &x, &z);
+        if (z->num == 1) { 
+            delete z;
+            root = merge(x, y);
+        }
+        else {
+            z->num--, z->siz--;
+            root = merge(merge(x, z), y);
+        }
+    }
+    void insert(int k)
+    {
+        Node* x, * y, * z;
+        x = y = z = nullnode;
+        split(root, k, &x, &y);
+        split(x, k - 1, &x, &z);
+        // z=new Node(k);
+        if (z != nullnode) z->num++, z->siz++;
+        else z = newNode(k);
+        root = merge(merge(x, z), y);
+    }
+    Node* find_kth(Node* rt, int k)
+    {
+        while (1) {
+            if (rt->ls->siz >= k) rt = rt->ls;
+            else if (rt->ls->siz < k && k <= rt->ls->siz + rt->num) return rt;
+            else k -= rt->ls->siz + rt->num, rt = rt->rs;
+        }
+    }
+    Node* kth(int k)
+    {
+        return find_kth(root, k);
+    }
+    int kth_val(int k)
+    {
+        return kth(k)->val;
+    }
+    Node* max(Node* rt) {
+        if (rt == nullnode) return rt;
+        while (rt->rs != nullnode) {
+            rt = rt->rs;
+        }
+        return rt;
+    }
+    Node* max() { return max(root); }
+    Node* min(Node* rt) {
+        if (rt == nullnode) return rt;
+        while (rt->ls != nullnode) rt = rt->ls;
+        return rt;
+    }
+    Node* min() { return min(root); }
+    Node* pre(Node** rt, int k)
+    {
+        Node* x, * y;
+        split(*rt, k - 1, &x, &y);
+        Node* ret = max(x);
+        *rt = merge(x, y);
+        return ret;
+    }
+    Node* pre(int k) { return pre(&root, k); }
+    Node* sub(Node** rt, int k)
+    {
+        Node* x, * y;
+        split(*rt, k, &x, &y);
+        Node* ret = min(y);
+        *rt = merge(x, y);
+        return ret;
+    }
+    Node* sub(int k) { return sub(&root, k); }
+    int rank(Node** rt, int k)
+    {
+        Node* x, * y;
+        split(*rt, k - 1, &x, &y);
+        int ret = x->siz;
+        *rt = merge(x, y);
+        return ret + 1;
+    }
+    int rank(int k) { return rank(&root, k); }
+};
+```
+
+
+
 #### 区间翻转(可以部分替代splay)
 
 ```c++
