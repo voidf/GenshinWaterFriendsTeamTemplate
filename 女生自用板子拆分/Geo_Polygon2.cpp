@@ -181,3 +181,26 @@ namespace Geometry
     };
 
 }
+
+/* 旋转卡壳用例
+auto CV = P.ConvexHull();
+int idx = 0;
+int jdx = 1;
+FLOAT_ dis = 0;
+for (auto &i : CV.points)
+{
+    // auto cdis = (i - CV.points.front()).sqrMagnitude();
+    int tj = (jdx + 1) % CV.points.size();
+    int ti = (idx + 1) % CV.points.size();
+    while (Vector2::Cross(CV.points[tj] - i, CV.points[ti] - i) < Vector2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
+    {
+        jdx = tj;
+        tj = (jdx + 1) % CV.points.size();
+    }
+    dis = max({dis, (CV.points[jdx] - i).sqrMagnitude(), (CV.points[jdx] - CV.points[ti]).sqrMagnitude()});
+    
+    ++idx;
+}
+cout << dis << endl;
+
+*/
