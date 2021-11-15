@@ -48,7 +48,7 @@ namespace Geometry
 			return ostr.str();
 		}
 		inline Vector2 operator-() const { return Vector2(-x, -y); }
-		
+
 		inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) { return o << v.ToString(); }
 		inline Vector2 &operator+=(const Vector2 &b)
 		{
@@ -90,7 +90,7 @@ namespace Geometry
 			x /= n, y /= n;
 			return (*this);
 		}
-		
+
 		inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) += b; }
 		inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) -= b; }
 		inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) *= b; }
@@ -205,8 +205,36 @@ namespace Geometry
 		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
 
 		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude(); }
+
+		/* 判断p是否在向量from->to的延长线上，精度不高，慎用 */
+		inline static bool indirection(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+		{
+			Vector2 p1 = to - from;
+			Vector2 p2 = p - from;
+			if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+				return false;
+			return (p1.sqrMagnitude() < p2.sqrMagnitude());
+		}
+
+		/* 判断p是否在线段[from -> to]上，精度不高，慎用 */
+		inline static bool inrange(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+		{
+			if (p == from || p == to)
+				return true;
+			Vector2 p1 = to - from;
+			Vector2 p2 = p - from;
+			if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+				return false;
+			return (p1.sqrMagnitude() >= p2.sqrMagnitude());
+		}
+
+		/* 判断三个点是否共线 */
+		inline static bool Collinear(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+		{
+			return round_compare(Cross(c - a, b - a), 0.0);
+		}
 	};
-	
+
 	struct PolarSortCmp
 	{
 		inline bool operator()(const Vector2 &a, const Vector2 &b) const { return a.toPolarAngle(0) < b.toPolarAngle(0); }
