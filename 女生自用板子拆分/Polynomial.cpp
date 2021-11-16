@@ -64,6 +64,71 @@ struct Polynomial
 
 	Polynomial() {}
 	Polynomial(int siz) : cof(siz) {}
+	template <typename... Args>
+	Polynomial(bool useconstructor, Args &&...args) : cof(std::forward<Args>(args)...) {}
+
+	/* 多项式求导 */
+	void derivation()
+	{
+		for (int i = 1; i < cof.size(); ++i)
+			cof[i - 1] = LL(i) * cof[i] % mod;
+		cof.pop_back();
+	}
+	/* 多项式不定积分 */
+	void integration()
+	{
+		cof.emplace_back(0);
+		for (int i = cof.size() - 1; i > 0; --i)
+			cof[i] = inv(LL(i), mod) * cof[i - 1] % mod;
+		cof[0] = 0;
+	}
+
+	/* 多项式对数 */
+	Polynomial ln() const
+	{
+		Polynomial A(*this);
+		A.derivation();
+		Polynomial C = NTTMul(A, getinv());
+		C.integration();
+		C.cof.resize(cof.size());
+		return C;
+	}
+	/* 多项式指数，1e5跑1.97s */
+	Polynomial exp() const
+	{
+		int limpow = 1, lim = 2;
+		Polynomial ex(1);
+
+		ex.cof[0] = 1;
+		while (lim < cof.size() * 2)
+		{
+			Polynomial T3 = ex;
+			T3.cof.resize(lim * 2, 0);
+
+			Polynomial T2 = T3.ln();
+			Polynomial T1;
+			T1.cof.assign(cof.begin(), cof.begin() + lim);
+			T2.cof[0] = mod - 1;
+
+			++limpow;
+			lim <<= 1;
+
+			T1.cof.resize(lim, 0);
+			T2.cof.resize(lim, 0);
+			std::fill(T2.cof.begin() + (lim >> 1), T2.cof.begin() + lim, 0);
+			T3.cof.resize(lim, 0);
+			auto rev = generateRev(lim, limpow);
+			T1.NTT(rev, lim, 0);
+			T2.NTT(rev, lim, 0);
+			T3.NTT(rev, lim, 0);
+			for (int i = 0; i < lim; ++i)
+				T3.cof[i] = (LL)T3.cof[i] * msub(T1.cof[i], T2.cof[i]) % mod;
+			T3.NTT(rev, lim, 1);
+			ex.cof.assign(T3.cof.begin(), T3.cof.begin() + (lim >> 1));
+		}
+		ex.cof.resize(cof.size());
+		return ex;
+	}
 
 	/* n^2 拉格朗日插值 */
 	void interpolation()
@@ -426,14 +491,11 @@ struct Polynomial
 	{
 		if (!siz)
 			siz = cof.size();
-		int orisiz = cof.size();
-		cof.resize(siz);
+		Polynomial A(*this);
+		A.cof.resize(siz);
 		Polynomial B;
-		// LL lim, limpow, retsize;
-		// Resize(*this, *this, lim, limpow, retsize);
-		N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
+		A.N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
 		B.cof.resize(siz);
-		cof.resize(orisiz);
 		return B;
 	}
 
@@ -588,35 +650,35 @@ struct Polynomial
 template <typename T>
 struct Complex
 {
-    T re_al, im_ag;
-    inline T &real() { return re_al; }
-    inline T &imag() { return im_ag; }
-    Complex() { re_al = im_ag = 0; }
-    Complex(T x) : re_al(x), im_ag(0) {}
-    Complex(T x, T y) : re_al(x), im_ag(y) {}
-    inline Complex conj() { return Complex(re_al, -im_ag); }
-    inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
-    inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
-    inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
-                                                                 im_ag * rhs.re_al + re_al * rhs.im_ag); }
-    inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
-    //(a+bi)(c+di) = (ac-bd) + (bc+ad)i
-    friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
-    inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
-    inline Complex operator/=(T x) { return (*this) = (*this) / x; }
-    friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
-    inline Complex operator/(Complex rhs) const
-    {
-        return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
-    }
-    inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
-    inline Complex operator=(T x)
-    {
-        this->im_ag = 0;
-        this->re_al = x;
-        return *this;
-    }
-    inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
+	T re_al, im_ag;
+	inline T &real() { return re_al; }
+	inline T &imag() { return im_ag; }
+	Complex() { re_al = im_ag = 0; }
+	Complex(T x) : re_al(x), im_ag(0) {}
+	Complex(T x, T y) : re_al(x), im_ag(y) {}
+	inline Complex conj() { return Complex(re_al, -im_ag); }
+	inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
+	inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
+	inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
+																 im_ag * rhs.re_al + re_al * rhs.im_ag); }
+	inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
+	//(a+bi)(c+di) = (ac-bd) + (bc+ad)i
+	friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
+	inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
+	inline Complex operator/=(T x) { return (*this) = (*this) / x; }
+	friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
+	inline Complex operator/(Complex rhs) const
+	{
+		return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
+	}
+	inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
+	inline Complex operator=(T x)
+	{
+		this->im_ag = 0;
+		this->re_al = x;
+		return *this;
+	}
+	inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
 };
 using _MTT = Complex<double>;
 using _NTT = long long;
