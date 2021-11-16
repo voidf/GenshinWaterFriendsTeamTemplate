@@ -26,23 +26,25 @@ namespace Tree
         int len;       // 线段树实际节点数
         int valid_len; // 原有效数据长度
         int QL, QR;    // 暂存询问避免递归下传
+        int LB = 1;	   // 左边界，默认为1，即从1开始
         Tmul MTMP;
 		Tadd ATMP;
         std::vector<_Node> _D;
         // template <typename AllocationPlaceType = void>
-        SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
+        SegmentTree(int length, int left_bound = 1) // 构造函数只分配内存
         {
+            LB = left_bound;
             valid_len = length;
             len = 1 << 1 + (int)ceil(log2(length));
             _D.resize(len);
         }
 
         void show()
-        {
-            std::cout << '[';
-            for (_Node *i = _D.begin(); i != _D.end(); ++i)
-                std::cout << i->sum_content << ",]"[i == _D.end() - 1] << " \n"[i == _D.end() - 1];
-        }
+		{
+			std::cerr << '[';
+			for (int i = LB; i < valid_len + LB; ++i)
+				std::cerr << query_sum(i, i) << ",]"[i == valid_len + LB - 1] << " \n"[i == valid_len + LB - 1];
+		}
 
         static int mid(int l, int r) { return l + r >> 1; }
 
@@ -98,7 +100,7 @@ namespace Tree
             QL = l;
             QR = r;
             MTMP = v;
-            update_mul(1, valid_len, 1);
+            update_mul(LB, LB + valid_len - 1, 1);
         }
 
         void range_add(int l, int r, const Tadd &v)
@@ -106,7 +108,7 @@ namespace Tree
             QL = l;
             QR = r;
             ATMP = v;
-            update_add(1, valid_len, 1);
+            update_add(LB, LB + valid_len - 1, 1);
         }
 
         inline void maintain(int i)
@@ -238,7 +240,7 @@ namespace Tree
             T res = Add0;
             QL = l;
             QR = r;
-            _query_sum(res, 1, valid_len, 1);
+            _query_sum(res, LB, LB + valid_len - 1, 1);
             return res;
         }
 
@@ -248,7 +250,7 @@ namespace Tree
             memset(&res, 0x3f, sizeof(res));
             QL = l;
             QR = r;
-            _query_min(res, 1, valid_len, 1);
+            _query_min(res, LB, LB + valid_len - 1, 1);
             return res;
         }
 
@@ -257,7 +259,7 @@ namespace Tree
             T res = Add0;
             QL = l;
             QR = r;
-            _query_sqrt(res, 1, valid_len, 1);
+            _query_sqrt(res, LB, LB + valid_len - 1, 1);
             return res;
         }
     };
