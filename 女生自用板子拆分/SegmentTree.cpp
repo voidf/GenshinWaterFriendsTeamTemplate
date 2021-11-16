@@ -29,6 +29,7 @@ namespace Tree
         int LB = 1;	   // 左边界，默认为1，即从1开始
         Tmul MTMP;
 		Tadd ATMP;
+        T RTMP;
         std::vector<_Node> _D;
         // template <typename AllocationPlaceType = void>
         SegmentTree(int length, int left_bound = 1) // 构造函数只分配内存
@@ -171,96 +172,92 @@ namespace Tree
         }
 
         void _query_sum(
-            T &res,
             int node_l,
             int node_r,
             int x)
         {
             if (QL <= node_l and node_r <= QR)
             {
-                res += _D[x].sum_content;
+                RTMP += _D[x].sum_content;
             }
             else
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
                 if (QL <= mi)
-                    _query_sum(res, node_l, mi, x << 1);
+                    _query_sum(node_l, mi, x << 1);
                 if (QR > mi)
-                    _query_sum(res, mi + 1, node_r, x << 1 | 1);
+                    _query_sum(mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
         void _query_min(
-            T &res,
             int node_l,
             int node_r,
             int x)
         {
             if (QL <= node_l and node_r <= QR)
             {
-                res = min(res, _D[x].min_content);
+                RTMP = min(RTMP, _D[x].min_content);
             }
             else
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
                 if (QL <= mi)
-                    _query_min(res, node_l, mi, x << 1);
+                    _query_min(node_l, mi, x << 1);
                 if (QR > mi)
-                    _query_min(res, mi + 1, node_r, x << 1 | 1);
+                    _query_min(mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
 
         void _query_sqrt(
-            T &res,
             int node_l,
             int node_r,
             int x)
         {
             if (QL <= node_l and node_r <= QR)
             {
-                res += _D[x].sqrt_content;
+                RTMP += _D[x].sqrt_content;
             }
             else
             {
                 push_down(x, node_l, node_r);
                 int mi = mid(node_l, node_r);
                 if (QL <= mi)
-                    _query_sqrt(res, node_l, mi, x << 1);
+                    _query_sqrt(node_l, mi, x << 1);
                 if (QR > mi)
-                    _query_sqrt(res, mi + 1, node_r, x << 1 | 1);
+                    _query_sqrt(mi + 1, node_r, x << 1 | 1);
                 maintain(x);
             }
         }
 
         T query_sum(int l, int r)
         {
-            T res = Add0;
+            RTMP = Add0;
             QL = l;
             QR = r;
-            _query_sum(res, LB, LB + valid_len - 1, 1);
-            return res;
+            _query_sum(LB, LB + valid_len - 1, 1);
+            return RTMP;
         }
 
         T query_min(int l, int r)
         {
-            T res;
-            memset(&res, 0x3f, sizeof(res));
+            memset(&RTMP, 0x3f, sizeof(RTMP));
             QL = l;
             QR = r;
-            _query_min(res, LB, LB + valid_len - 1, 1);
-            return res;
+            _query_min(LB, LB + valid_len - 1, 1);
+            return RTMP;
         }
 
         T query_sqrt(int l, int r)
         {
-            T res = Add0;
+            RTMP = Add0;
             QL = l;
             QR = r;
-            _query_sqrt(res, LB, LB + valid_len - 1, 1);
-            return res;
+            _query_sqrt(LB, LB + valid_len - 1, 1);
+            return RTMP;
         }
     };
 }

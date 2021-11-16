@@ -15,6 +15,14 @@ namespace Geometry
         inline Vector3 normal() { return Vector3::Cross((*this)[1] - (*this)[0], (*this)[2] - (*this)[0]); }
         inline FLOAT_ area() { return normal().magnitude() / FLOAT_(2); }
         inline bool visible(const Vector3 &_v) { return Vector3::Dot(_v - (*this)[0], normal()) > 0; }
+        /* 判断四点共面 */
+        static bool coplanar(const std::array<Vector3, 4> &v)
+        {
+            Vector3 v1 = v[1] - v[0];
+            Vector3 v2 = v[2] - v[0];
+            Vector3 v3 = v[3] - v[0];
+            return Vector3::Cross(Vector3::Cross(v3, v1), Vector3::Cross(v3, v2)).sqrMagnitude() == 0;
+        }
     };
 }
 
