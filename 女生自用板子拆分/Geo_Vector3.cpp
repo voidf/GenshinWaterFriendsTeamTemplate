@@ -5,13 +5,11 @@
 
 namespace Geometry
 {
-
     struct Vector3 // 三维向量
     {
         FLOAT_ x, y, z;
         Vector3(FLOAT_ _x, FLOAT_ _y, FLOAT_ _z) : x(_x), y(_y), z(_z) {}
         Vector3(FLOAT_ n) : x(n), y(n), z(n) {}
-        Vector3(const Vector2 &b) : x(b.x), y(b.y), z(0.0) {}
         Vector3() : x(0.0), y(0.0), z(0.0) {}
         inline Vector3 &operator=(const Vector3 &b)
         {
@@ -103,12 +101,12 @@ namespace Geometry
         inline friend Vector3 operator/(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) /= b; }
 
         /* 向量的平方模 */
-        inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2); }
-        /* 向量的模 */
+        inline FLOAT_ sqrMagnitude() const { return x * x + y * y + z * z; }
+        /* 向量的模，一次sqrt */
         inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
         /* 判等 */
         inline bool equals(const Vector3 &b) const { return (*this) == b; }
-        /* 向量单位化 */
+        /* 向量单位化，一次sqrt */
         inline void Normalize()
         {
             FLOAT_ _m = this->magnitude();
@@ -125,13 +123,13 @@ namespace Geometry
             return ostr.str();
         }
 
-        /* 返回与该向量方向同向的单位向量 */
+        /* 返回与该向量方向同向的单位向量，一次sqrt */
         inline Vector3 normalized() const
         {
             FLOAT_ _m = this->magnitude();
             return Vector3(this->x / _m, this->y / _m, this->z / _m);
         }
-        /* 距离 */
+        /* 距离，一次sqrt */
         inline static FLOAT_ Distance(const Vector3 &a, const Vector3 &b) { return (a - b).magnitude(); }
 
         /* 向量线性插值 */
@@ -147,10 +145,12 @@ namespace Geometry
         /* 叉积 */
         inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
 
-        /* 无符号弧度夹角 */
-        inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Dot(from, to) / (from.magnitude() * to.magnitude())); }
+        /* 无符号夹角cos值，一次sqrt */
+        inline static FLOAT_ Cos(const Vector3 &from, const Vector3 &to) { return Dot(from, to) / sqrt(from.sqrMagnitude() * to.sqrMagnitude()); }
+        /* 无符号弧度夹角，一次sqrt，一次acos */
+        inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Cos(from, to)); }
 
-        /* 无符号角度夹角 */
+        /* 无符号角度夹角，一次sqrt，一次acos，一次/PI  */
         inline static FLOAT_ Angle(const Vector3 &from, const Vector3 &to) { return Rad(from, to) * 180 / PI; }
 
         /* 返回该方向上最大不超过maxLength长度的向量 */
@@ -167,8 +167,8 @@ namespace Geometry
         /* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
         inline static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(min(lhs.x, rhs.x), min(lhs.y, rhs.y), min(lhs.z, rhs.z)); }
 
-        /* 获得vector在onNormal(请自己单位化)方向的投影 */
-        inline static Vector3 Project(const Vector3 &vector, const Vector3 &onNormal) { return vector.magnitude() * cos(Rad(vector, onNormal)) * onNormal; }
+        /* 获得vector在onNormal方向的投影，无损，无需单位化写法 */
+        inline static Vector3 Project(const Vector3 &vector, const Vector3 &onNormal) { return Dot(vector, onNormal) / onNormal.sqrMagnitude() * onNormal; }
 
         /* 正交化：将两个向量单位化，并调整切线位置使之垂直于法向 */
         inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
@@ -189,7 +189,7 @@ namespace Geometry
             binormal.Normalize();
         }
 
-        /* 获得vector在以planeNormal为法向量的平面的投影 */
+        /* 获得vector在以planeNormal为法向量的平面的投影，3个sqrt带一个sin，建议用Face3的project */
         inline static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
         {
             FLOAT_ mag = vector.magnitude();
@@ -198,7 +198,7 @@ namespace Geometry
             return mag * sin(s) * vector;
         }
 
-        /* 罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义 */
+        /* 罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义，一个sin一个sqrt（算上normal单位化） */
         inline static Vector3 Rotate(const Vector3 &current, const Vector3 &normal, const FLOAT_ &degree, bool use_degree = 1)
         {
             FLOAT_ r = use_degree ? degree / 180 * PI : degree;
@@ -258,8 +258,24 @@ namespace Geometry
         }
         /* 直角坐标转换为球坐标，默认输出角度 */
         inline Vector3 toSphericalCoordinate(bool use_degree = 1) { return ToSphericalCoordinate(*this, use_degree); }
-    };
 
+        /* 判断四点共面 */
+        static bool coplanar(const std::array<Vector3, 4> &v)
+        {
+            Vector3 v1 = v.at(1) - v.at(0);
+            Vector3 v2 = v.at(2) - v.at(0);
+            Vector3 v3 = v.at(3) - v.at(0);
+            return Vector3::Cross(Vector3::Cross(v3, v1), Vector3::Cross(v3, v2)).sqrMagnitude() == 0;
+        }
+
+        /* 判断三点共线 */
+        static bool collinear(const std::array<Vector3, 3> &v)
+        {
+            Vector3 v1 = v.at(1) - v.at(0);
+            Vector3 v2 = v.at(2) - v.at(0);
+            return Vector3::Cross(v2, v1).sqrMagnitude() == 0;
+        }
+    };
 }
 
 #endif

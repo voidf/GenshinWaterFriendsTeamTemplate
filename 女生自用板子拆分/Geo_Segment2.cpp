@@ -10,6 +10,7 @@ namespace Geometry
         Vector2 from, to;
         Segment2(Vector2 a, Vector2 b) : Line2(a, b), from(a), to(b) {}
         Segment2(FLOAT_ x, FLOAT_ y, FLOAT_ X, FLOAT_ Y) : Line2(Vector2(x, y), Vector2(X, Y)), from(Vector2(x, y)), to(Vector2(X, Y)) {}
+        Vector2 toward() const { return to - from; }
         /* 精度较低的判断点在线段上 */
         bool is_online(Vector2 poi)
         {
@@ -26,7 +27,7 @@ namespace Geometry
             return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
         }
         /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
-        static bool parallel(const Segment2 &u, const Segment2 &v)
+        static bool IsParallel(const Segment2 &u, const Segment2 &v)
         {
             return (Vector2::Cross(u.to - u.from, v.to - v.from) == 0);
         }
@@ -45,6 +46,13 @@ namespace Geometry
                 break;
             }
         }
+        /* 防止Line2精度不足的平行线距离，一次sqrt */
+        static FLOAT_ Distance(const Segment2 &a, const Segment2 &b)
+        {
+            return a.distToPoint(b.to);
+        }
+        /* 点到直线的距离，一次sqrt */
+        FLOAT_ distToPoint(const Vector2 &p) const { return abs(Vector2::Cross(p - from, toward()) / toward().magnitude()); }
     };
 
 }

@@ -8,7 +8,7 @@ namespace Geometry
     {
         FLOAT_ A, B, C;
         /* 默认两点式，打false为点向式（先点后向） */
-        Line2(Vector2 u, Vector2 v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
+        Line2(const Vector2 &u, const Vector2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
         {
             if (u == v)
             {
@@ -45,7 +45,7 @@ namespace Geometry
             ostr << "Line2(" << this->A << ", " << this->B << ", " << this->C << ")";
             return ostr.str();
         }
-        friend std::ostream &operator<<(std::ostream &o, Line2 v) const
+        friend std::ostream &operator<<(std::ostream &o, const Line2 &v) const
         {
             o << v.ToString();
             return o;
@@ -55,11 +55,11 @@ namespace Geometry
         FLOAT_ b() const { return -C / B; }
         FLOAT_ x(FLOAT_ y) const { return -(B * y + C) / A; }
         FLOAT_ y(FLOAT_ x) const { return -(A * x + C) / B; }
-        /*点到直线的距离*/
+        /* 点到直线的距离 */
         FLOAT_ distToPoint(const Vector2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
-        /*直线距离公式，使用前先判平行*/
+        /* 直线距离公式，使用前先判平行 */
         static FLOAT_ Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
-        /*判断平行*/
+        /* 判断平行 */
         static bool IsParallel(const Line2 &u, const Line2 &v)
         {
             bool f1 = round_compare(u.B, 0.0);
@@ -69,7 +69,7 @@ namespace Geometry
             return f1 or round_compare(u.A * v.B - v.A * u.B, 0);
         }
 
-        /*单位化（？）*/
+        /* 单位化（？） */
         void normalize()
         {
             FLOAT_ su = sqrt(A * A + B * B + C * C);
@@ -81,7 +81,7 @@ namespace Geometry
             B /= su;
             C /= su;
         }
-        /*返回单位化后的直线*/
+        /* 返回单位化后的直线 */
         Line2 normalized() const
         {
             Line2 t(*this);
@@ -89,8 +89,8 @@ namespace Geometry
             return t;
         }
 
-        bool operator==(Line2 v) const { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
-        bool operator!=(Line2 v) const { return !(*this == v); }
+        bool operator==(const Line2 &v) const { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
+        bool operator!=(const Line2 &v) const { return !(*this == v); }
 
         /* 判断两直线是否是同一条直线 */
         static bool IsSame(const Line2 &u, const Line2 &v)
@@ -105,8 +105,6 @@ namespace Geometry
             FLOAT_ ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
             return Vector2(tx, ty);
         }
-
-        
     };
 
 }

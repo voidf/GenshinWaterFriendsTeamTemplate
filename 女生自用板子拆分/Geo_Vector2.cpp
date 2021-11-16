@@ -119,7 +119,7 @@ namespace Geometry
 		inline bool operator<(const Vector2 &b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
 		/* 向量的平方模 */
-		inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2); }
+		inline FLOAT_ sqrMagnitude() const { return x * x + y * y; }
 		/* 向量的模 */
 		inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
 		/* 判等 */
@@ -201,10 +201,10 @@ namespace Geometry
 		/* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
 		inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y)); }
 
-		/* 获得vector在onNormal方向的投影，onNormal需要单位化 */
-		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
+		/* 获得vector在onNormal方向的投影，无损，无需单位化写法 */
+		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return Dot(vector, onNormal) / onNormal.sqrMagnitude() * onNormal; }
 
-		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude(); }
+		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return Project(vector, onNormal).magnitude(); }
 
 		/* 判断p是否在向量from->to的延长线上，精度不高，慎用 */
 		inline static bool indirection(const Vector2 &from, const Vector2 &to, const Vector2 &p)
