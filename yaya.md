@@ -2981,143 +2981,247 @@ struct Fraction
 ### 二维向量
 
 ```cpp
+
 struct Vector2
 {
-    FLOAT_ x, y;
-    Vector2(FLOAT_ _x, FLOAT_ _y) : x(_x), y(_y) {}
-    Vector2(FLOAT_ n) : x(n), y(n) {}
-    // Vector2(const glm::vec2& v) : x(v.x), y(v.y) {}
-    // inline glm::vec2 toglm(){return {x, y};}
-    Vector2() : x(0.0), y(0.0) {}
-    inline Vector2 &operator=(const Vector2 &b)
-    {
-        this->x = b.x;
-        this->y = b.y;
-        return *this;
-    }
-    inline bool operator==(const Vector2 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y); }
-    inline bool operator!=(const Vector2 &b) const { return not((*this) == b); }
+	FLOAT_ x, y;
+	Vector2(FLOAT_ _x, FLOAT_ _y) : x(_x), y(_y) {}
+	Vector2(FLOAT_ n) : x(n), y(n) {}
+	// Vector2(const glm::vec2& v) : x(v.x), y(v.y) {}
+	// inline glm::vec2 toglm(){return {x, y};}
+	Vector2() : x(0.0), y(0.0) {}
+	inline Vector2 &operator=(const Vector2 &b)
+	{
+		this->x = b.x;
+		this->y = b.y;
+		return *this;
+	}
+	inline bool operator==(const Vector2 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y); }
+	inline bool operator!=(const Vector2 &b) const { return not((*this) == b); }
+	inline FLOAT_ &operator[](const int ind)
+	{
+		switch (ind)
+		{
+		case 0:
+			return (this->x);
+			break;
+		case 1:
+			return (this->y);
+			break;
+		case 'x':
+			return (this->x);
+			break;
+		case 'y':
+			return (this->y);
+			break;
+		default:
+			throw "无法理解除0,1外的索引";
+			break;
+		}
+	}
+	/* 转为字符串 */
+	inline std::string ToString() const
+	{
+		std::ostringstream ostr;
+		ostr << "Vector2(" << this->x << ", " << this->y << ")";
+		return ostr.str();
+	}
+	inline Vector2 operator-() const { return Vector2(-x, -y); }
 
-    /* 转为字符串 */
-    inline std::string ToString() const
-    {
-        std::ostringstream ostr;
-        ostr << "Vector2(" << this->x << ", " << this->y << ")";
-        return ostr.str();
-    }
+	inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) { return o << v.ToString(); }
+	inline Vector2 &operator+=(const Vector2 &b)
+	{
+		x += b.x, y += b.y;
+		return (*this);
+	}
+	inline Vector2 &operator-=(const Vector2 &b)
+	{
+		x -= b.x, y -= b.y;
+		return (*this);
+	}
+	inline Vector2 &operator*=(const Vector2 &b)
+	{
+		x *= b.x, y *= b.y;
+		return (*this);
+	}
+	inline Vector2 &operator/=(const Vector2 &b)
+	{
+		x /= b.x, y /= b.y;
+		return (*this);
+	}
+	inline Vector2 &operator+=(const FLOAT_ &n)
+	{
+		x += n, y += n;
+		return (*this);
+	}
+	inline Vector2 &operator-=(const FLOAT_ &n)
+	{
+		x -= n, y -= n;
+		return (*this);
+	}
+	inline Vector2 &operator*=(const FLOAT_ &n)
+	{
+		x *= n, y *= n;
+		return (*this);
+	}
+	inline Vector2 &operator/=(const FLOAT_ &n)
+	{
+		x /= n, y /= n;
+		return (*this);
+	}
 
-    // 省略各种运算符重载
+	inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) += b; }
+	inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) -= b; }
+	inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) *= b; }
+	inline Vector2 operator/(const Vector2 &b) const { return Vector2(*this) /= b; }
+	inline Vector2 operator+(const FLOAT_ &n) const { return Vector2(*this) += n; }
+	inline Vector2 operator-(const FLOAT_ &n) const { return Vector2(*this) -= n; }
+	inline Vector2 operator*(const FLOAT_ &n) const { return Vector2(*this) *= n; }
+	inline Vector2 operator/(const FLOAT_ &n) const { return Vector2(*this) /= n; }
+	inline friend Vector2 operator+(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) += b; }
+	inline friend Vector2 operator-(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) -= b; }
+	inline friend Vector2 operator*(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) *= b; }
+	inline friend Vector2 operator/(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) /= b; }
 
-    /* 绕原点逆时针旋转多少度 */
-    inline void rotate(FLOAT_ theta, bool use_degree = false)
-    {
-        FLOAT_ ox = x;
-        FLOAT_ oy = y;
-        theta = (use_degree ? theta / 180 * PI : theta);
-        FLOAT_ costheta = cos(theta);
-        FLOAT_ sintheta = sin(theta);
-        this->x = ox * costheta - oy * sintheta;
-        this->y = oy * costheta + ox * sintheta;
-    }
+	/* 绕原点逆时针旋转多少度 */
+	inline void rotate(FLOAT_ theta, bool use_degree = false)
+	{
+		FLOAT_ ox = x;
+		FLOAT_ oy = y;
+		theta = (use_degree ? theta / 180 * PI : theta);
+		FLOAT_ costheta = cos(theta);
+		FLOAT_ sintheta = sin(theta);
+		this->x = ox * costheta - oy * sintheta;
+		this->y = oy * costheta + ox * sintheta;
+	}
 
-    inline bool operator<(const Vector2 &b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
+	inline bool operator<(const Vector2 &b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
-    /* 向量的平方模 */
-    inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2); }
-    /* 向量的模 */
-    inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-    /*判等*/
-    inline bool equals(const Vector2 &b) { return (*this) == b; }
+	/* 向量的平方模 */
+	inline FLOAT_ sqrMagnitude() const { return x * x + y * y; }
+	/* 向量的模 */
+	inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
+	/* 判等 */
+	inline bool equals(const Vector2 &b) { return (*this) == b; }
 
-    /* 用极坐标换算笛卡尔坐标 */
-    inline static Vector2 fromPolarCoordinate(const Vector2 &v, bool use_degree = 1) { return v.toCartesianCoordinate(use_degree); }
+	/* 用极坐标换算笛卡尔坐标 */
+	inline static Vector2 fromPolarCoordinate(const Vector2 &v, bool use_degree = 1) { return v.toCartesianCoordinate(use_degree); }
 
-    /* 转为笛卡尔坐标 */
-    inline Vector2 toCartesianCoordinate(bool use_degree = 1) const
-    {
-        return Vector2(
-            x * cos(y * (use_degree ? PI / 180.0 : 1)),
-            x * sin(y * (use_degree ? PI / 180.0 : 1)));
-    }
-    /* 转为极坐标 */
-    inline Vector2 toPolarCoordinate(bool use_degree = 1) const
-    {
-        return Vector2(
-            magnitude(),
-            toPolarAngle(use_degree));
-    }
+	/* 转为笛卡尔坐标 */
+	inline Vector2 toCartesianCoordinate(bool use_degree = 1) const
+	{
+		return Vector2(
+			x * cos(y * (use_degree ? PI / 180.0 : 1)),
+			x * sin(y * (use_degree ? PI / 180.0 : 1)));
+	}
+	/* 转为极坐标 */
+	inline Vector2 toPolarCoordinate(bool use_degree = 1) const
+	{
+		return Vector2(
+			magnitude(),
+			toPolarAngle(use_degree));
+	}
 
-    /* 获取极角 */
-    inline FLOAT_ toPolarAngle(bool use_degree = 1) const { return atan2(y, x) * (use_degree ? 180.0 / PI : 1); }
+	/* 获取极角 */
+	inline FLOAT_ toPolarAngle(bool use_degree = 1) const { return atan2(y, x) * (use_degree ? 180.0 / PI : 1); }
 
-    /* 转为极坐标 */
-    inline static Vector2 ToPolarCoordinate(const Vector2 &coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
+	/* 转为极坐标 */
+	inline static Vector2 ToPolarCoordinate(const Vector2 &coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
 
-    /* 向量单位化 */
-    inline void Normalize()
-    {
-        FLOAT_ _m = this->magnitude();
-        this->x /= _m;
-        this->y /= _m;
-    }
+	/* 向量单位化 */
+	inline void Normalize()
+	{
+		FLOAT_ _m = this->magnitude();
+		this->x /= _m;
+		this->y /= _m;
+	}
 
-    /* 返回与该向量方向同向的单位向量 */
-    inline Vector2 normalized() const
-    {
-        FLOAT_ _m = this->magnitude();
-        return Vector2(this->x / _m, this->y / _m);
-    }
-    /* 距离 */
-    inline static FLOAT_ Distance(const Vector2 &a, const Vector2 &b) { return (a - b).magnitude(); }
+	/* 返回与该向量方向同向的单位向量 */
+	inline Vector2 normalized() const
+	{
+		FLOAT_ _m = this->magnitude();
+		return Vector2(this->x / _m, this->y / _m);
+	}
+	/* 距离 */
+	inline static FLOAT_ Distance(const Vector2 &a, const Vector2 &b) { return (a - b).magnitude(); }
 
-    /* 向量线性插值 */
-    inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
+	/* 向量线性插值 */
+	inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
-    /* 向量圆形插值 */
-    inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
-    {
-        // Vector2 c = b - a;
-        a = a.toPolarCoordinate();
-        b = b.toPolarCoordinate();
-        return LerpUnclamped(a, b, t).toCartesianCoordinate();
-    }
+	/* 向量圆形插值 */
+	inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
+	{
+		// Vector2 c = b - a;
+		a = a.toPolarCoordinate();
+		b = b.toPolarCoordinate();
+		return LerpUnclamped(a, b, t).toCartesianCoordinate();
+	}
 
-    /* 拿它的垂直向量（逆时针旋转90°） */
-    inline static Vector2 Perpendicular(const Vector2 &inDirection) { return Vector2(-inDirection.y, inDirection.x); }
-    /* 根据inNormal法向反射inDirection向量，参考光的平面镜反射，入射光为inDirection，平面镜的法线为inNormal */
-    inline static Vector2 Reflect(const Vector2 &inDirection, const Vector2 &inNormal) { return inDirection - 2 * Vector2::Dot(inDirection, inNormal) * inNormal; }
-    /* 点积 */
-    inline static FLOAT_ Dot(const Vector2 &lhs, const Vector2 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y; }
-    /* 叉积 */
-    inline static FLOAT_ Cross(const Vector2 &lhs, const Vector2 &rhs) { return lhs.x * rhs.y - lhs.y * rhs.x; }
-    /* 有符号弧度夹角 */
-    inline static FLOAT_ SignedRad(const Vector2 &from, const Vector2 &to) { return atan2(Vector2::Cross(from, to), Vector2::Dot(from, to)); }
-    /* 无符号弧度夹角 */
-    inline static FLOAT_ Rad(const Vector2 &from, const Vector2 &to) { return abs(Vector2::SignedRad(from, to)); }
-    /* 有符号角度夹角 */
-    inline static FLOAT_ SignedAngle(const Vector2 &from, const Vector2 &to) { return Vector2::SignedRad(from, to) * 180.0 / PI; }
-    /* 无符号角度夹角 */
-    inline static FLOAT_ Angle(const Vector2 &from, const Vector2 &to) { return abs(Vector2::SignedAngle(from, to)); }
+	/* 拿它的垂直向量（逆时针旋转90°） */
+	inline static Vector2 Perpendicular(const Vector2 &inDirection) { return Vector2(-inDirection.y, inDirection.x); }
+	/* 根据inNormal法向反射inDirection向量，参考光的平面镜反射，入射光为inDirection，平面镜的法线为inNormal */
+	inline static Vector2 Reflect(const Vector2 &inDirection, const Vector2 &inNormal) { return inDirection - 2 * Vector2::Dot(inDirection, inNormal) * inNormal; }
+	/* 点积 */
+	inline static FLOAT_ Dot(const Vector2 &lhs, const Vector2 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y; }
+	/* 叉积 */
+	inline static FLOAT_ Cross(const Vector2 &lhs, const Vector2 &rhs) { return lhs.x * rhs.y - lhs.y * rhs.x; }
+	/* 有符号弧度夹角 */
+	inline static FLOAT_ SignedRad(const Vector2 &from, const Vector2 &to) { return atan2(Vector2::Cross(from, to), Vector2::Dot(from, to)); }
+	/* 无符号弧度夹角 */
+	inline static FLOAT_ Rad(const Vector2 &from, const Vector2 &to) { return abs(Vector2::SignedRad(from, to)); }
+	/* 有符号角度夹角 */
+	inline static FLOAT_ SignedAngle(const Vector2 &from, const Vector2 &to) { return Vector2::SignedRad(from, to) * 180.0 / PI; }
+	/* 无符号角度夹角 */
+	inline static FLOAT_ Angle(const Vector2 &from, const Vector2 &to) { return abs(Vector2::SignedAngle(from, to)); }
 
-    /* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
-    inline static Vector2 Max(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::max(lhs.x, rhs.x), std::max(lhs.y, rhs.y)); }
+	/* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
+	inline static Vector2 Max(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::max(lhs.x, rhs.x), std::max(lhs.y, rhs.y)); }
 
-    /* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
-    inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y)); }
+	/* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
+	inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y)); }
 
-    /* 获得vector在onNormal方向的投影，onNormal需要单位化 */
-    inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
+	/* 获得vector在onNormal方向的投影，无损，无需单位化写法 */
+	inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return Dot(vector, onNormal) / onNormal.sqrMagnitude() * onNormal; }
 
-    inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude(); }
+	inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return Project(vector, onNormal).magnitude(); }
+
+	/* 判断p是否在向量from->to的延长线上，精度不高，慎用 */
+	inline static bool indirection(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+	{
+		Vector2 p1 = to - from;
+		Vector2 p2 = p - from;
+		if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+			return false;
+		return (p1.sqrMagnitude() < p2.sqrMagnitude());
+	}
+
+	/* 判断p是否在线段[from -> to]上，精度不高，慎用 */
+	inline static bool inrange(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+	{
+		if (p == from || p == to)
+			return true;
+		Vector2 p1 = to - from;
+		Vector2 p2 = p - from;
+		if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+			return false;
+		return (p1.sqrMagnitude() >= p2.sqrMagnitude());
+	}
+
+	/* 判断三个点是否共线 */
+	inline static bool Collinear(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+	{
+		return round_compare(Cross(c - a, b - a), 0.0);
+	}
 };
+
 struct PolarSortCmp
 {
-    inline bool operator()(const Vector2 &a, const Vector2 &b) const { return a.toPolarAngle(0) < b.toPolarAngle(0); }
+	inline bool operator()(const Vector2 &a, const Vector2 &b) const { return a.toPolarAngle(0) < b.toPolarAngle(0); }
 };
 /* 相等的向量可能不会贴着放，不能保证排完之后遍历一圈是旋转360°，慎用 */
 struct CrossSortCmp
 {
-    inline bool operator()(const Vector2 &a, const Vector2 &b) const { return Vector2::Cross(a, b) > 0; }
+	inline bool operator()(const Vector2 &a, const Vector2 &b) const { return Vector2::Cross(a, b) > 0; }
 };
 ```
 
@@ -3126,173 +3230,276 @@ struct CrossSortCmp
 ```cpp
 struct Vector3 // 三维向量
 {
-    FLOAT_ x, y, z;
-    Vector3(FLOAT_ _x, FLOAT_ _y, FLOAT_ _z) : x(_x), y(_y), z(_z) {}
-    Vector3(FLOAT_ n) : x(n), y(n), z(n) {}
-    Vector3(const Vector2 &b) : x(b.x), y(b.y), z(0.0) {}
-    Vector3() : x(0.0), y(0.0), z(0.0) {}
+	FLOAT_ x, y, z;
+	Vector3(FLOAT_ _x, FLOAT_ _y, FLOAT_ _z) : x(_x), y(_y), z(_z) {}
+	Vector3(FLOAT_ n) : x(n), y(n), z(n) {}
+	Vector3() : x(0.0), y(0.0), z(0.0) {}
+	inline Vector3 &operator=(const Vector3 &b)
+	{
+		this->x = b.x;
+		this->y = b.y;
+		this->z = b.z;
+		return *this;
+	}
+	inline bool operator==(const Vector3 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y) and round_compare(this->z, b.z); }
+	inline bool operator!=(const Vector3 &b) const { return not((*this) == b); }
+	inline FLOAT_ &operator[](const int ind)
+	{
+		switch (ind)
+		{
+		case 0:
+			return this->x;
+			break;
+		case 1:
+			return this->y;
+			break;
+		case 2:
+			return this->z;
+			break;
+		case 'x':
+			return this->x;
+			break;
+		case 'y':
+			return this->y;
+			break;
+		case 'z':
+			return this->z;
+		default:
+			throw "无法理解除0,1,2外的索引";
+			break;
+		}
+	}
+	inline friend std::ostream &operator<<(std::ostream &o, const Vector3 &v) { return o << v.ToString(); }
+	inline Vector3 &operator+=(const Vector3 &b)
+	{
+		x += b.x, y += b.y, z += b.z;
+		return (*this);
+	}
+	inline Vector3 &operator-=(const Vector3 &b)
+	{
+		x -= b.x, y -= b.y, z -= b.z;
+		return (*this);
+	}
+	inline Vector3 &operator*=(const Vector3 &b)
+	{
+		x *= b.x, y *= b.y, z *= b.z;
+		return (*this);
+	}
+	inline Vector3 &operator/=(const Vector3 &b)
+	{
+		x /= b.x, y /= b.y, z /= b.z;
+		return (*this);
+	}
+	inline Vector3 &operator+=(const FLOAT_ &n)
+	{
+		x += n, y += n, z += n;
+		return (*this);
+	}
+	inline Vector3 &operator-=(const FLOAT_ &n)
+	{
+		x -= n, y -= n, z -= n;
+		return (*this);
+	}
+	inline Vector3 &operator*=(const FLOAT_ &n)
+	{
+		x *= n, y *= n, z *= n;
+		return (*this);
+	}
+	inline Vector3 &operator/=(const FLOAT_ &n)
+	{
+		x /= n, y /= n, z /= n;
+		return (*this);
+	}
+	inline Vector3 operator+(const Vector3 &b) const { return Vector3(*this) += b; }
+	inline Vector3 operator-(const Vector3 &b) const { return Vector3(*this) -= b; }
+	inline Vector3 operator*(const Vector3 &b) const { return Vector3(*this) *= b; }
+	inline Vector3 operator/(const Vector3 &b) const { return Vector3(*this) /= b; }
+	inline Vector3 operator+(const FLOAT_ &n) const { return Vector3(*this) += n; }
+	inline Vector3 operator-(const FLOAT_ &n) const { return Vector3(*this) -= n; }
+	inline Vector3 operator*(const FLOAT_ &n) const { return Vector3(*this) *= n; }
+	inline Vector3 operator/(const FLOAT_ &n) const { return Vector3(*this) /= n; }
+	inline friend Vector3 operator+(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) += b; }
+	inline friend Vector3 operator-(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) -= b; }
+	inline friend Vector3 operator*(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) *= b; }
+	inline friend Vector3 operator/(const FLOAT_ &n, const Vector3 &b) { return Vector3(n) /= b; }
 
-    inline bool operator==(const Vector3 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y) and round_compare(this->z, b.z); }
-    inline bool operator!=(const Vector3 &b) const { return not((*this) == b); }
-    // 省略运算符重载
+	/* 向量的平方模 */
+	inline FLOAT_ sqrMagnitude() const { return x * x + y * y + z * z; }
+	/* 向量的模，一次sqrt */
+	inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
+	/* 判等 */
+	inline bool equals(const Vector3 &b) const { return (*this) == b; }
+	/* 向量单位化，一次sqrt */
+	inline void Normalize()
+	{
+		FLOAT_ _m = this->magnitude();
+		this->x /= _m;
+		this->y /= _m;
+		this->z /= _m;
+	}
 
-    /* 向量的平方模 */
-    inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2); }
-    /* 向量的模 */
-    inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-    /* 判等 */
-    inline bool equals(const Vector3 &b) const { return (*this) == b; }
-    /* 向量单位化 */
-    inline void Normalize()
-    {
-        FLOAT_ _m = this->magnitude();
-        this->x /= _m;
-        this->y /= _m;
-        this->z /= _m;
-    }
+	/* 转为字符串 */
+	inline std::string ToString() const
+	{
+		std::ostringstream ostr;
+		ostr << "Vector3(" << this->x << ", " << this->y << ", " << this->z << ")";
+		return ostr.str();
+	}
 
-    /* 转为字符串 */
-    inline std::string ToString() const
-    {
-        std::ostringstream ostr;
-        ostr << "Vector3(" << this->x << ", " << this->y << ", " << this->z << ")";
-        return ostr.str();
-    }
+	/* 返回与该向量方向同向的单位向量，一次sqrt */
+	inline Vector3 normalized() const
+	{
+		FLOAT_ _m = this->magnitude();
+		return Vector3(this->x / _m, this->y / _m, this->z / _m);
+	}
+	/* 距离，一次sqrt */
+	inline static FLOAT_ Distance(const Vector3 &a, const Vector3 &b) { return (a - b).magnitude(); }
 
-    /* 返回与该向量方向同向的单位向量 */
-    inline Vector3 normalized() const
-    {
-        FLOAT_ _m = this->magnitude();
-        return Vector3(this->x / _m, this->y / _m, this->z / _m);
-    }
-    /* 距离 */
-    inline static FLOAT_ Distance(const Vector3 &a, const Vector3 &b) { return (a - b).magnitude(); }
+	/* 向量线性插值 */
+	inline static Vector3 LerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
-    /* 向量线性插值 */
-    inline static Vector3 LerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t) { return a + (b - a) * t; }
+	/* 拿它的垂直向量（逆时针旋转90°） */
+	inline static Vector3 Perpendicular(const Vector3 &inDirection) { return Vector3(-inDirection.y, inDirection.x, 0); }
+	/*根据inNormal法向反射inDirection向量，参考光的平面镜反射，入射光为inDirection，平面镜的法线为inNormal*/
+	inline static Vector3 Reflect(const Vector3 &inDirection, const Vector3 &inNormal) { return inDirection - 2 * Vector3::Dot(inDirection, inNormal) * inNormal; }
 
-    /* 拿它的垂直向量（逆时针旋转90°） */
-    inline static Vector3 Perpendicular(const Vector3 &inDirection) { return Vector3(-inDirection.y, inDirection.x, 0); }
-    /*根据inNormal法向反射inDirection向量，参考光的平面镜反射，入射光为inDirection，平面镜的法线为inNormal*/
-    inline static Vector3 Reflect(const Vector3 &inDirection, const Vector3 &inNormal) { return inDirection - 2 * Vector3::Dot(inDirection, inNormal) * inNormal; }
+	/* 点积 */
+	inline static FLOAT_ Dot(const Vector3 &lhs, const Vector3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
+	/* 叉积 */
+	inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
 
-    /* 点积 */
-    inline static FLOAT_ Dot(const Vector3 &lhs, const Vector3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
-    /* 叉积 */
-    inline static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
+	/* 无符号夹角cos值，一次sqrt */
+	inline static FLOAT_ Cos(const Vector3 &from, const Vector3 &to) { return Dot(from, to) / sqrt(from.sqrMagnitude() * to.sqrMagnitude()); }
+	/* 无符号弧度夹角，一次sqrt，一次acos */
+	inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Cos(from, to)); }
 
-    /* 无符号弧度夹角 */
-    inline static FLOAT_ Rad(const Vector3 &from, const Vector3 &to) { return acos(Dot(from, to) / (from.magnitude() * to.magnitude())); }
+	/* 无符号角度夹角，一次sqrt，一次acos，一次/PI  */
+	inline static FLOAT_ Angle(const Vector3 &from, const Vector3 &to) { return Rad(from, to) * 180 / PI; }
 
-    /* 无符号角度夹角 */
-    inline static FLOAT_ Angle(const Vector3 &from, const Vector3 &to) { return Rad(from, to) * 180 / PI; }
+	/* 返回该方向上最大不超过maxLength长度的向量 */
+	inline static Vector3 ClampMagnitude(const Vector3 &vector, const FLOAT_ &maxLength)
+	{
+		if (vector.magnitude() <= maxLength)
+			return vector;
+		else
+			return vector.normalized() * maxLength;
+	}
+	/* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
+	inline static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(max(lhs.x, rhs.x), max(lhs.y, rhs.y), max(lhs.z, rhs.z)); }
 
-    /* 返回该方向上最大不超过maxLength长度的向量 */
-    inline static Vector3 ClampMagnitude(const Vector3 &vector, const FLOAT_ &maxLength)
-    {
-        if (vector.magnitude() <= maxLength)
-            return vector;
-        else
-            return vector.normalized() * maxLength;
-    }
-    /* 返回俩向量中x的最大值和y的最大值构造而成的向量 */
-    inline static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(max(lhs.x, rhs.x), max(lhs.y, rhs.y), max(lhs.z, rhs.z)); }
+	/* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
+	inline static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(min(lhs.x, rhs.x), min(lhs.y, rhs.y), min(lhs.z, rhs.z)); }
 
-    /* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
-    inline static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs) { return Vector3(min(lhs.x, rhs.x), min(lhs.y, rhs.y), min(lhs.z, rhs.z)); }
+	/* 获得vector在onNormal方向的投影，无损，无需单位化写法 */
+	inline static Vector3 Project(const Vector3 &vector, const Vector3 &onNormal) { return Dot(vector, onNormal) / onNormal.sqrMagnitude() * onNormal; }
 
-    /* 获得vector在onNormal(请自己单位化)方向的投影 */
-    inline static Vector3 Project(const Vector3 &vector, const Vector3 &onNormal) { return vector.magnitude() * cos(Rad(vector, onNormal)) * onNormal; }
+	/* 正交化：将两个向量单位化，并调整切线位置使之垂直于法向 */
+	inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
+	{
+		normal.Normalize();
+		tangent = tangent - Project(tangent, normal);
+		tangent.Normalize();
+	}
 
-    /* 正交化：将两个向量单位化，并调整切线位置使之垂直于法向 */
-    inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
-    {
-        normal.Normalize();
-        tangent = tangent - Project(tangent, normal);
-        tangent.Normalize();
-    }
+	/* 正交化：将三个向量单位化，并调整使之两两垂直 */
+	inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent, Vector3 &binormal)
+	{
+		normal.Normalize();
+		tangent = tangent - Project(tangent, normal);
+		tangent.Normalize();
+		binormal -= Project(binormal, normal);
+		binormal -= Project(binormal, tangent);
+		binormal.Normalize();
+	}
 
-    /* 正交化：将三个向量单位化，并调整使之两两垂直 */
-    inline static void OrthoNormalize(Vector3 &normal, Vector3 &tangent, Vector3 &binormal)
-    {
-        normal.Normalize();
-        tangent = tangent - Project(tangent, normal);
-        tangent.Normalize();
-        binormal -= Project(binormal, normal);
-        binormal -= Project(binormal, tangent);
-        binormal.Normalize();
-    }
+	/* 获得vector在以planeNormal为法向量的平面的投影，3个sqrt带一个sin，建议用Face3的project */
+	inline static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
+	{
+		FLOAT_ mag = vector.magnitude();
+		FLOAT_ s = Rad(vector, planeNormal);
+		OrthoNormalize(planeNormal, vector);
+		return mag * sin(s) * vector;
+	}
 
-    /* 获得vector在以planeNormal为法向量的平面的投影 */
-    inline static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
-    {
-        FLOAT_ mag = vector.magnitude();
-        FLOAT_ s = Rad(vector, planeNormal);
-        OrthoNormalize(planeNormal, vector);
-        return mag * sin(s) * vector;
-    }
+	/* 罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义，一个sin一个sqrt（算上normal单位化） */
+	inline static Vector3 Rotate(const Vector3 &current, const Vector3 &normal, const FLOAT_ &degree, bool use_degree = 1)
+	{
+		FLOAT_ r = use_degree ? degree / 180 * PI : degree;
+		FLOAT_ c = cos(r);
+		return c * current + (1.0 - c) * Dot(normal, current) * normal + Cross(sin(r) * normal, current);
+	}
 
-    /* 罗德里格旋转公式，获得current绕轴normal(请自己单位化)旋转degree度（默认角度）的向量，右手螺旋意义 */
-    inline static Vector3 Rotate(const Vector3 &current, const Vector3 &normal, const FLOAT_ &degree, bool use_degree = 1)
-    {
-        FLOAT_ r = use_degree ? degree / 180 * PI : degree;
-        FLOAT_ c = cos(r);
-        return c * current + (1.0 - c) * Dot(normal, current) * normal + Cross(sin(r) * normal, current);
-    }
+	/* 将current向target转向degree度，如果大于夹角则返回target方向长度为current的向量 */
+	inline static Vector3 RotateTo(const Vector3 &current, const Vector3 &target, const FLOAT_ &degree, bool use_degree = 1)
+	{
+		FLOAT_ r = use_degree ? degree / 180 * PI : degree;
+		if (r >= Rad(current, target))
+			return current.magnitude() / target.magnitude() * target;
+		else
+		{
+			// FLOAT_ mag = current.magnitude();
+			Vector3 nm = Cross(current, target).normalized();
+			return Rotate(current, nm, r);
+		}
+	}
 
-    /* 将current向target转向degree度，如果大于夹角则返回target方向长度为current的向量 */
-    inline static Vector3 RotateTo(const Vector3 &current, const Vector3 &target, const FLOAT_ &degree, bool use_degree = 1)
-    {
-        FLOAT_ r = use_degree ? degree / 180 * PI : degree;
-        if (r >= Rad(current, target))
-            return current.magnitude() / target.magnitude() * target;
-        else
-        {
-            // FLOAT_ mag = current.magnitude();
-            Vector3 nm = Cross(current, target).normalized();
-            return Rotate(current, nm, r);
-        }
-    }
+	/* 球面插值 */
+	inline static Vector3 SlerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t)
+	{
+		Vector3 rot = RotateTo(a, b, Rad(a, b) * t, false);
+		FLOAT_ l = b.magnitude() * t + a.magnitude() * (1 - t);
+		return rot.normalized() * l;
+	}
 
-    /* 球面插值 */
-    inline static Vector3 SlerpUnclamped(const Vector3 &a, const Vector3 &b, const FLOAT_ &t)
-    {
-        Vector3 rot = RotateTo(a, b, Rad(a, b) * t, false);
-        FLOAT_ l = b.magnitude() * t + a.magnitude() * (1 - t);
-        return rot.normalized() * l;
-    }
+	/* 根据经纬，拿一个单位化的三维向量，以北纬和东经为正 */
+	inline static Vector3 FromLongitudeAndLatitude(const FLOAT_ &longitude, const FLOAT_ &latitude)
+	{
+		Vector3 lat = Rotate(Vector3(1, 0, 0), Vector3(0, -1, 0), latitude);
+		return Rotate(lat, Vector3(0, 0, 1), longitude);
+	}
 
-    /* 根据经纬，拿一个单位化的三维向量，以北纬和东经为正 */
-    inline static Vector3 FromLongitudeAndLatitude(const FLOAT_ &longitude, const FLOAT_ &latitude)
-    {
-        Vector3 lat = Rotate(Vector3(1, 0, 0), Vector3(0, -1, 0), latitude);
-        return Rotate(lat, Vector3(0, 0, 1), longitude);
-    }
+	/* 球坐标转换为xyz型三维向量 */
+	inline static Vector3 FromSphericalCoordinate(const Vector3 &spherical, bool use_degree = 1) { return FromSphericalCoordinate(spherical.x, spherical.y, spherical.z, use_degree); }
+	/* 球坐标转换为xyz型三维向量，半径r，theta倾斜角（纬度），phi方位角（经度），默认输出角度 */
+	inline static Vector3 FromSphericalCoordinate(const FLOAT_ &r, FLOAT_ theta, FLOAT_ phi, bool use_degree = 1)
+	{
+		theta = use_degree ? theta / 180 * PI : theta;
+		phi = use_degree ? phi / 180 * PI : phi;
+		return Vector3(
+			r * sin(theta) * cos(phi),
+			r * sin(theta) * sin(phi),
+			r * cos(theta));
+	}
+	/* 直角坐标转换为球坐标，默认输出角度 */
+	inline static Vector3 ToSphericalCoordinate(const Vector3 &coordinate, bool use_degree = 1)
+	{
+		FLOAT_ r = coordinate.magnitude();
+		return Vector3(
+			r,
+			acos(coordinate.z / r) * (use_degree ? 180.0 / PI : 1),
+			atan2(coordinate.y, coordinate.x) * (use_degree ? 180.0 / PI : 1));
+	}
+	/* 直角坐标转换为球坐标，默认输出角度 */
+	inline Vector3 toSphericalCoordinate(bool use_degree = 1) { return ToSphericalCoordinate(*this, use_degree); }
 
-    /* 球坐标转换为xyz型三维向量 */
-    inline static Vector3 FromSphericalCoordinate(const Vector3 &spherical, bool use_degree = 1) { return FromSphericalCoordinate(spherical.x, spherical.y, spherical.z, use_degree); }
-    /* 球坐标转换为xyz型三维向量，半径r，theta倾斜角（纬度），phi方位角（经度），默认输出角度 */
-    inline static Vector3 FromSphericalCoordinate(const FLOAT_ &r, FLOAT_ theta, FLOAT_ phi, bool use_degree = 1)
-    {
-        theta = use_degree ? theta / 180 * PI : theta;
-        phi = use_degree ? phi / 180 * PI : phi;
-        return Vector3(
-            r * sin(theta) * cos(phi),
-            r * sin(theta) * sin(phi),
-            r * cos(theta));
-    }
-    /* 直角坐标转换为球坐标，默认输出角度 */
-    inline static Vector3 ToSphericalCoordinate(const Vector3 &coordinate, bool use_degree = 1)
-    {
-        FLOAT_ r = coordinate.magnitude();
-        return Vector3(
-            r,
-            acos(coordinate.z / r) * (use_degree ? 180.0 / PI : 1),
-            atan2(coordinate.y, coordinate.x) * (use_degree ? 180.0 / PI : 1));
-    }
-    /* 直角坐标转换为球坐标，默认输出角度 */
-    inline Vector3 toSphericalCoordinate(bool use_degree = 1) { return ToSphericalCoordinate(*this, use_degree); }
+	/* 判断四点共面 */
+	static bool coplanar(const std::array<Vector3, 4> &v)
+	{
+		Vector3 v1 = v.at(1) - v.at(0);
+		Vector3 v2 = v.at(2) - v.at(0);
+		Vector3 v3 = v.at(3) - v.at(0);
+		return Vector3::Cross(Vector3::Cross(v3, v1), Vector3::Cross(v3, v2)).sqrMagnitude() == 0;
+	}
+
+	/* 判断三点共线 */
+	static bool collinear(const std::array<Vector3, 3> &v)
+	{
+		Vector3 v1 = v.at(1) - v.at(0);
+		Vector3 v2 = v.at(2) - v.at(0);
+		return Vector3::Cross(v2, v1).sqrMagnitude() == 0;
+	}
 };
+
 ```
 
 ### 矩阵
@@ -3530,10 +3737,12 @@ struct SquareMatrix : Matrix<VALUETYPE>
 ### 二维直线
 
 ```cpp
+
 struct Line2
 {
     FLOAT_ A, B, C;
-    Line2(Vector2 u, Vector2 v) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
+    /* 默认两点式，打false为点向式（先点后向） */
+    Line2(const Vector2 &u, const Vector2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
     {
         if (u == v)
         {
@@ -3556,38 +3765,45 @@ struct Line2
                 C = 0;
             }
         }
+        if (!two_point)
+        {
+            A = -v.y;
+            B = v.x;
+            C = -(A * u.x + B * u.y);
+        }
     }
     Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
-    std::string ToString()
+    std::string ToString() const
     {
         std::ostringstream ostr;
         ostr << "Line2(" << this->A << ", " << this->B << ", " << this->C << ")";
         return ostr.str();
     }
-    friend std::ostream &operator<<(std::ostream &o, Line2 v)
+    friend std::ostream &operator<<(std::ostream &o, const Line2 &v) const
     {
         o << v.ToString();
         return o;
     }
-    FLOAT_ k() { return -A / B; }
-    FLOAT_ b() { return -C / B; }
-    FLOAT_ x(FLOAT_ y) { return -(B * y + C) / A; }
-    FLOAT_ y(FLOAT_ x) { return -(A * x + C) / B; }
-    /*点到直线的距离*/
-    FLOAT_ distToPoint(Vector2 p) { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
-    /*直线距离公式，使用前先判平行*/
-    static FLOAT_ Distance(Line2 a, Line2 b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
-    /*判断平行*/
-    static bool IsParallel(Line2 u, Line2 v)
+    static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
+    FLOAT_ k() const { return -A / B; }
+    FLOAT_ b() const { return -C / B; }
+    FLOAT_ x(FLOAT_ y) const { return -(B * y + C) / A; }
+    FLOAT_ y(FLOAT_ x) const { return -(A * x + C) / B; }
+    /* 点到直线的距离 */
+    FLOAT_ distToPoint(const Vector2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
+    /* 直线距离公式，使用前先判平行 */
+    static FLOAT_ Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
+    /* 判断平行 */
+    static bool IsParallel(const Line2 &u, const Line2 &v)
     {
         bool f1 = round_compare(u.B, 0.0);
         bool f2 = round_compare(v.B, 0.0);
         if (f1 != f2)
             return false;
-        return f1 or round_compare(u.k(), v.k());
+        return f1 or round_compare(u.A * v.B - v.A * u.B, 0);
     }
 
-    /*单位化（？）*/
+    /* 单位化（？） */
     void normalize()
     {
         FLOAT_ su = sqrt(A * A + B * B + C * C);
@@ -3599,35 +3815,29 @@ struct Line2
         B /= su;
         C /= su;
     }
-    /*返回单位化后的直线*/
-    Line2 normalized()
+    /* 返回单位化后的直线 */
+    Line2 normalized() const
     {
         Line2 t(*this);
         t.normalize();
         return t;
     }
 
-    bool operator==(Line2 v) { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
-    bool operator!=(Line2 v) { return !(*this == v); }
+    bool operator==(const Line2 &v) const { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
+    bool operator!=(const Line2 &v) const { return !(*this == v); }
 
-    static bool IsSame(Line2 u, Line2 v)
+    /* 判断两直线是否是同一条直线 */
+    static bool IsSame(const Line2 &u, const Line2 &v)
     {
         return Line2::IsParallel(u, v) and round_compare(Distance(u.normalized(), v.normalized()), 0.0);
     }
 
-    /*计算交点*/
-    static Vector2 Intersect(Line2 u, Line2 v)
+    /* 计算交点 */
+    static Vector2 Intersect(const Line2 &u, const Line2 &v)
     {
         FLOAT_ tx = (u.B * v.C - v.B * u.C) / (v.B * u.A - u.B * v.A);
-        FLOAT_ ty = (u.B != 0.0 ? -u.A * tx / u.B - u.C / u.B : -v.A * tx / v.B - v.C / v.B);
+        FLOAT_ ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
         return Vector2(tx, ty);
-    }
-
-    /*判断三个点是否共线*/
-    static bool Collinear(Vector2 a, Vector2 b, Vector2 c)
-    {
-        Line2 l(a, b);
-        return round_compare((l.A * c.x + l.B * c.y + l.C), 0.0);
     }
 };
 ```
@@ -3640,9 +3850,26 @@ struct Segment2 : Line2 // 二维有向线段
     Vector2 from, to;
     Segment2(Vector2 a, Vector2 b) : Line2(a, b), from(a), to(b) {}
     Segment2(FLOAT_ x, FLOAT_ y, FLOAT_ X, FLOAT_ Y) : Line2(Vector2(x, y), Vector2(X, Y)), from(Vector2(x, y)), to(Vector2(X, Y)) {}
+    Vector2 toward() const { return to - from; }
+    /* 精度较低的判断点在线段上 */
     bool is_online(Vector2 poi)
     {
         return round_compare((Vector2::Distance(poi, to) + Vector2::Distance(poi, from)), Vector2::Distance(from, to));
+    }
+    /* 判断本线段的射线方向与线段b的交点会不会落在b内，认为long double可以装下long long精度，如果seg2存的点是精确的，这么判断比求交点再online更精确 */
+    bool ray_in_range(const Segment2 &b) const
+    {
+        Vector2 p = to - from;
+        Vector2 pl = b.to - from;
+        Vector2 pr = b.from - from;
+        FLOAT_ c1 = Vector2::Cross(p, pl);
+        FLOAT_ c2 = Vector2::Cross(p, pr);
+        return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
+    }
+    /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
+    static bool IsParallel(const Segment2 &u, const Segment2 &v)
+    {
+        return (Vector2::Cross(u.to - u.from, v.to - v.from) == 0);
     }
     Vector2 &operator[](int i)
     {
@@ -3659,6 +3886,13 @@ struct Segment2 : Line2 // 二维有向线段
             break;
         }
     }
+    /* 防止Line2精度不足的平行线距离，一次sqrt */
+    static FLOAT_ Distance(const Segment2 &a, const Segment2 &b)
+    {
+        return a.distToPoint(b.to);
+    }
+    /* 点到直线的距离，一次sqrt */
+    FLOAT_ distToPoint(const Vector2 &p) const { return abs(Vector2::Cross(p - from, toward()) / toward().magnitude()); }
 };
 ```
 
@@ -3806,13 +4040,96 @@ public:
 ```cpp
 struct Face3 : std::array<Vector3, 3>
 {
-    Face3(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) : std::array<Vector3, 3>({v0, v1, v2}) {}
-    inline static Vector3 normal(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return Vector3::Cross(v1 - v0, v2 - v0); }
-    inline static FLOAT_ area(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return normal(v0, v1, v2).magnitude() / FLOAT_(2); }
-    inline static bool visible(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &_v) { return Vector3::Dot(_v - v0, normal(v0, v1, v2)) > 0; }
-    inline Vector3 normal() { return Vector3::Cross((*this)[1] - (*this)[0], (*this)[2] - (*this)[0]); }
-    inline FLOAT_ area() { return normal().magnitude() / FLOAT_(2); }
-    inline bool visible(const Vector3 &_v) { return Vector3::Dot(_v - (*this)[0], normal()) > 0; }
+	Face3(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) : std::array<Vector3, 3>({v0, v1, v2}) {}
+	template <typename... Args>
+	Face3(bool super, Args &&...args) : std::array<Vector3, 3>(std::forward<Args>(args)...) {}
+	inline static Vector3 normal(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return Vector3::Cross(v1 - v0, v2 - v0); }
+	inline static FLOAT_ area(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return normal(v0, v1, v2).magnitude() / FLOAT_(2); }
+	inline static bool visible(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &_v) { return Vector3::Dot(_v - v0, normal(v0, v1, v2)) > 0; }
+	/* 未经单位化的法向 */
+	inline Vector3 normal() const { return Vector3::Cross(at(1) - at(0), at(2) - at(0)); }
+	inline FLOAT_ area() const { return normal().magnitude() / FLOAT_(2); }
+	inline bool visible(const Vector3 &_v) const { return Vector3::Dot(_v - at(0), normal()) > 0; }
+	/* 点到平面代数距离，一次sqrt */
+	inline FLOAT_ distanceS(const Vector3 &p) const { return Vector3::Dot(p - at(0), normal().normalized()); }
+	/* 点到平面的投影，无损 */
+	inline Vector3 project(const Vector3 &p) const
+	{
+		return p - normal() * Vector3::Dot(p - at(0), normal()) / normal().sqrMagnitude();
+	}
+};
+```
+
+### 三维直线（两点式）
+
+```cpp
+/* 两点式空间直线，1 to 0 from */
+struct Segment3 : std::array<Vector3, 2>
+{
+    Segment3(const Vector3 &v0, const Vector3 &v1) : std::array<Vector3, 2>({v0, v1}) {}
+    template <typename... Args>
+    Segment3(bool super, Args &&...args) : std::array<Vector3, 2>(std::forward<Args>(args)...) {}
+    /* 方向向量，未经单位化 */
+    Vector3 toward() const { return at(1) - at(0); }
+    /* 点到空间直线的距离，一次sqrt */
+    FLOAT_ distance(const Vector3 &p) const
+    {
+        Vector3 p1 = toward();
+        Vector3 p2 = p - at(0);
+        Vector3 c = Vector3::Cross(p1, p2);
+        return sqrt(c.sqrMagnitude() / p1.sqrMagnitude()); // 损失精度的源泉：sqrt
+    }
+    /* 点到空间直线的垂足，无精度损失 */
+    Vector3 project(const Vector3 &p) const
+    {
+        Vector3 p1 = toward();
+        Vector3 p2 = p - at(0);
+        // cerr << cos(Vector3::Rad(p2, p1)) << endl;
+        // cerr << p1.normalized() << endl;
+        // FLOAT_ r = Vector3::Rad(p2, p1);
+        // Vector3 c = Vector3::Cross(p1, p2);
+        // c.len / p1.len * p1 / p1.len
+        // return at(0) + Vector3::Project(p2, p1);
+        return Vector3::Dot(p2, p1) * p1 / p1.sqrMagnitude() + at(0); // 无损的式子化简
+		// return Vector3::Cos(p2, p1) * p1 * sqrt(p2.sqrMagnitude() / p1.sqrMagnitude()) + at(0); // 损失精度源：
+    }
+    /* 直线与平面交点，无损 */
+    Vector3 intersect(const Face3 &f) const
+    {
+        // FLOAT_ a0 = f.distanceS(at(0));
+        // FLOAT_ a1 = f.distanceS(at(1));
+        FLOAT_ a00 = Vector3::Dot(at(0) - f.at(0), f.normal());
+        FLOAT_ a11 = Vector3::Dot(at(1) - f.at(0), f.normal());
+        // Vector3 d0 = a0 * toward() / (a0 - a1); // 两个sqrt
+        Vector3 d0 = a00 * toward() / (a00 - a11); // 无损
+
+        return d0 + at(0);
+    }
+    /* 异面直线最近点对，无损 */
+    std::pair<Vector3, Vector3> nearest(const Segment3 &s) const
+    {
+        Vector3 p1 = toward();
+        Vector3 p2 = s.at(0) - at(0);
+        Vector3 p3 = s.at(1) - at(0);
+
+        Vector3 c = Vector3::Cross(p1, s.toward());
+        Face3 f(at(0), c + at(0), p1 + at(0));
+
+        Vector3 sret = s.intersect(f);
+        Vector3 pj = project(sret);
+        return std::make_pair(isnan(pj.x) ? sret : pj, sret);
+    }
+    /* 空间直线的距离，一次sqrt */
+    FLOAT_ distance(const Segment3 &s) const
+    {
+        if (Vector3::coplanar({at(1), at(0), s.at(1), s.at(0)}))
+            return distance(s.at(0));
+        Vector3 c = Vector3::Cross(toward(), s.toward());
+        c.Normalize();
+        return abs(Vector3::Dot(c, at(0) - s.at(0)));
+        // auto sol = nearest(s);
+        // return Vector3::Distance(sol.first, sol.second);
+    }
 };
 ```
 
@@ -4640,8 +4957,7 @@ g 是mod(r*2^k+1)的原根
 1945555039024054273 27  56  5
 4179340454199820289 29  57  3
 */
-
-/* 多项式 2021.10.31 */
+/* 多项式 */
 template <typename T>
 struct Polynomial
 {
@@ -4659,6 +4975,71 @@ struct Polynomial
 
 	Polynomial() {}
 	Polynomial(int siz) : cof(siz) {}
+	template <typename... Args>
+	Polynomial(bool super, Args &&...args) : cof(std::forward<Args>(args)...) {}
+
+	/* 多项式求导 */
+	void derivation()
+	{
+		for (int i = 1; i < cof.size(); ++i)
+			cof[i - 1] = LL(i) * cof[i] % mod;
+		cof.pop_back();
+	}
+	/* 多项式不定积分 */
+	void integration()
+	{
+		cof.emplace_back(0);
+		for (int i = cof.size() - 1; i > 0; --i)
+			cof[i] = inv(LL(i), mod) * cof[i - 1] % mod;
+		cof[0] = 0;
+	}
+
+	/* 多项式对数 */
+	Polynomial ln() const
+	{
+		Polynomial A(*this);
+		A.derivation();
+		Polynomial C = NTTMul(A, getinv());
+		C.integration();
+		C.cof.resize(cof.size());
+		return C;
+	}
+	/* 多项式指数，1e5跑1.97s */
+	Polynomial exp() const
+	{
+		int limpow = 1, lim = 2;
+		Polynomial ex(1);
+
+		ex.cof[0] = 1;
+		while (lim < cof.size() * 2)
+		{
+			Polynomial T3 = ex;
+			T3.cof.resize(lim * 2, 0);
+
+			Polynomial T2 = T3.ln();
+			Polynomial T1;
+			T1.cof.assign(cof.begin(), cof.begin() + lim);
+			T2.cof[0] = mod - 1;
+
+			++limpow;
+			lim <<= 1;
+
+			T1.cof.resize(lim, 0);
+			T2.cof.resize(lim, 0);
+			std::fill(T2.cof.begin() + (lim >> 1), T2.cof.begin() + lim, 0);
+			T3.cof.resize(lim, 0);
+			auto rev = generateRev(lim, limpow);
+			T1.NTT(rev, lim, 0);
+			T2.NTT(rev, lim, 0);
+			T3.NTT(rev, lim, 0);
+			for (int i = 0; i < lim; ++i)
+				T3.cof[i] = (LL)T3.cof[i] * msub(T1.cof[i], T2.cof[i]) % mod;
+			T3.NTT(rev, lim, 1);
+			ex.cof.assign(T3.cof.begin(), T3.cof.begin() + (lim >> 1));
+		}
+		ex.cof.resize(cof.size());
+		return ex;
+	}
 
 	/* n^2 拉格朗日插值 */
 	void interpolation()
@@ -5021,14 +5402,11 @@ struct Polynomial
 	{
 		if (!siz)
 			siz = cof.size();
-		int orisiz = cof.size();
-		cof.resize(siz);
+		Polynomial A(*this);
+		A.cof.resize(siz);
 		Polynomial B;
-		// LL lim, limpow, retsize;
-		// Resize(*this, *this, lim, limpow, retsize);
-		N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
+		A.N_inv(siz, B); // N_inv为使用NTT，F_inv为使用MTT
 		B.cof.resize(siz);
-		cof.resize(orisiz);
 		return B;
 	}
 

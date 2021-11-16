@@ -65,7 +65,7 @@ struct Polynomial
 	Polynomial() {}
 	Polynomial(int siz) : cof(siz) {}
 	template <typename... Args>
-	Polynomial(bool useconstructor, Args &&...args) : cof(std::forward<Args>(args)...) {}
+	Polynomial(bool super, Args &&...args) : cof(std::forward<Args>(args)...) {}
 
 	/* 多项式求导 */
 	void derivation()

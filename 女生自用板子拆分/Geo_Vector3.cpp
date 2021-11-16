@@ -276,6 +276,7 @@ namespace Geometry
             return Vector3::Cross(v2, v1).sqrMagnitude() == 0;
         }
     };
+
 }
 
 #endif
