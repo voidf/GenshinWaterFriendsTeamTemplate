@@ -122,8 +122,6 @@ namespace Geometry
 		inline FLOAT_ sqrMagnitude() const { return x * x + y * y; }
 		/* 向量的模 */
 		inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-		/* 判等 */
-		inline bool equals(const Vector2 &b) { return (*this) == b; }
 
 		/* 用极坐标换算笛卡尔坐标 */
 		inline static Vector2 fromPolarCoordinate(const Vector2 &v, bool use_degree = 1) { return v.toCartesianCoordinate(use_degree); }
@@ -144,8 +142,13 @@ namespace Geometry
 		}
 
 		/* 获取极角 */
-		inline FLOAT_ toPolarAngle(bool use_degree = 1) const { return atan2(y, x) * (use_degree ? 180.0 / PI : 1); }
-
+		inline FLOAT_ toPolarAngle(bool use_degree = 1) const
+		{
+			FLOAT_ ret = atan2(y, x);
+			if (ret < 0)
+				ret += PI*2;
+			return ret * (use_degree ? 180.0 / PI : 1);
+		}
 		/* 转为极坐标 */
 		inline static Vector2 ToPolarCoordinate(const Vector2 &coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
 
@@ -169,13 +172,15 @@ namespace Geometry
 		/* 向量线性插值 */
 		inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
-		/* 向量圆形插值 */
+		/* 向量圆形插值，不可靠 */
 		inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
 		{
-			// Vector2 c = b - a;
-			a = a.toPolarCoordinate();
-			b = b.toPolarCoordinate();
-			return LerpUnclamped(a, b, t).toCartesianCoordinate();
+			auto si = SignedRad(a, b);
+			a.rotate(t * si);
+			return a;
+			// a = a.toPolarCoordinate();
+			// b = b.toPolarCoordinate();
+			// return LerpUnclamped(a, b, t).toCartesianCoordinate();
 		}
 
 		/* 拿它的垂直向量（逆时针旋转90°） */
