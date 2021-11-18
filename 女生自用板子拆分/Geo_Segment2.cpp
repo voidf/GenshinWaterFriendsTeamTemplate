@@ -26,6 +26,11 @@ namespace Geometry
             FLOAT_ c2 = Vector2::Cross(p, pr);
             return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
         }
+        /* 判断相交 */
+		static bool IsIntersect(const Segment2 &u, const Segment2 &v)
+		{
+			return u.ray_in_range(v) && v.ray_in_range(u);
+		}
         /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
         static bool IsParallel(const Segment2 &u, const Segment2 &v)
         {

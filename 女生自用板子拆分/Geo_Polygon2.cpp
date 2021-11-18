@@ -1,5 +1,6 @@
 #include "Geo_Base.cpp"
 #include "Geo_Vector2.cpp"
+#include "Geo_Segment2.cpp"
 
 namespace Geometry
 {
@@ -137,6 +138,148 @@ namespace Geometry
             }
             return res;
         }
+
+        /* 三角形面积并，只能处理三角形数组 */
+		static FLOAT_ triangles_area(const std::vector<Polygon2> &P)
+		{
+			std::vector<FLOAT_> events;
+			FLOAT_ ans = 0;
+			for (int i = 0; i < P.size(); ++i)
+			{
+				for (int it = 0; it < 3; ++it)
+				{
+					// int ti = it == 0 ? 2 : it - 1;
+					const Vector2 &ip1 = P[i].points[it];
+					events.emplace_back(ip1.x);
+					const Vector2 &ip2 = P[i].points[it ? it - 1 : 2];
+					for (int j = i + 1; j < P.size(); ++j)
+					{
+
+						for (int jt = 0; jt < 3; ++jt)
+						{
+							const Vector2 &jp1 = P[j].points[jt];
+							const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+							Segment2 si(ip1, ip2);
+							Segment2 sj(jp1, jp2);
+							if (Segment2::IsIntersect(si, sj) && !Segment2::IsParallel(si, sj))
+							{
+								events.emplace_back(Line2::Intersect(si, sj).x);
+							}
+						}
+					}
+				}
+			}
+			std::sort(events.begin(), events.end());
+			events.resize(std::unique(events.begin(), events.end()) - events.begin());
+			FLOAT_ bck = 0;
+			std::map<FLOAT_, FLOAT_> M;
+			FLOAT_ cur = 0;
+			auto mergeseg = [](FLOAT_ l, FLOAT_ r, std::map<FLOAT_, FLOAT_> &M, FLOAT_ &cur) {
+				auto pos = M.upper_bound(r);
+
+				if (pos == M.begin())
+					M[l] = r, cur += r - l;
+				else
+					while (1)
+					{
+						auto tpos = pos;
+						--tpos;
+						if (tpos->first <= l && l <= tpos->second)
+						{
+							cur += max(r, tpos->second) - tpos->second;
+							tpos->second = max(r, tpos->second);
+							break;
+						}
+						else if (l <= tpos->first && tpos->first <= r)
+						{
+							r = max(r, tpos->second);
+							cur -= tpos->second - tpos->first;
+							M.erase(tpos);
+							if (pos != M.begin())
+								continue;
+						}
+						M[l] = r, cur += r - l;
+						break;
+					}
+			};
+			for (int i = 0; i < events.size(); ++i)
+			{
+				cur = 0;
+				FLOAT_ dx = i > 0 ? events[i] - events[i - 1] : 0;
+				FLOAT_ cx = events[i];
+				std::vector<std::pair<FLOAT_, FLOAT_>> leftborder, rightborder;
+				M.clear();
+
+				for (int j = 0; j < P.size(); ++j)
+				{
+					std::vector<FLOAT_> its;
+					for (int jt = 0; jt < 3; ++jt)
+					{
+						const Vector2 &jp1 = P[j].points[jt];
+						const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+						bool fg = 1;
+						if (jp1.x == cx)
+						{
+							its.emplace_back(jp1.y);
+							fg = 0;
+						}
+						if (jp2.x == cx)
+						{
+							its.emplace_back(jp2.y);
+							fg = 0;
+						}
+						if (fg && ((jp1.x < cx) ^ (cx < jp2.x)) == 0)
+						{
+							Segment2 sj(jp1, jp2);
+							its.emplace_back(sj.y(cx));
+						}
+					}
+					if (its.size() <= 1)
+						continue;
+					char flg = 0;
+					if (its.size() == 4)
+					{
+						flg = 'R';
+						for (auto &p : P[j].points)
+							if (p.x > cx)
+							{
+								flg = 'L';
+								break;
+							}
+					}
+
+					sort(its.begin(), its.end());
+					if (flg == 'L')
+					{
+						leftborder.emplace_back(its.front(), its.back());
+						continue;
+					}
+					if (flg == 'R')
+					{
+						rightborder.emplace_back(its.front(), its.back());
+						continue;
+					}
+					mergeseg(its.front(), its.back(), M, cur);
+				}
+				auto mcp = M;
+				auto ccur = cur;
+				while (rightborder.size())
+				{
+					mergeseg(rightborder.back().first, rightborder.back().second, mcp, ccur);
+					rightborder.pop_back();
+				}
+
+				ans += i > 0 ? (ccur + bck) * dx : 0;
+				while (leftborder.size())
+				{
+					mergeseg(leftborder.back().first, leftborder.back().second, M, cur);
+					leftborder.pop_back();
+				}
+				bck = cur;
+			}
+			return ans * 0.5;
+		}
+	};
         /* 对接图形库的转换成vec3 float序列 */
         inline std::vector<FLOAT_> to_vec3_array() const
         {

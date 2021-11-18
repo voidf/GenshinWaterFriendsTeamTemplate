@@ -45,7 +45,7 @@ namespace Geometry
             ostr << "Line2(" << this->A << ", " << this->B << ", " << this->C << ")";
             return ostr.str();
         }
-        friend std::ostream &operator<<(std::ostream &o, const Line2 &v) const
+        friend std::ostream &operator<<(std::ostream &o, const Line2 &v)
         {
             o << v.ToString();
             return o;
