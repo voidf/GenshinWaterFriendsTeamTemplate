@@ -255,7 +255,7 @@ namespace Geometry
                     Q.emplace_back(x);
             for (auto x = Q.begin(), y = x; x != Q.end(); ++x)
             {
-                while (y != Q.end() && (*y)->y <= (*x)->y + ans)
+                while (y != Q.end() && pow((*y)->y - (*x)->y, 2) <= ans)
                     ++y;
                 for (auto z = x + 1; z != y; ++z)
                     ans = min(ans, (**x - **z).sqrMagnitude());
@@ -267,7 +267,6 @@ namespace Geometry
             sort(V.begin(), V.end(), [](const Vector2 &a, const Vector2 &b) -> bool
                  { return a.x < b.x; });
             FLOAT_ ans = (V[0] - V[1]).sqrMagnitude();
-            std::pair<Vector2, Vector2> ansp{V[0], V[1]};
             solve_nearest_pair(V.begin(), V.end(), ans);
             return ans;
         }
