@@ -238,6 +238,39 @@ namespace Geometry
 		{
 			return round_compare(Cross(c - a, b - a), 0.0);
 		}
+
+		using itr = std::vector<Vector2>::iterator;
+        static void solve_nearest_pair(const itr l, const itr r, FLOAT_ &ans)
+        {
+            if (r - l <= 1)
+                return;
+            std::vector<itr> Q;
+            itr t = l + (r - l) / 2;
+            FLOAT_ w = t->x;
+            solve_nearest_pair(l, t, ans), solve_nearest_pair(t, r, ans);
+            std::inplace_merge(l, t, r, [](const Vector2 &a, const Vector2 &b) -> bool
+                               { return a.y < b.y; });
+            for (itr x = l; x != r; ++x)
+                if ((w - x->x) * (w - x->x) <= ans)
+                    Q.emplace_back(x);
+            for (auto x = Q.begin(), y = x; x != Q.end(); ++x)
+            {
+                while (y != Q.end() && (*y)->y <= (*x)->y + ans)
+                    ++y;
+                for (auto z = x + 1; z != y; ++z)
+                    ans = min(ans, (**x - **z).sqrMagnitude());
+            }
+        }
+		/* 平面最近点对 入口 */
+        inline static FLOAT_ nearest_pair(std::vector<Vector2> &V)
+        {
+            sort(V.begin(), V.end(), [](const Vector2 &a, const Vector2 &b) -> bool
+                 { return a.x < b.x; });
+            FLOAT_ ans = (V[0] - V[1]).sqrMagnitude();
+            std::pair<Vector2, Vector2> ansp{V[0], V[1]};
+            solve_nearest_pair(V.begin(), V.end(), ans);
+            return ans;
+        }
 	};
 
 	struct PolarSortCmp
