@@ -21,10 +21,7 @@ namespace Geometry
 		/* 点到平面代数距离，一次sqrt */
 		inline FLOAT_ distanceS(const Vector3 &p) const { return Vector3::Dot(p - at(0), normal().normalized()); }
 		/* 点到平面的投影，无损 */
-		inline Vector3 project(const Vector3 &p) const
-		{
-			return p - normal() * Vector3::Dot(p - at(0), normal()) / normal().sqrMagnitude();
-		}
+		inline Vector3 project(const Vector3 &p) const{return p - normal() * Vector3::Dot(p - at(0), normal()) / normal().sqrMagnitude();}
 	};
 }
 

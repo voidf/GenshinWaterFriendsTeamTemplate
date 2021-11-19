@@ -2894,6 +2894,51 @@ namespace Geometry
             return std::make_pair(x1, x2);
         }
     }
+
+	/* 
+	求极大值，浮点型三分，实际上是假三分，接近二分复杂度
+	思想：因为单峰，若极值在[ml, mr]左边，则必有f(ml)优于f(mr)，可以丢掉右端点
+	若落在[ml, mr]内，随便丢一边都不会丢掉极值
+	*/
+	template <typename T>
+	std::pair<FLOAT_, T> ternary_searchf(FLOAT_ l, FLOAT_ r, std::function<T(FLOAT_)> f, FLOAT_ eps = 1e-6)
+	{
+		FLOAT_ ee = eps / 3;
+		while (l + eps < r)
+		{
+			FLOAT_ mid = (l + r) / 2;
+			FLOAT_ ml = mid - ee;
+			FLOAT_ mr = mid + ee;
+			if (f(ml) > f(mr)) // 改小于号变求极小值
+				r = mr;
+			else
+				l = ml;
+		}
+		FLOAT_ mid = (l + r) / 2;
+		return std::make_pair(mid, f(mid));
+	}
+
+    template <typename T>
+	std::pair<LL, T> ternary_searchi(LL l, LL r, std::function<T(LL)> f)
+	{
+		while (l + 2 < r)
+		{
+			LL ml = l + r >> 1;
+			LL mr = ml + 1;
+			if (f(ml) < f(mr))
+				r = mr;
+			else
+				l = ml;
+		}
+		std::pair<LL, T> ret = {l, f(l)};
+		for (LL i = l + 1; i <= r; ++i)
+		{
+			T res = f(i);
+			if (res < ret.second)
+				ret = {i, res};
+		}
+		return ret;
+	}
 }
 ```
 
@@ -2996,92 +3041,7 @@ struct Vector2
 		this->y = b.y;
 		return *this;
 	}
-	inline bool operator==(const Vector2 &b) const { return round_compare(this->x, b.x) and round_compare(this->y, b.y); }
-	inline bool operator!=(const Vector2 &b) const { return not((*this) == b); }
-	inline FLOAT_ &operator[](const int ind)
-	{
-		switch (ind)
-		{
-		case 0:
-			return (this->x);
-			break;
-		case 1:
-			return (this->y);
-			break;
-		case 'x':
-			return (this->x);
-			break;
-		case 'y':
-			return (this->y);
-			break;
-		default:
-			throw "无法理解除0,1外的索引";
-			break;
-		}
-	}
-	/* 转为字符串 */
-	inline std::string ToString() const
-	{
-		std::ostringstream ostr;
-		ostr << "Vector2(" << this->x << ", " << this->y << ")";
-		return ostr.str();
-	}
-	inline Vector2 operator-() const { return Vector2(-x, -y); }
 
-	inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) { return o << v.ToString(); }
-	inline Vector2 &operator+=(const Vector2 &b)
-	{
-		x += b.x, y += b.y;
-		return (*this);
-	}
-	inline Vector2 &operator-=(const Vector2 &b)
-	{
-		x -= b.x, y -= b.y;
-		return (*this);
-	}
-	inline Vector2 &operator*=(const Vector2 &b)
-	{
-		x *= b.x, y *= b.y;
-		return (*this);
-	}
-	inline Vector2 &operator/=(const Vector2 &b)
-	{
-		x /= b.x, y /= b.y;
-		return (*this);
-	}
-	inline Vector2 &operator+=(const FLOAT_ &n)
-	{
-		x += n, y += n;
-		return (*this);
-	}
-	inline Vector2 &operator-=(const FLOAT_ &n)
-	{
-		x -= n, y -= n;
-		return (*this);
-	}
-	inline Vector2 &operator*=(const FLOAT_ &n)
-	{
-		x *= n, y *= n;
-		return (*this);
-	}
-	inline Vector2 &operator/=(const FLOAT_ &n)
-	{
-		x /= n, y /= n;
-		return (*this);
-	}
-
-	inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) += b; }
-	inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) -= b; }
-	inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) *= b; }
-	inline Vector2 operator/(const Vector2 &b) const { return Vector2(*this) /= b; }
-	inline Vector2 operator+(const FLOAT_ &n) const { return Vector2(*this) += n; }
-	inline Vector2 operator-(const FLOAT_ &n) const { return Vector2(*this) -= n; }
-	inline Vector2 operator*(const FLOAT_ &n) const { return Vector2(*this) *= n; }
-	inline Vector2 operator/(const FLOAT_ &n) const { return Vector2(*this) /= n; }
-	inline friend Vector2 operator+(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) += b; }
-	inline friend Vector2 operator-(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) -= b; }
-	inline friend Vector2 operator*(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) *= b; }
-	inline friend Vector2 operator/(const FLOAT_ &n, const Vector2 &b) { return Vector2(n) /= b; }
 
 	/* 绕原点逆时针旋转多少度 */
 	inline void rotate(FLOAT_ theta, bool use_degree = false)
@@ -3148,13 +3108,15 @@ struct Vector2
 	/* 向量线性插值 */
 	inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
-	/* 向量圆形插值 */
+	/* 向量圆形插值，不可靠 */
 	inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
 	{
-		// Vector2 c = b - a;
-		a = a.toPolarCoordinate();
-		b = b.toPolarCoordinate();
-		return LerpUnclamped(a, b, t).toCartesianCoordinate();
+		auto si = SignedRad(a, b);
+		a.rotate(t * si);
+		return a;
+		// a = a.toPolarCoordinate();
+		// b = b.toPolarCoordinate();
+		// return LerpUnclamped(a, b, t).toCartesianCoordinate();
 	}
 
 	/* 拿它的垂直向量（逆时针旋转90°） */
@@ -3773,17 +3735,7 @@ struct Line2
         }
     }
     Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
-    std::string ToString() const
-    {
-        std::ostringstream ostr;
-        ostr << "Line2(" << this->A << ", " << this->B << ", " << this->C << ")";
-        return ostr.str();
-    }
-    friend std::ostream &operator<<(std::ostream &o, const Line2 &v) const
-    {
-        o << v.ToString();
-        return o;
-    }
+    
     static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
     FLOAT_ k() const { return -A / B; }
     FLOAT_ b() const { return -C / B; }
@@ -3866,26 +3818,17 @@ struct Segment2 : Line2 // 二维有向线段
         FLOAT_ c2 = Vector2::Cross(p, pr);
         return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
     }
+	/* 判断相交 */
+	static bool IsIntersect(const Segment2 &u, const Segment2 &v)
+	{
+		return u.ray_in_range(v) && v.ray_in_range(u);
+	}
     /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
     static bool IsParallel(const Segment2 &u, const Segment2 &v)
     {
         return (Vector2::Cross(u.to - u.from, v.to - v.from) == 0);
     }
-    Vector2 &operator[](int i)
-    {
-        switch (i)
-        {
-        case 0:
-            return from;
-            break;
-        case 1:
-            return to;
-            break;
-        default:
-            throw "数组越界";
-            break;
-        }
-    }
+    
     /* 防止Line2精度不足的平行线距离，一次sqrt */
     static FLOAT_ Distance(const Segment2 &a, const Segment2 &b)
     {
@@ -3948,6 +3891,52 @@ public:
         }
         stk.pop_back();
         return ret;
+    }
+
+	
+	/* log2(n)判断点在凸包内，要求逆时针序的凸包，即使用ConvexHull得到的多边形 */
+	inline bool is_inner_convexhull(const Vector2 &p) const
+	{
+		int l = 1, r = points.size() - 2;
+		while (l <= r)
+		{
+			int mid = l + r >> 1;
+			FLOAT_ a1 = Vector2::Cross(points[mid] - points[0], p - points[0]);
+			FLOAT_ a2 = Vector2::Cross(points[mid + 1] - points[0], p - points[0]);
+			if (a1 >= 0 && a2 <= 0)
+			{
+				if (Vector2::Cross(points[mid + 1] - points[mid], p - points[mid]) >= 0)
+					return 1;
+				return 0;
+			}
+			else if (a1 < 0)
+				r = mid - 1;
+			else
+				l = mid + 1;
+		}
+		return 0;
+	}
+
+	/* 凸包的闵可夫斯基和，支持long long */
+    inline static Polygon2 MinkowskiConvexHull(const Polygon2 &A, const Polygon2 &B)
+    {
+        Polygon2 Ad, Bd, ret;
+        for (int i = 0; i < A.points.size() - 1; ++i)
+            Ad.points.emplace_back(A.points[i + 1] - A.points[i]);
+        Ad.points.emplace_back(A.points.front() - A.points.back());
+        for (int i = 0; i < B.points.size() - 1; ++i)
+            Bd.points.emplace_back(B.points[i + 1] - B.points[i]);
+        Bd.points.emplace_back(B.points.front() - B.points.back());
+        ret.points.emplace_back(A.points.front() + B.points.front());
+        auto p1 = Ad.points.begin();
+        auto p2 = Bd.points.begin();
+        while (p1 != Ad.points.end() && p2 != Bd.points.end())
+            ret.points.emplace_back(ret.points.back() + (Vector2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
+        while (p1 != Ad.points.end())
+            ret.points.emplace_back(ret.points.back() + *(p1++));
+        while (p2 != Bd.points.end())
+            ret.points.emplace_back(ret.points.back() + *(p2++));
+        return ret.ConvexHull();
     }
 
     /* 凸多边形用逆时针排序 */
@@ -4032,7 +4021,331 @@ public:
         }
         return res;
     }
+
+	/* 别人写的更快的板子，三角形面积并 */
+	static FLOAT_ triangles_area(std::vector<Polygon2> &P)
+	{
+		int pos = 0;
+		for (auto &i : P)
+		{
+			if (abs(Vector2::Cross(i.points[1] - i.points[0], i.points[2] - i.points[0])) < 1e-12)
+				continue;
+			P[pos++] = i;
+		}
+		FLOAT_ ans = 0;
+		for (int i = 0; i < P.size(); ++i)
+			for (int j = 0; j < 3; ++j)
+			{
+				std::vector<pair<FLOAT_, int>> ev({make_pair(0, 1), make_pair(1, -1)});
+				Vector2 s = P[i].points[j], t = P[i].points[(j + 1) % 3], r = P[i].points[(j + 2) % 3];
+				if (abs(s.x - t.x) <= 1e-12)
+					continue;
+				if (s.x > t.x)
+					swap(s, t);
+				int flag = Vector2::Cross(r - s, t - s) < 0 ? -1 : 1;
+				FLOAT_ stdis = (t - s).sqrMagnitude();
+				for (int i1 = 0; i1 < P.size(); ++i1)
+					if (i1 != i)
+					{
+						int pos[3] = {};
+						int cnt[3] = {};
+						for (int j1 = 0; j1 < 3; ++j1)
+						{
+							const Vector2 &p = P[i1].points[j1];
+							FLOAT_ area = Vector2::Cross(p - s, t - s);
+							if (area * area * 1e12 < stdis)
+								pos[j1] = 0; // online
+							else
+								pos[j1] = area > 0 ? 1 : -1;
+							++cnt[pos[j1] + 1];
+						}
+						if (cnt[1] == 2)
+						{
+							FLOAT_ l = 1, r = 0;
+							int _j = -1;
+							for (int j1 = 0; j1 < 3; ++j1)
+								if (pos[j1] == 0)
+								{
+									const Vector2 &p = P[i1].points[j1];
+									FLOAT_ now = Vector2::Dot(p - s, t - s) / stdis;
+									l = min(l, now);
+									r = max(r, now);
+									if (pos[(j1 + 1) % 3] == 0)
+										_j = j1;
+								}
+							Vector2 _s = P[i1].points[_j], _t = P[i1].points[(_j + 1) % 3], _r = P[i1].points[(_j + 2) % 3];
+							if (_s.x > _t.x)
+								swap(_s, _t);
+							int _flag = Vector2::Cross(_r - _s, _t - _s) < 0 ? -1 : 1;
+							if (i1 > i && flag == _flag)
+								continue;
+							l = max(l, 0.0);
+							r = min(r, 1.0);
+							if (l < r)
+							{
+								ev.emplace_back(l, -1);
+								ev.emplace_back(r, 1);
+							}
+							continue;
+						}
+						if (!cnt[0] || !cnt[2]) // 不过这条线
+							continue;
+						FLOAT_ l = 1, r = 0;
+						for (int j1 = 0; j1 < 3; ++j1)
+							if (pos[j1] == 0) // 在线上
+							{
+								const Vector2 &p = P[i1].points[j1];
+								FLOAT_ now = Vector2::Dot(p - s, t - s) / stdis;
+								l = min(l, now);
+								r = max(r, now);
+							}
+							else if (pos[j1] * pos[(j1 + 1) % 3] < 0) // 穿过
+							{
+								Vector2 p0 = P[i1].points[j1], p1 = P[i1].points[(j1 + 1) % 3];
+								FLOAT_ now = Vector2::Cross(p0 - s, p1 - p0) / Vector2::Cross(t - s, p1 - p0);
+								l = min(l, now);
+								r = max(r, now);
+							}
+						l = max(l, 0.0);
+						r = min(r, 1.0);
+						if (l < r)
+						{
+							ev.emplace_back(l, -1);
+							ev.emplace_back(r, 1);
+						}
+					}
+				sort(ev.begin(), ev.end());
+				FLOAT_ la = 0;
+				int sum = 0;
+				Vector2 a = t - s;
+				for (auto p : ev)
+				{
+					FLOAT_ t;
+					int v;
+					tie(t, v) = p;
+					if (sum > 0)
+						ans += flag * a.x * (t - la) * (s.y + a.y * (t + la) / 2);
+					sum += v;
+					la = t;
+				}
+			}
+		return ans;
+	}
+
+	/* 点光源在多边形上的照明段，点严格在多边形内，n^2极坐标扫描线 */
+	std::vector<std::pair<Vector2, Vector2>> project_on_poly(const Vector2 &v)
+	{
+		std::vector<std::pair<Vector2, Vector2>> ret;
+		int pvno = -1;
+		Polygon2 p(*this);
+		for (auto &i : p.points)
+			i -= v;
+		std::vector<Segment2> relative(1, Segment2(p.points.back(), p.points.front()));
+		for (int i = 1; i < p.points.size(); ++i)
+			relative.emplace_back(p.points[i - 1], p.points[i]);
+		std::sort(p.points.begin(), p.points.end(), PolarSortCmp());
+
+		for (int i = 0; i < p.points.size(); ++i) // x轴正向开始逆时针序
+		{
+			const Vector2 &p1 = p.points[i];
+			const Vector2 &p2 = p.points[(i + 1) % p.points.size()];
+			if (Vector2::Cross(p1, p2) == 0) // 共线，即使有投影，三角形也会退化成一条线，故忽略
+				continue;
+			Vector2 mid = Vector2::SlerpUnclamped(p1, p2, 0.5);
+			Segment2 midseg(0, mid);
+			FLOAT_ nearest = -1;
+			int sid = -1;
+			for (int j = 0; j < relative.size(); ++j)
+				if (midseg.ray_in_range(relative[j]))
+				{
+					Vector2 its = Line2::Intersect(midseg, relative[j]);
+					if (Vector2::Dot(its, mid) > 0)
+					{
+						FLOAT_ d = its.sqrMagnitude();
+						if (nearest == -1 || nearest > d)
+						{
+							nearest = d;
+							sid = j;
+						}
+					}
+				}
+			if (pvno == sid)
+				ret.back().second = v + Line2::Intersect(Line2(0, p2), relative[sid]);
+			else
+			{
+				pvno = sid;
+				ret.emplace_back(
+					v + Line2::Intersect(Line2(0, p1), relative[sid]),
+					v + Line2::Intersect(Line2(0, p2), relative[sid]));
+			}
+		}
+		return ret;
+	}
+
+	/* 三角形面积并，只能处理三角形数组 */
+	static FLOAT_ triangles_area_s(const std::vector<Polygon2> &P)
+	{
+		std::vector<FLOAT_> events;
+		events.reserve(P.size() * P.size() * 9);
+		FLOAT_ ans = 0;
+		for (int i = 0; i < P.size(); ++i)
+		{
+			for (int it = 0; it < 3; ++it)
+			{
+				const Vector2 &ip1 = P[i].points[it];
+				events.emplace_back(ip1.x);
+				const Vector2 &ip2 = P[i].points[it ? it - 1 : 2];
+				for (int j = i + 1; j < P.size(); ++j)
+
+					for (int jt = 0; jt < 3; ++jt)
+					{
+						const Vector2 &jp1 = P[j].points[jt];
+						const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+						Segment2 si(ip1, ip2);
+						Segment2 sj(jp1, jp2);
+						if (Segment2::IsIntersect(si, sj) && !Segment2::IsParallel(si, sj))
+							events.emplace_back(Line2::Intersect(si, sj).x);
+					}
+			}
+		}
+		std::sort(events.begin(), events.end());
+		events.resize(std::unique(events.begin(), events.end()) - events.begin());
+		FLOAT_ bck = 0;
+		std::map<FLOAT_, FLOAT_> M;
+		FLOAT_ cur = 0;
+		auto mergeseg = [](FLOAT_ l, FLOAT_ r, std::map<FLOAT_, FLOAT_> &M, FLOAT_ &cur)
+		{
+			auto pos = M.upper_bound(r);
+
+			if (pos == M.begin())
+				M[l] = r, cur += r - l;
+			else
+				while (1)
+				{
+					auto tpos = pos;
+					--tpos;
+					if (tpos->first <= l && l <= tpos->second)
+					{
+						cur += max(r, tpos->second) - tpos->second;
+						tpos->second = max(r, tpos->second);
+						break;
+					}
+					else if (l <= tpos->first && tpos->first <= r)
+					{
+						r = max(r, tpos->second);
+						cur -= tpos->second - tpos->first;
+						M.erase(tpos);
+						if (pos != M.begin())
+							continue;
+					}
+					M[l] = r, cur += r - l;
+					break;
+				}
+		};
+		std::vector<std::pair<FLOAT_, FLOAT_>> leftborder, rightborder;
+		leftborder.reserve(P.size() * P.size() * 9);
+		rightborder.reserve(P.size() * P.size() * 9);
+		for (int i = 0; i < events.size(); ++i)
+		{
+			leftborder.clear();
+			rightborder.clear();
+			cur = 0;
+			FLOAT_ dx = i > 0 ? events[i] - events[i - 1] : 0;
+			FLOAT_ cx = events[i];
+			M.clear();
+
+			for (int j = 0; j < P.size(); ++j)
+			{
+				// std::vector<FLOAT_> its;
+				int itsctr = 0;
+				FLOAT_ lb = INFINITY;
+				FLOAT_ rb = -INFINITY;
+				// FLOAT_ rb = *std::max_element(its.begin(), its.end());
+				for (int jt = 0; jt < 3; ++jt)
+				{
+					const Vector2 &jp1 = P[j].points[jt];
+					const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+					bool fg = 1;
+					if (jp1.x == cx)
+						++itsctr, lb = min(lb, jp1.y), rb = max(rb, jp1.y), fg = 0;
+					if (jp2.x == cx)
+						++itsctr, lb = min(lb, jp2.y), rb = max(rb, jp2.y), fg = 0;
+					if (fg && ((jp1.x < cx) ^ (cx < jp2.x)) == 0)
+					{
+						Segment2 sj(jp1, jp2);
+						FLOAT_ cxy = sj.y(cx);
+						++itsctr, lb = min(lb, cxy), rb = max(rb, cxy);
+					}
+				}
+				if (itsctr <= 1)
+					continue;
+				char flg = 0;
+				if (itsctr == 4)
+				{
+					flg = 'R';
+					for (auto &p : P[j].points)
+						if (p.x > cx)
+						{
+							flg = 'L';
+							break;
+						}
+				}
+
+				if (flg == 'L')
+				{
+					leftborder.emplace_back(lb, rb);
+					continue;
+				}
+				if (flg == 'R')
+				{
+					rightborder.emplace_back(lb, rb);
+					continue;
+				}
+				mergeseg(lb, rb, M, cur);
+			}
+			auto mcp = M;
+			auto ccur = cur;
+			while (rightborder.size())
+			{
+				mergeseg(rightborder.back().first, rightborder.back().second, mcp, ccur);
+				rightborder.pop_back();
+			}
+
+			ans += i > 0 ? (ccur + bck) * dx : 0;
+			while (leftborder.size())
+			{
+				mergeseg(leftborder.back().first, leftborder.back().second, M, cur);
+				leftborder.pop_back();
+			}
+			bck = cur;
+		}
+		return ans * 0.5;
+	}
+    
 };
+
+/* 旋转卡壳用例
+auto CV = P.ConvexHull();
+int idx = 0;
+int jdx = 1;
+FLOAT_ dis = 0;
+for (auto &i : CV.points)
+{
+    // auto cdis = (i - CV.points.front()).sqrMagnitude();
+    int tj = (jdx + 1) % CV.points.size();
+    int ti = (idx + 1) % CV.points.size();
+    while (Vector2::Cross(CV.points[tj] - i, CV.points[ti] - i) < Vector2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
+    {
+        jdx = tj;
+        tj = (jdx + 1) % CV.points.size();
+    }
+    dis = max({dis, (CV.points[jdx] - i).sqrMagnitude(), (CV.points[jdx] - CV.points[ti]).sqrMagnitude()});
+    
+    ++idx;
+}
+cout << dis << endl;
+
+*/
 ```
 
 ### 三维面
@@ -4041,8 +4354,6 @@ public:
 struct Face3 : std::array<Vector3, 3>
 {
 	Face3(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) : std::array<Vector3, 3>({v0, v1, v2}) {}
-	template <typename... Args>
-	Face3(bool super, Args &&...args) : std::array<Vector3, 3>(std::forward<Args>(args)...) {}
 	inline static Vector3 normal(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return Vector3::Cross(v1 - v0, v2 - v0); }
 	inline static FLOAT_ area(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return normal(v0, v1, v2).magnitude() / FLOAT_(2); }
 	inline static bool visible(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &_v) { return Vector3::Dot(_v - v0, normal(v0, v1, v2)) > 0; }
