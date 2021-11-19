@@ -7,15 +7,22 @@
 namespace Geometry
 {
     struct Face3 : std::array<Vector3, 3>
-    {
-        Face3(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) : std::array<Vector3, 3>({v0, v1, v2}) {}
-        inline static Vector3 normal(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return Vector3::Cross(v1 - v0, v2 - v0); }
-        inline static FLOAT_ area(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return normal(v0, v1, v2).magnitude() / FLOAT_(2); }
-        inline static bool visible(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &_v) { return Vector3::Dot(_v - v0, normal(v0, v1, v2)) > 0; }
-        inline Vector3 normal() { return Vector3::Cross((*this)[1] - (*this)[0], (*this)[2] - (*this)[0]); }
-        inline FLOAT_ area() { return normal().magnitude() / FLOAT_(2); }
-        inline bool visible(const Vector3 &_v) { return Vector3::Dot(_v - (*this)[0], normal()) > 0; }
-    };
+	{
+		Face3(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) : std::array<Vector3, 3>({v0, v1, v2}) {}
+		template <typename... Args>
+		Face3(bool super, Args &&...args) : std::array<Vector3, 3>(std::forward<Args>(args)...) {}
+		inline static Vector3 normal(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return Vector3::Cross(v1 - v0, v2 - v0); }
+		inline static FLOAT_ area(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2) { return normal(v0, v1, v2).magnitude() / FLOAT_(2); }
+		inline static bool visible(const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &_v) { return Vector3::Dot(_v - v0, normal(v0, v1, v2)) > 0; }
+		/* 未经单位化的法向 */
+		inline Vector3 normal() const { return Vector3::Cross(at(1) - at(0), at(2) - at(0)); }
+		inline FLOAT_ area() const { return normal().magnitude() / FLOAT_(2); }
+		inline bool visible(const Vector3 &_v) const { return Vector3::Dot(_v - at(0), normal()) > 0; }
+		/* 点到平面代数距离，一次sqrt */
+		inline FLOAT_ distanceS(const Vector3 &p) const { return Vector3::Dot(p - at(0), normal().normalized()); }
+		/* 点到平面的投影，无损 */
+		inline Vector3 project(const Vector3 &p) const{return p - normal() * Vector3::Dot(p - at(0), normal()) / normal().sqrMagnitude();}
+	};
 }
 
 #endif

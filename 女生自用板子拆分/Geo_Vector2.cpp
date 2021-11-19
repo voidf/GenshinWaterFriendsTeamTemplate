@@ -48,7 +48,7 @@ namespace Geometry
 			return ostr.str();
 		}
 		inline Vector2 operator-() const { return Vector2(-x, -y); }
-		
+
 		inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) { return o << v.ToString(); }
 		inline Vector2 &operator+=(const Vector2 &b)
 		{
@@ -90,7 +90,7 @@ namespace Geometry
 			x /= n, y /= n;
 			return (*this);
 		}
-		
+
 		inline Vector2 operator+(const Vector2 &b) const { return Vector2(*this) += b; }
 		inline Vector2 operator-(const Vector2 &b) const { return Vector2(*this) -= b; }
 		inline Vector2 operator*(const Vector2 &b) const { return Vector2(*this) *= b; }
@@ -119,11 +119,9 @@ namespace Geometry
 		inline bool operator<(const Vector2 &b) const { return this->x < b.x or this->x == b.x and this->y < b.y; }
 
 		/* 向量的平方模 */
-		inline FLOAT_ sqrMagnitude() const { return pow(this->x, 2) + pow(this->y, 2); }
+		inline FLOAT_ sqrMagnitude() const { return x * x + y * y; }
 		/* 向量的模 */
 		inline FLOAT_ magnitude() const { return sqrt(this->sqrMagnitude()); }
-		/* 判等 */
-		inline bool equals(const Vector2 &b) { return (*this) == b; }
 
 		/* 用极坐标换算笛卡尔坐标 */
 		inline static Vector2 fromPolarCoordinate(const Vector2 &v, bool use_degree = 1) { return v.toCartesianCoordinate(use_degree); }
@@ -144,8 +142,13 @@ namespace Geometry
 		}
 
 		/* 获取极角 */
-		inline FLOAT_ toPolarAngle(bool use_degree = 1) const { return atan2(y, x) * (use_degree ? 180.0 / PI : 1); }
-
+		inline FLOAT_ toPolarAngle(bool use_degree = 1) const
+		{
+			FLOAT_ ret = atan2(y, x);
+			if (ret < 0)
+				ret += PI*2;
+			return ret * (use_degree ? 180.0 / PI : 1);
+		}
 		/* 转为极坐标 */
 		inline static Vector2 ToPolarCoordinate(const Vector2 &coordinate, bool use_degree = 1) { return coordinate.toPolarCoordinate(use_degree); }
 
@@ -169,13 +172,15 @@ namespace Geometry
 		/* 向量线性插值 */
 		inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }
 
-		/* 向量圆形插值 */
+		/* 向量圆形插值，不可靠 */
 		inline static Vector2 SlerpUnclamped(Vector2 a, Vector2 b, const FLOAT_ &t)
 		{
-			// Vector2 c = b - a;
-			a = a.toPolarCoordinate();
-			b = b.toPolarCoordinate();
-			return LerpUnclamped(a, b, t).toCartesianCoordinate();
+			auto si = SignedRad(a, b);
+			a.rotate(t * si);
+			return a;
+			// a = a.toPolarCoordinate();
+			// b = b.toPolarCoordinate();
+			// return LerpUnclamped(a, b, t).toCartesianCoordinate();
 		}
 
 		/* 拿它的垂直向量（逆时针旋转90°） */
@@ -201,12 +206,40 @@ namespace Geometry
 		/* 返回俩向量中x的最小值和y的最小值构造而成的向量 */
 		inline static Vector2 Min(const Vector2 &lhs, const Vector2 &rhs) { return Vector2(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y)); }
 
-		/* 获得vector在onNormal方向的投影，onNormal需要单位化 */
-		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude() * onNormal; }
+		/* 获得vector在onNormal方向的投影，无损，无需单位化写法 */
+		inline static Vector2 Project(const Vector2 &vector, const Vector2 &onNormal) { return Dot(vector, onNormal) / onNormal.sqrMagnitude() * onNormal; }
 
-		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return cos(Rad(vector, onNormal)) * vector.magnitude(); }
+		inline static FLOAT_ ProjectLength(const Vector2 &vector, const Vector2 &onNormal) { return Project(vector, onNormal).magnitude(); }
+
+		/* 判断p是否在向量from->to的延长线上，精度不高，慎用 */
+		inline static bool indirection(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+		{
+			Vector2 p1 = to - from;
+			Vector2 p2 = p - from;
+			if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+				return false;
+			return (p1.sqrMagnitude() < p2.sqrMagnitude());
+		}
+
+		/* 判断p是否在线段[from -> to]上，精度不高，慎用 */
+		inline static bool inrange(const Vector2 &from, const Vector2 &to, const Vector2 &p)
+		{
+			if (p == from || p == to)
+				return true;
+			Vector2 p1 = to - from;
+			Vector2 p2 = p - from;
+			if (!intereps(Cross(p1, p2)) || Dot(p1, p2) <= 0)
+				return false;
+			return (p1.sqrMagnitude() >= p2.sqrMagnitude());
+		}
+
+		/* 判断三个点是否共线 */
+		inline static bool Collinear(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+		{
+			return round_compare(Cross(c - a, b - a), 0.0);
+		}
 	};
-	
+
 	struct PolarSortCmp
 	{
 		inline bool operator()(const Vector2 &a, const Vector2 &b) const { return a.toPolarAngle(0) < b.toPolarAngle(0); }
