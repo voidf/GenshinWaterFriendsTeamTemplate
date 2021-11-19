@@ -80,6 +80,28 @@ namespace Geometry
             return 0;
         }
 
+        /* 凸包的闵可夫斯基和，支持long long */
+		inline static Polygon2 MinkowskiConvexHull(const Polygon2 &A, const Polygon2 &B)
+		{
+			Polygon2 Ad, Bd, ret;
+			for (int i = 0; i < A.points.size() - 1; ++i)
+				Ad.points.emplace_back(A.points[i + 1] - A.points[i]);
+			Ad.points.emplace_back(A.points.front() - A.points.back());
+			for (int i = 0; i < B.points.size() - 1; ++i)
+				Bd.points.emplace_back(B.points[i + 1] - B.points[i]);
+			Bd.points.emplace_back(B.points.front() - B.points.back());
+			ret.points.emplace_back(A.points.front() + B.points.front());
+			auto p1 = Ad.points.begin();
+			auto p2 = Bd.points.begin();
+			while (p1 != Ad.points.end() && p2 != Bd.points.end())
+				ret.points.emplace_back(ret.points.back() + (Vector2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
+			while (p1 != Ad.points.end())
+				ret.points.emplace_back(ret.points.back() + *(p1++));
+			while (p2 != Bd.points.end())
+				ret.points.emplace_back(ret.points.back() + *(p2++));
+			return ret.ConvexHull();
+		}
+
         /* 凸多边形用逆时针排序 */
         inline void autoanticlockwiselize()
         {
