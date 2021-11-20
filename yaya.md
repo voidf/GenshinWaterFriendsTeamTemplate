@@ -1987,221 +1987,74 @@ namespace Tree
 ### 轻重链剖分
 
 ```cpp
-struct NodeModel
+struct HeavyDecomposition
 {
-    LL size, height, dfs_order, value;
-    NodeModel *son, *fa, *top;
-    vector<NodeModel *> E;
-    void d1(NodeModel *father)
+    // 深度，父亲，重儿子，映射到数据结构上的编号(dfs序)，以该点为根子树大小，链顶编号
+    std::vector<int> dep, fa, hson, nid, sz, top;
+    const std::vector<std::vector<int>> &E; // 引用的边数组
+    int bp = 0;                             // 映射起点偏移量，若从1开始请设为1
+    /* s:问题规模，_E:树的边数组 */
+    HeavyDecomposition(int s,
+                       const std::vector<std::vector<int>> &_E)
+        : dep(s + 1),
+          fa(s + 1),
+          hson(s + 1, -1),
+          nid(s + 1),
+          sz(s + 1),
+          top(s + 1),
+          E(_E) {}
+    /* 处理深度，记父亲，子树大小，传入d是当前深度 */
+    void dfs1(int x, int f, int d)
     {
-        this->size = 1;
-        this->son = NULL;
-        this->fa = father;
-        this->height = father->height + 1;
-        for (auto cur : this->E)
-        {
-            // auto dst = N[E[cur].to];
-            if (cur != father)
+        dep[x] = d;
+        fa[x] = f;
+        sz[x] = 1;
+        int mxsonsize = -1;
+        for (auto i : E[x])
+            if (i != f)
             {
-                cur->d1(this);
-                this->size += cur->size;
-                if (this->son == NULL || cur->size > this->son->size)
-                    this->son = cur;
+                dfs1(i, x, d + 1);
+                sz[x] += sz[i];
+                if (sz[i] > mxsonsize)
+                    mxsonsize = sz[i], hson[x] = i;
             }
-        }
-    }
-    void d2(NodeModel *father, NodeModel *k)
-    {
-        this->top = k;
-        this->dfs_order = CNT;
-        ARRAY[CNT++] = this->value;
-        if (this->son != NULL)
-            this->son->d2(this, k);
-        for (auto i : this->E)
-            if (i != father && i != this->son)
-                i->d2(this, i);
     }
 
-    void add_edge(NodeModel *dst)
+    void dfs2(int x, int tp)
     {
-        this->E.push_back(dst);
-    }
-} N[M << 2];
-
-LL NODECNT = 0;
-struct SegmentTreeNode
-{
-    SegmentTreeNode *l, *r;
-    LL value, lazy, max_value;
-    LL query_sum(LL rg1, LL rg2, LL operation_l, LL operation_r, LL add_val)
-    {
-        if (operation_l > operation_r)
-            swap(operation_l, operation_r);
-        if (operation_l <= rg1 && rg2 <= operation_r)
-            return (this->value + (LL)(rg2 - rg1 + 1) * (add_val % mod)) % mod;
-        else
-        {
-            LL v1 = (DMID(rg1, rg2) >= operation_l) ? this->l->query_sum(rg1, DMID(rg1, rg2), operation_l, operation_r, (add_val + this->lazy) % mod) : 0;
-            LL v2 = (DMID(rg1, rg2) + 1 <= operation_r) ? this->r->query_sum(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, (add_val + this->lazy) % mod) : 0;
-            return ((v1 + v2) % mod + mod) % mod;
-        }
-    }
-    LL query_max(LL rg1, LL rg2, LL operation_l, LL operation_r, LL add_val)
-    {
-        if (operation_l > operation_r)
-            swap(operation_l, operation_r);
-        if (operation_l <= rg1 && rg2 <= operation_r)
-            return this->max_value /*+ add_val*/;
-        else
-        {
-            LL v1 = (DMID(rg1, rg2) >= operation_l) ? this->l->query_max(rg1, DMID(rg1, rg2), operation_l, operation_r, add_val + this->lazy) : -INF;
-            LL v2 = (DMID(rg1, rg2) + 1 <= operation_r) ? this->r->query_max(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, add_val + this->lazy) : -INF;
-            return max(v1, v2);
-        }
-    }
-    void modify(LL rg1, LL rg2, LL operation_l, LL operation_r, LL x) // 单点修改
-    {
-        if (operation_l <= rg1 && rg2 <= operation_r)
-        {
-            this->value += x * (rg2 - rg1 + 1);
-            this->value %= mod;
-            this->lazy += x;
-            this->lazy %= mod;
+        top[x] = tp;
+        nid[x] = bp++;
+        if (hson[x] == -1)
             return;
-        }
-        if (operation_l <= DMID(rg1, rg2))
-            this->l->modify(rg1, DMID(rg1, rg2), operation_l, operation_r, x);
-        if (DMID(rg1, rg2) + 1 <= operation_r)
-            this->r->modify(DMID(rg1, rg2) + 1, rg2, operation_l, operation_r, x);
-        this->value = this->l->value + this->r->value + this->lazy * (rg2 - rg1 + 1);
-        this->value %= mod;
-        // this->max_value = max(this->l->max_value, this->r->max_value);
+        dfs2(hson[x], tp);
+        for (auto i : E[x])
+            if (fa[x] != i && hson[x] != i)
+                dfs2(i, i);
     }
-
-} T[M];
-SegmentTreeNode *build(LL rg1, LL rg2)
-{
-    LL tmp = NODECNT++;
-    if (rg2 > rg1)
+    /* 预处理入口，处理完毕后直接访问nid[x]即可获得x的dfs序 */
+    inline void prework(int root)
     {
-        T[tmp].l = build(rg1, DMID(rg1, rg2));
-        T[tmp].r = build(DMID(rg1, rg2) + 1, rg2);
-        T[tmp].value = (T[tmp].l->value + T[tmp].r->value) % mod;
-        T[tmp].max_value = max(T[tmp].l->max_value, T[tmp].r->max_value);
+        dfs1(root, root, 0);
+        dfs2(root, root);
     }
-    else
+    /* 获得树上u->v简单路径在序列上的区间映射，解析子树区间请直接用(nid[u], nid[u]+sz[u]-1) */
+    inline std::vector<std::pair<int, int>> resolve_path(int u, int v)
     {
-        T[tmp].value = T[tmp].max_value = ARRAY[rg1];
-    }
-    T[tmp].lazy = 0;
-    return &T[tmp];
-}
-/* 路径求和 */
-LL query_SUM(NodeModel *u, NodeModel *v)
-{
-    LL ans = 0;
-    while (u->top != v->top) // top相同应该是在一条链上
-    {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        ans += T[0].query_sum(0, n - 1, u->top->dfs_order, u->dfs_order, 0);
-        ans %= mod;
-        u = u->top->fa;
-    }
-    if (v->height > u->height)
-        swap(u, v);
-    ans += T[0].query_sum(0, n - 1, v->dfs_order, u->dfs_order, 0);
-    ans %= mod;
-    return (ans + mod) % mod;
-}
-/* 路径修改 */
-void MODIFY(NodeModel *u, NodeModel *v, LL x)
-{
-    LL ans = 0;
-    while (u->top != v->top) // top相同应该是在一条链上
-    {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        T[0].modify(0, n - 1, u->top->dfs_order, u->dfs_order, x);
-        u = u->top->fa;
-    }
-    if (v->height > u->height)
-        swap(u, v);
-    T[0].modify(0, n - 1, v->dfs_order, u->dfs_order, x);
-}
-/* 路径求极值 */
-LL query_MAX(NodeModel *u, NodeModel *v)
-{
-    LL ans = -INF;
-    while (u->top != v->top) // top相同应该是在一条链上
-    {
-        if (u->top->height < v->top->height)
-            swap(u, v);
-        ans = max(ans, T[0].query_max(0, n - 1, u->top->dfs_order, u->dfs_order, 0));
-        u = u->top->fa;
-    }
-    if (v->height > u->height)
-        swap(u, v);
-    ans = max(ans, T[0].query_max(0, n - 1, v->dfs_order, u->dfs_order, 0));
-    return ans;
-}
-signed main()
-{
-    // freopen("F:/py/Heavy-Light_Decomposition/P3384_2.in", "r", stdin);
-    // freopen("F:/py/Heavy-Light_Decomposition/P3384_2.ans", "w", stdout);
-    n = qr();
-    LL m = qr();
-    LL root = qr();
-    mod = qr();
-    CNT = NODECNT = 0;
-    mem(T, 0);
-    mem(ARRAY, 0);
-    mem(N, 0);
-
-    for (auto i = 1; i <= n; i++)
-    {
-        N[i].value = qr();
-    }
-    for (auto i = 1; i < n; i++)
-    {
-        LL src = qr();
-        LL dst = qr();
-        N[src].add_edge(&N[dst]);
-        N[dst].add_edge(&N[src]);
-    }
-    N[root].d1(&N[0]);
-    N[root].d2(&N[0], &N[root]);
-    build(0, n - 1);
-    LL o1, o2, o3, o4;
-    while (m--)
-    {
-        o1 = qr();
-        switch (o1)
+        std::vector<std::pair<int, int>> R;
+        while (top[u] != top[v])
         {
-        case 1: // 路径修改
-            o2 = qr();
-            o3 = qr();
-            o4 = qr();
-            MODIFY(&N[o2], &N[o3], o4);
-            break;
-        case 2: // 路径求和
-            o2 = qr();
-            o3 = qr();
-            printf("%lld\n", query_SUM(&N[o2], &N[o3]) % mod);
-            break;
-        case 3: // 子树修改
-            o2 = qr();
-            o3 = qr();
-            T[0].modify(0, n - 1, N[o2].dfs_order, N[o2].dfs_order + N[o2].size - 1, o3);
-            break;
-        default: // 子树查询
-            o2 = qr();
-            printf("%lld\n", T[0].query_sum(0, n - 1, N[o2].dfs_order, N[o2].dfs_order + N[o2].size - 1, 0) % mod);
-            break;
+            if (dep[top[u]] < dep[top[v]]) // 令u链顶为深度大的点
+                swap(u, v);
+            R.emplace_back(nid[top[u]], nid[u]); // 计入u的链顶到u的区间，然后令u向上爬
+            u = fa[top[u]];
         }
+        // 此时u,v top相同，在同一条链上，令u更深，添加[v, u]区间
+        if (dep[u] < dep[v])
+            swap(u, v);
+        R.emplace_back(nid[v], nid[u]);
+        return R;
     }
-    return 0;
-}
+};
 ```
 
 ### Splay和LCT
@@ -3190,7 +3043,7 @@ struct Vector2
 				Q.emplace_back(x);
 		for (auto x = Q.begin(), y = x; x != Q.end(); ++x)
 		{
-			while (y != Q.end() && (*y)->y <= (*x)->y + ans)
+			while (y != Q.end() && pow((*y)->y - (*x)->y, 2) <= ans)
 				++y;
 			for (auto z = x + 1; z != y; ++z)
 				ans = min(ans, (**x - **z).sqrMagnitude());
