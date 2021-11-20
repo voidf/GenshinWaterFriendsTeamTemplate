@@ -27,10 +27,7 @@ namespace Geometry
             return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
         }
         /* 判断相交 */
-		static bool IsIntersect(const Segment2 &u, const Segment2 &v)
-		{
-			return u.ray_in_range(v) && v.ray_in_range(u);
-		}
+        static bool IsIntersect(const Segment2 &u, const Segment2 &v) { return u.ray_in_range(v) && v.ray_in_range(u); }
         /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
         static bool IsParallel(const Segment2 &u, const Segment2 &v)
         {
@@ -58,6 +55,22 @@ namespace Geometry
         }
         /* 点到直线的距离，一次sqrt */
         FLOAT_ distToPoint(const Vector2 &p) const { return abs(Vector2::Cross(p - from, toward()) / toward().magnitude()); }
+
+        /* 点到线段距离 */
+        FLOAT_ distToPointS(const Vector2 &p) const
+        {
+            if (Vector2::Dot(toward(), p - from) <= 0)
+                return Vector2::Distance(from, p);
+            if (Vector2::Dot(-toward(), p - to) <= 0)
+                return Vector2::Distance(to, p);
+            return distToPoint(p);
+        }
+
+        /* 线段与线段距离 */
+        FLOAT_ distToSeg(const Segment2 &s) const
+        {
+            return min({distToPointS(s.from), distToPointS(s.to), s.distToPointS(from), s.distToPointS(to)});
+        }
     };
 
 }

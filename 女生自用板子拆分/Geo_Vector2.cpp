@@ -168,6 +168,8 @@ namespace Geometry
 		}
 		/* 距离 */
 		inline static FLOAT_ Distance(const Vector2 &a, const Vector2 &b) { return (a - b).magnitude(); }
+		/* 平方距离 */
+		inline static FLOAT_ sqrDistance(const Vector2 &a, const Vector2 &b) { return (a - b).sqrMagnitude(); }
 
 		/* 向量线性插值 */
 		inline static Vector2 LerpUnclamped(const Vector2 &a, const Vector2 &b, const FLOAT_ &t) { return a + (b - a) * t; }

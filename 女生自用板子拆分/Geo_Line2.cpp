@@ -108,3 +108,81 @@ namespace Geometry
     };
 
 }
+
+/* 旋转坐标系求最小三角形
+
+int n, m, T, tot, q, s, t, k, L, R, x, y;
+
+short rank_[5000], rank2index[5000];
+int prank = 0, prank2index = 0;
+using lineinfo = tuple<short, short>;
+
+int plineinfo = 0;
+
+void solve()
+{
+    qr(n);
+    using namespace Geometry;
+    vector<Vector2> points;
+    points.reserve(n);
+
+    vector<lineinfo> lines;
+    lines.reserve(n * (n - 1) >> 1);
+
+    for (auto i : range(n))
+    {
+        long long x, y;
+        qr(x);
+        qr(y);
+        points.emplace_back(x, y);
+    }
+    FLOAT_ ans = 0x3f3f3f3f3f3f3f3f;
+
+    sort(points.begin(), points.end());
+    for (auto i : range(n))
+    {
+        rank_[i] = i;
+        rank2index[i] = i;
+        for (auto j : range(i + 1, n))
+        {
+            // lines.emplace_back(i, j, Line2(points[i], points[j]).k());
+            lines.emplace_back(i, j);
+        }
+    }
+
+    sort(
+        lines.begin(), lines.end(), [&](const lineinfo &a, const lineinfo &b) -> bool
+        {
+// (get<0>(a).y - get<1>(a).y)*(get<0>(a).y - get<1>(a).y)
+#define Au points[get<0>(a)]
+#define Bu points[get<0>(b)]
+#define Av points[get<1>(a)]
+#define Bv points[get<1>(b)]
+            return (Av.y - Au.y) * (Bv.x - Bu.x) < (Bv.y - Bu.y) * (Av.x - Au.x);
+            // auto k1 = Line2::getk(points[get<0>(a)], points[get<1>(a)]);
+            // auto k2 = Line2::getk(points[get<0>(b)], points[get<1>(b)]);
+            // return k1 < k2 || k1 == k2 && a < b;
+        });
+
+    for (auto i : range(lines.size()))
+    {
+        short A, B;
+        tie(A, B) = lines[i];
+        short rka = rank_[A], rkb = rank_[B];
+        if (rka > rkb)
+            swap(rka, rkb);
+        if (rka > 0)
+            ans = min(ans, abs(Vector2::Cross(points[A] - points[B], points[rank2index[rka - 1]] - points[B])));
+        if (rkb < n - 1)
+            ans = min(ans, abs(Vector2::Cross(points[A] - points[B], points[rank2index[rkb + 1]] - points[B])));
+
+        if (ans == 0.0)
+            break;
+        swap(rank2index[rka], rank2index[rkb]);
+        swap(rank_[A], rank_[B]);
+    }
+
+    printf("%.3lf\n", (double)ans * 0.5);
+}
+
+*/
