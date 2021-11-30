@@ -1,9 +1,12 @@
 
 // #define use_ptr
-
+// const StaticMatrix<3, 3, m1e9_7> Add0;
+// const StaticMatrix<3, 3, m1e9_7> Mul1 = StaticMatrix<3, 3, m1e9_7>::eye();
+#define Add0 0
+#define Mul1 1
 namespace Persistent_seg
 {
-/* 指定宏use_ptr使用指针定位左右儿子，指针可能会被搬家表传统艺能影响导致找不到地址 */
+	/* 指定宏use_ptr使用指针定位左右儿子，指针可能会被搬家表传统艺能影响导致找不到地址 */
 #ifdef use_ptr
 // using P = Node<T> *;
 #define P Node<T> *
@@ -15,11 +18,13 @@ namespace Persistent_seg
 	template <class T>
 	struct Node
 	{
-		T v, alz, mlz;
+		T v, sqv;
+		T alz;
+		T mlz;
 		P l = NIL;
 		P r = NIL;
-		Node() : v(0), alz(0), mlz(1) {}
-		Node(T _v) : v(_v), alz(0), mlz(1) {}
+		Node() : v(Add0), alz(Add0), mlz(Mul1) {}
+		Node(T _v) : v(_v), alz(Add0), mlz(Mul1) {}
 	};
 	inline int mid(int l, int r) { return l + r >> 1; }
 	/* 用法:构造后用auto_reserve分配空间,然后build初始化,此时初始版本被填入H[0]中 */
@@ -69,24 +74,24 @@ namespace Persistent_seg
 		{
 			ND &lson = resolve(x.l);
 			ND &rson = resolve(x.r);
-			if (x.mlz != 1)
+			if (x.mlz != Mul1)
 			{
-				lson.v *= x.alz;
+				lson.v *= x.mlz;
 				lson.alz *= x.mlz;
 				lson.mlz *= x.mlz;
-				rson.v *= x.alz;
+				rson.v *= x.mlz;
 				rson.alz *= x.mlz;
 				rson.mlz *= x.mlz;
-				x.mlz = 1;
+				x.mlz = Mul1;
 			}
-			if (x.alz != 0)
+			if (x.alz != Add0)
 			{
 				int m = mid(l, r);
 				lson.v += x.alz * (m - l + 1);
 				lson.alz += x.alz;
 				rson.v += x.alz * (r - m);
 				rson.alz += x.alz;
-				x.alz = 0;
+				x.alz = Add0;
 			}
 		}
 
@@ -101,12 +106,10 @@ namespace Persistent_seg
 				return getref(D.back());
 			}
 			D.emplace_back();
-			// ND &C = ;
 			P rr = getref(D.back());
 			int m = mid(l, r);
 			resolve(rr).l = _build(l, m);
 			resolve(rr).r = _build(m + 1, r);
-			// cerr << "REF c:" << rr << endl;
 			return rr;
 		}
 		/* 建默认空树可以给rf填nullptr */
@@ -163,8 +166,6 @@ namespace Persistent_seg
 			{
 				int len = r - l + 1;
 				C.alz += TMP;
-				// T tp = TMP;
-				// tp *= len;
 				C.v += TMP * len;
 				return rr;
 			}
@@ -195,7 +196,7 @@ namespace Persistent_seg
 			if (QL <= l and r <= QR)
 				return C.v;
 			pushdown(C, l, r);
-			T res = 0;
+			T res = Add0;
 			int m = mid(l, r);
 			if (QL <= m)
 				res += _query(l, m, C.l);
@@ -249,7 +250,9 @@ namespace Persistent_seg
 		std::vector<ND> D;
 		std::vector<P> H;
 		T *refarr;
-		T TMP;
+		T MTMP;
+		T ATMP;
+		T RTMP;
 		mutable bool new_version;
 		inline ND &resolve(P x)
 		{
@@ -284,41 +287,65 @@ namespace Persistent_seg
 				x.v += resolve(x.r).v;
 		}
 
-		inline void pushdown(ND &x, int l, int r)
+		inline void pushdown(P x, int l, int r)
 		{
+			if (l == r)
+				return;
 			int m = mid(l, r);
-			if (x.l != NIL)
+			if (resolve(x).l != NIL)
 			{
-				ND &lson = resolve(x.l);
-				if (x.mlz != 1)
+				ND &lson = resolve(resolve(x).l);
+				if (resolve(x).mlz != Mul1)
 				{
-					lson.v *= x.alz;
-					lson.alz *= x.mlz;
-					lson.mlz *= x.mlz;
+					lson.v *= resolve(x).mlz;
+					lson.alz *= resolve(x).mlz;
+					lson.mlz *= resolve(x).mlz;
+					lson.sqv *= resolve(x).mlz * resolve(x).mlz;
 				}
-				if (x.alz != 0)
+				if (resolve(x).alz != Add0)
 				{
-					lson.v += x.alz * (m - l + 1);
-					lson.alz += x.alz;
+					lson.sqv = lson.sqv + 2 * resolve(x).alz * lson.v + resolve(x).alz * resolve(x).alz * (m - l + 1);
+					lson.v += resolve(x).alz * (m - l + 1);
+					lson.alz += resolve(x).alz;
 				}
 			}
-			if (x.r != NIL)
+			else if (resolve(x).alz != Add0)
 			{
-				ND &rson = resolve(x.r);
-				if (x.mlz != 1)
+				D.emplace_back();
+				resolve(x).l = getref(D.back());
+				ND &lson = resolve(resolve(x).l);
+				lson.sqv = lson.sqv + 2 * resolve(x).alz * lson.v + resolve(x).alz * resolve(x).alz * (m - l + 1);
+				lson.v += resolve(x).alz * (m - l + 1);
+				lson.alz += resolve(x).alz;
+			}
+			if (resolve(x).r != NIL)
+			{
+				ND &rson = resolve(resolve(x).r);
+				if (resolve(x).mlz != Mul1)
 				{
-					rson.v *= x.alz;
-					rson.alz *= x.mlz;
-					rson.mlz *= x.mlz;
+					rson.v *= resolve(x).mlz;
+					rson.alz *= resolve(x).mlz;
+					rson.mlz *= resolve(x).mlz;
+					rson.sqv *= resolve(x).mlz * resolve(x).mlz;
 				}
-				if (x.alz != 0)
+				if (resolve(x).alz != Add0)
 				{
-					rson.v += x.alz * (r - m);
-					rson.alz += x.alz;
+					rson.sqv = rson.sqv + 2 * resolve(x).alz * rson.v + resolve(x).alz * resolve(x).alz * (r - m);
+					rson.v += resolve(x).alz * (r - m);
+					rson.alz += resolve(x).alz;
 				}
 			}
-			x.mlz = 1;
-			x.alz = 0;
+			else if (resolve(x).alz != Add0)
+			{
+				D.emplace_back();
+				resolve(x).r = getref(D.back());
+				ND &rson = resolve(resolve(x).r);
+				rson.sqv = rson.sqv + 2 * resolve(x).alz * rson.v + resolve(x).alz * resolve(x).alz * (r - m);
+				rson.v += resolve(x).alz * (r - m);
+				rson.alz += resolve(x).alz;
+			}
+			resolve(x).mlz = Mul1;
+			resolve(x).alz = Add0;
 		}
 
 		P _build(int l, int r)
@@ -353,7 +380,8 @@ namespace Persistent_seg
 		{
 			LB = l;
 			RB = r;
-			H.emplace_back(NIL);
+			D.emplace_back();
+			H.emplace_back(getref(D[0]));
 		}
 
 		P _updatem(int l, int r, P o)
@@ -371,24 +399,30 @@ namespace Persistent_seg
 			// ND &C = resolve(o); // 可能因为搬家出错
 			if (QL <= l and r <= QR)
 			{
-				resolve(o).alz *= TMP;
-				resolve(o).v *= TMP;
-				resolve(o).mlz *= TMP;
+				resolve(o).alz *= MTMP;
+				resolve(o).v *= MTMP;
+				resolve(o).mlz *= MTMP;
 				return o;
 			}
-			pushdown(resolve(o), l, r);
+			pushdown(o, l, r);
 			int m = mid(l, r);
 			if (QL <= m)
-				resolve(o).l = _updatem(l, m, resolve(o).l);
+			{
+				auto ret = _updatem(l, m, resolve(o).l);
+				resolve(o).l = ret;
+			}
 			if (m + 1 <= QR)
-				resolve(o).r = _updatem(m + 1, r, resolve(o).r);
+			{
+				auto ret = _updatem(m + 1, r, resolve(o).r);
+				resolve(o).r = ret;
+			}
 			maintain(resolve(o));
 			return o;
 		}
-		/* 区间乘法，head写时间，如果是最近一次则填H.back()，不填认为当做动态开点线段树用 */
+		/* 区间乘法，head写时间，如果是最近一次则填H.back()，new_ver不填认为当做动态开点线段树用 */
 		inline void updatem(int l, int r, T val, P head = NIL, bool new_ver = true)
 		{
-			TMP = val;
+			MTMP = val;
 			QL = l;
 			QR = r;
 			new_version = new_ver;
@@ -413,13 +447,12 @@ namespace Persistent_seg
 			if (QL <= l and r <= QR)
 			{
 				int len = r - l + 1;
-				resolve(o).alz += TMP;
-				// T tp = TMP;
-				// tp *= len;
-				resolve(o).v += TMP * len;
+				resolve(o).sqv = resolve(o).sqv + 2 * ATMP * resolve(o).v + (ATMP * ATMP * len);
+				resolve(o).alz += ATMP;
+				resolve(o).v += ATMP * len;
 				return o;
 			}
-			pushdown(resolve(o), l, r);
+			pushdown(o, l, r);
 			int m = mid(l, r);
 			if (QL <= m)
 			{
@@ -434,10 +467,10 @@ namespace Persistent_seg
 			maintain(resolve(o));
 			return o;
 		}
-		/* 区间加法，head写时间，如果是最近一次则填H.back()，不填认为当做动态开点线段树用 */
+		/* 区间加法，head写时间，如果是最近一次则填H.back()，new_ver不填认为当做动态开点线段树用 */
 		inline void updatea(int l, int r, T val, P head = NIL, bool new_ver = true)
 		{
-			TMP = val;
+			ATMP = val;
 			QL = l;
 			QR = r;
 			new_version = new_ver;
@@ -449,17 +482,16 @@ namespace Persistent_seg
 		T _query(int l, int r, P p)
 		{
 			if (p == NIL)
-				return 0;
-			ND &C = resolve(p);
+				return Add0;
 			if (QL <= l and r <= QR)
-				return C.v;
-			pushdown(C, l, r);
-			T res = 0;
+				return resolve(p).v;
+			pushdown(p, l, r);
+			T res = Add0;
 			int m = mid(l, r);
 			if (QL <= m)
-				res += _query(l, m, C.l);
+				res += _query(l, m, resolve(p).l);
 			if (QR >= m + 1)
-				res += _query(m + 1, r, C.r);
+				res += _query(m + 1, r, resolve(p).r);
 			return res;
 		}
 

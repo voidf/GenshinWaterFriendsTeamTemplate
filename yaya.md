@@ -10,33 +10,33 @@
 ```cpp
 inline void Getnext(LL next[], char t[])
 {
-    LL p1 = 0;
-    LL p2 = next[0] = -1;
-    LL strlen_t = strlen(t);
-    while (p1 < strlen_t)
-    {
-        if (p2 == -1 || t[p1] == t[p2])
-            next[++p1] = ++p2;
-        else
-            p2 = next[p2];
-    }
+	LL p1 = 0;
+	LL p2 = next[0] = -1;
+	LL strlen_t = strlen(t);
+	while (p1 < strlen_t)
+	{
+		if (p2 == -1 || t[p1] == t[p2])
+			next[++p1] = ++p2;
+		else
+			p2 = next[p2];
+	}
 }
 
 inline void KMP(char string[], char pattern[], LL next[])
 {
-    LL p1 = 0;
-    LL p2 = 0;
-    LL strlen_string = strlen(string);
-    LL strlen_pattern = strlen(pattern);
-    while (p1 < strlen_string)
-    {
-        if (p2 == -1 || string[p1] == pattern[p2])
-            p1++, p2++;
-        else
-            p2 = next[p2];
-        if (p2 == strlen_pattern)
-            printf("%lld\n", p1 - strlen_pattern + 1), p2 = next[p2];
-    }
+	LL p1 = 0;
+	LL p2 = 0;
+	LL strlen_string = strlen(string);
+	LL strlen_pattern = strlen(pattern);
+	while (p1 < strlen_string)
+	{
+		if (p2 == -1 || string[p1] == pattern[p2])
+			p1++, p2++;
+		else
+			p2 = next[p2];
+		if (p2 == strlen_pattern)
+			printf("%lld\n", p1 - strlen_pattern + 1), p2 = next[p2];
+	}
 }
 ```
 
@@ -49,52 +49,52 @@ LL extend[EXKMPM];
 
 void getNEXT(string &pattern, LL next[])
 {
-    LL pLen = pattern.length();
-    LL a = 0, k = 0;
+	LL pLen = pattern.length();
+	LL a = 0, k = 0;
 
-    next[0] = pLen;
-    for (auto i = 1; i < pLen; i++)
-    {
-        if (i >= k || i + next[i - a] >= k)
-        {
-            if (i >= k)
-                k = i;
-            while (k < pLen && pattern[k] == pattern[k - i])
-                k++;
-            next[i] = k - i;
-            a = i;
-        }
-        else
-        {
-            next[i] = next[i - a];
-        }
-    }
+	next[0] = pLen;
+	for (auto i = 1; i < pLen; i++)
+	{
+		if (i >= k || i + next[i - a] >= k)
+		{
+			if (i >= k)
+				k = i;
+			while (k < pLen && pattern[k] == pattern[k - i])
+				k++;
+			next[i] = k - i;
+			a = i;
+		}
+		else
+		{
+			next[i] = next[i - a];
+		}
+	}
 }
 
 void EXKMP(string &s, string &pattern, LL extend[], LL next[]) // string类得配O2不然过不了
 {
-    LL pLen = pattern.length();
-    LL sLen = s.length();
-    LL a = 0, k = 0;
+	LL pLen = pattern.length();
+	LL sLen = s.length();
+	LL a = 0, k = 0;
 
-    getNEXT(pattern, next);
+	getNEXT(pattern, next);
 
-    for (auto i = 0; i < sLen; i++)
-    {
-        if (i >= k || i + next[i - a] >= k)
-        {
-            if (i >= k)
-                k = i;
-            while (k < sLen && k - i < pLen && s[k] == pattern[k - i])
-                k++;
-            extend[i] = k - i;
-            a = i;
-        }
-        else
-        {
-            extend[i] = next[i - a];
-        }
-    }
+	for (auto i = 0; i < sLen; i++)
+	{
+		if (i >= k || i + next[i - a] >= k)
+		{
+			if (i >= k)
+				k = i;
+			while (k < sLen && k - i < pLen && s[k] == pattern[k - i])
+				k++;
+			extend[i] = k - i;
+			a = i;
+		}
+		else
+		{
+			extend[i] = next[i - a];
+		}
+	}
 }
 ```
 
@@ -105,9 +105,9 @@ void EXKMP(string &s, string &pattern, LL extend[], LL next[]) // string类得�
 #define CharacterCount 26
 struct TrieNode
 {
-    TrieNode *son[CharacterCount], *fail;
-    // LL word_count;
-    LL logs;
+	TrieNode *son[CharacterCount], *fail;
+	// LL word_count;
+	LL logs;
 
 } T[Aho_CorasickAutomaton];
 vector<TrieNode *> FailEdge[Aho_CorasickAutomaton];
@@ -117,131 +117,131 @@ vector<TrieNode *> trieIndex;
 
 TrieNode *insertWords(string &s)
 {
-    auto root = &T[0];
-    for (auto i : s)
-    {
-        auto nxt = i - 'a';
-        if (root->son[nxt] == NULL)
-            root->son[nxt] = &T[++AC_counter];
-        root = root->son[nxt];
-    }
-    // word_count[root]++;
+	auto root = &T[0];
+	for (auto i : s)
+	{
+		auto nxt = i - 'a';
+		if (root->son[nxt] == NULL)
+			root->son[nxt] = &T[++AC_counter];
+		root = root->son[nxt];
+	}
+	// word_count[root]++;
 
-    return root; // 返回含单词的节点号
+	return root; // 返回含单词的节点号
 } // 用例：trieIndex.push_back(insertWords(s));
 
 TrieNode *insertWords(char *s, LL &sLen)
 {
-    auto root = &T[0];
-    for (auto i = 0; i < sLen; i++)
-    {
-        auto nxt = s[i] - 'a';
-        if (root->son[nxt] == NULL)
-            root->son[nxt] = &T[++AC_counter];
-        root = root->son[nxt];
-    }
-    // word_count[root]++;
+	auto root = &T[0];
+	for (auto i = 0; i < sLen; i++)
+	{
+		auto nxt = s[i] - 'a';
+		if (root->son[nxt] == NULL)
+			root->son[nxt] = &T[++AC_counter];
+		root = root->son[nxt];
+	}
+	// word_count[root]++;
 
-    return root; // 返回含单词的节点号
+	return root; // 返回含单词的节点号
 }
 
 void getFail()
 {
-    queue<TrieNode *> Q; // bfs用
-    for (auto i = 0; i < CharacterCount; i++)
-    {
-        if (T[0].son[i] != NULL)
-        {
-            T[0].son[i]->fail = &T[0];
-            Q.push(T[0].son[i]);
-        }
-    }
-    while (!Q.empty())
-    {
-        auto now = Q.front();
-        Q.pop();
-        now->fail = now->fail == NULL ? &T[0] : now->fail;
-        for (auto i = 0; i < CharacterCount; i++)
-        {
-            if (now->son[i] != NULL)
-            {
-                now->son[i]->fail = now->fail->son[i];
-                Q.push(now->son[i]);
-            }
-            else
-            {
-                now->son[i] = now->fail->son[i];
-            }
-        }
-    }
+	queue<TrieNode *> Q; // bfs用
+	for (auto i = 0; i < CharacterCount; i++)
+	{
+		if (T[0].son[i] != NULL)
+		{
+			T[0].son[i]->fail = &T[0];
+			Q.push(T[0].son[i]);
+		}
+	}
+	while (!Q.empty())
+	{
+		auto now = Q.front();
+		Q.pop();
+		now->fail = now->fail == NULL ? &T[0] : now->fail;
+		for (auto i = 0; i < CharacterCount; i++)
+		{
+			if (now->son[i] != NULL)
+			{
+				now->son[i]->fail = now->fail->son[i];
+				Q.push(now->son[i]);
+			}
+			else
+			{
+				now->son[i] = now->fail->son[i];
+			}
+		}
+	}
 } // 先设T[0].fail=0;所有单词插完以后调用一次
 
 LL query(string &s)
 {
-    auto now = &T[0];
-    auto ans = 0;
-    for (auto i : s)
-    {
-        now = now->son[i - 'a'];
-        now = now == NULL ? &T[0] : now;
-        now->logs++;
-        // for (auto j = now; j /*&& ~word_count[j]*/; j = fail[j])
-        // {
-        //     // ans += word_count[j];
-        //     // cout << "j:" << j << endl;
-        //     // if (word_count[j])
-        //     logs[j]++;
-        //     // for (auto k : word_position[j])
-        //     //     pattern_count[k]++;
-        //     // word_count[j] = -1; // 标记已经遍历的节点
-        // }
-    }
+	auto now = &T[0];
+	auto ans = 0;
+	for (auto i : s)
+	{
+		now = now->son[i - 'a'];
+		now = now == NULL ? &T[0] : now;
+		now->logs++;
+		// for (auto j = now; j /*&& ~word_count[j]*/; j = fail[j])
+		// {
+		//     // ans += word_count[j];
+		//     // cout << "j:" << j << endl;
+		//     // if (word_count[j])
+		//     logs[j]++;
+		//     // for (auto k : word_position[j])
+		//     //     pattern_count[k]++;
+		//     // word_count[j] = -1; // 标记已经遍历的节点
+		// }
+	}
 
-    for (auto i = 1; i <= AC_counter; i++)
-    {
-        FailEdge[T[i].fail - T].push_back(&T[i]);
-    }
+	for (auto i = 1; i <= AC_counter; i++)
+	{
+		FailEdge[T[i].fail - T].push_back(&T[i]);
+	}
 
-    return ans;
+	return ans;
 } // 查询母串，getFail后使用一次
 
 LL query(char *s, LL &sLen)
 {
-    auto now = &T[0];
-    auto ans = 0;
-    for (auto i = 0; i < sLen; i++)
-    {
-        now = now->son[s[i] - 'a'];
-        now = now == NULL ? &T[0] : now;
-        now->logs++;
-        // for (auto j = now; j /*&& ~word_count[j]*/; j = fail[j])
-        // {
-        // ans += word_count[j];
-        // cout << "j:" << j << endl;
-        // if (word_count[j])
+	auto now = &T[0];
+	auto ans = 0;
+	for (auto i = 0; i < sLen; i++)
+	{
+		now = now->son[s[i] - 'a'];
+		now = now == NULL ? &T[0] : now;
+		now->logs++;
+		// for (auto j = now; j /*&& ~word_count[j]*/; j = fail[j])
+		// {
+		// ans += word_count[j];
+		// cout << "j:" << j << endl;
+		// if (word_count[j])
 
-        // for (auto k : word_position[j])
-        //     pattern_count[k]++;
-        // word_count[j] = -1; // 标记已经遍历的节点
-        // }
-    }
+		// for (auto k : word_position[j])
+		//     pattern_count[k]++;
+		// word_count[j] = -1; // 标记已经遍历的节点
+		// }
+	}
 
-    for (auto i = 1; i <= AC_counter; i++)
-    {
-        FailEdge[T[i].fail - T].push_back(&T[i]);
-    }
+	for (auto i = 1; i <= AC_counter; i++)
+	{
+		FailEdge[T[i].fail - T].push_back(&T[i]);
+	}
 
-    return ans;
+	return ans;
 }
 
 void AC_dfs(TrieNode *u)
 {
 
-    for (auto i : FailEdge[u - T])
-    {
-        AC_dfs(i);
-        u->logs += i->logs;
-    }
+	for (auto i : FailEdge[u - T])
+	{
+		AC_dfs(i);
+		u->logs += i->logs;
+	}
 } // query完后使用，一般搜0号点
 
 // 输出答案使用for(auto i:trieIndex)cout<<i.logs<<endl;这样
@@ -254,11 +254,11 @@ const LL M = 3e5 + 10;
 
 struct PalindromicTreeNode
 {
-    LL son[26];
-    LL suffix;
-    LL curlen;
-    LL cnt;
-    char c;
+	LL son[26];
+	LL suffix;
+	LL curlen;
+	LL cnt;
+	char c;
 } PTN[M];
 // char orginalString[M];
 LL PTNSIZE = 1; // SIZE - 1 actually
@@ -266,65 +266,65 @@ LL last = 0;
 
 void __init__()
 {
-    PTN[0].curlen = 0;
-    PTN[0].suffix = 1;
-    PTN[0].c = '^';
-    PTN[1].c = '#';
-    PTN[1].curlen = -1;
+	PTN[0].curlen = 0;
+	PTN[0].suffix = 1;
+	PTN[0].c = '^';
+	PTN[1].c = '#';
+	PTN[1].curlen = -1;
 }
 
 LL __find__(LL pattern)
 {
-    while (PTN[PTNSIZE - PTN[pattern].curlen - 1].c != PTN[PTNSIZE].c)
-        pattern = PTN[pattern].suffix;
-    return pattern;
+	while (PTN[PTNSIZE - PTN[pattern].curlen - 1].c != PTN[PTNSIZE].c)
+		pattern = PTN[pattern].suffix;
+	return pattern;
 }
 
 void __add__(char element)
 {
-    PTNSIZE++;
-    PTN[PTNSIZE].c = element;
-    LL offset = element - 97;
-    LL cur = __find__(last);       // 可以加回文的点
-    if (PTN[cur].son[offset] == 0) // 没前向边这条边
-    {
-        PTN[PTNSIZE].suffix = PTN[__find__(PTN[cur].suffix)].son[offset]; // 正在插入的字母的后缀边不可能是cur，所以要用chk往下找合法的
-        PTN[cur].son[offset] = PTNSIZE;                                   // 这才是加前向边
-        PTN[PTNSIZE].curlen = PTN[cur].curlen + 2;
-    }
-    last = PTN[cur].son[offset]; // 加过边以后last就是PTNSIZE
-    PTN[last].cnt++;
+	PTNSIZE++;
+	PTN[PTNSIZE].c = element;
+	LL offset = element - 97;
+	LL cur = __find__(last);       // 可以加回文的点
+	if (PTN[cur].son[offset] == 0) // 没前向边这条边
+	{
+		PTN[PTNSIZE].suffix = PTN[__find__(PTN[cur].suffix)].son[offset]; // 正在插入的字母的后缀边不可能是cur，所以要用chk往下找合法的
+		PTN[cur].son[offset] = PTNSIZE;                                   // 这才是加前向边
+		PTN[PTNSIZE].curlen = PTN[cur].curlen + 2;
+	}
+	last = PTN[cur].son[offset]; // 加过边以后last就是PTNSIZE
+	PTN[last].cnt++;
 }
 
 LL __count__()
 {
-    LL re = 0;
-    for (LL i = PTNSIZE; i >= 0; i--)
-    {
-        PTN[PTN[i].suffix].cnt += PTN[i].cnt; // 后缀边连接的节点走过次数要加上前面更高级的回文串节点走过次数
-        re = max(re, PTN[i].curlen);          // 统计最长回文串长度
-    }
-    return re;
+	LL re = 0;
+	for (LL i = PTNSIZE; i >= 0; i--)
+	{
+		PTN[PTN[i].suffix].cnt += PTN[i].cnt; // 后缀边连接的节点走过次数要加上前面更高级的回文串节点走过次数
+		re = max(re, PTN[i].curlen);          // 统计最长回文串长度
+	}
+	return re;
 }
 
 int main()
 {
-    ios::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-    __init__();
-    string ss;
-    cin >> ss;
-    for (auto s : ss)
-        __add__(s);
-    __count__();
-    LL ans = 0;
-    for (auto i = 2; i <= PTNSIZE; i++)
-    {
-        ans = max(ans, PTN[i].cnt * PTN[i].curlen); // 最长回文子串
-    }
-    cout << ans << '\n';
-    return 0;
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	cout.tie(0);
+	__init__();
+	string ss;
+	cin >> ss;
+	for (auto s : ss)
+		__add__(s);
+	__count__();
+	LL ans = 0;
+	for (auto i = 2; i <= PTNSIZE; i++)
+	{
+		ans = max(ans, PTN[i].cnt * PTN[i].curlen); // 最长回文子串
+	}
+	cout << ans << '\n';
+	return 0;
 }
 ```
 
@@ -338,49 +338,49 @@ int main()
 template <class T>
 void print(T x)
 {
-    if (x < 0)
-    {
-        x = -x;
-        putchar('-');
-        // *O++ = '-';
-    }
-    if (x > 9)
-        print(x / 10);
-    putchar(x % 10 + '0');
-    // *O++ = x%10 + '0'
+	if (x < 0)
+	{
+		x = -x;
+		putchar('-');
+		// *O++ = '-';
+	}
+	if (x > 9)
+		print(x / 10);
+	putchar(x % 10 + '0');
+	// *O++ = x%10 + '0'
 }
 // fwrite(obuf,O-obuf,1,stdout);
 
 template <class T>
 inline void qr(T &n)
 {
-    n = 0;
-    int c = getchar();
-    bool sgn = 0;
+	n = 0;
+	int c = getchar();
+	bool sgn = 0;
 
-    while (!isdigit(c))
-    {
-        if (c == '-')
-            sgn ^= 1;
-        c = getchar();
-    }
+	while (!isdigit(c))
+	{
+		if (c == '-')
+			sgn ^= 1;
+		c = getchar();
+	}
 
-    while (isdigit(c))
-    {
-        n = (n * 10) + (c ^ 0x30);
-        c = getchar();
-    }
+	while (isdigit(c))
+	{
+		n = (n * 10) + (c ^ 0x30);
+		c = getchar();
+	}
 
-    if (sgn)
-        n = -n;
+	if (sgn)
+		n = -n;
 }
 
 inline char qrc()
 {
-    register char c = getchar();
-    while (c < 'a' || c > 'z')
-        c = getchar();
-    return c;
+	register char c = getchar();
+	while (c < 'a' || c > 'z')
+		c = getchar();
+	return c;
 }
 ```
 
@@ -411,174 +411,174 @@ for (k = 1; k <= n; k++) {
 ```c++
 struct Tarjan
 {
-    std::vector<int> DFN, LOW;
-    std::vector<int> belongs;
-    std::vector<int> DFS_from;        // 记父亲节点
-    std::vector<std::vector<int>> &E; // 根据实际情况选择set还是vector
-    std::vector<char> in_stack;
-    std::stack<int> stk;
-    std::vector<int> changed; // 被缩点的点
-    int ts;
-    // std::set<int> cut; // 割点
-    int N;
-    int remaining_point_ctr;
+	std::vector<int> DFN, LOW;
+	std::vector<int> belongs;
+	std::vector<int> DFS_from;        // 记父亲节点
+	std::vector<std::vector<int>> &E; // 根据实际情况选择set还是vector
+	std::vector<char> in_stack;
+	std::stack<int> stk;
+	std::vector<int> changed; // 被缩点的点
+	int ts;
+	// std::set<int> cut; // 割点
+	int N;
+	int remaining_point_ctr;
 
-    /* 构造函数确定边引用 */
-    Tarjan(int _siz, std::vector<std::vector<int>> &_E) : E(_E), N(_siz + 1) {}
+	/* 构造函数确定边引用 */
+	Tarjan(int _siz, std::vector<std::vector<int>> &_E) : E(_E), N(_siz + 1) {}
 
-    /* 类并查集路径压缩寻找SCC代表节点 */
-    inline int chk_belongs(int x)
-    {
-        if (belongs[x] == x)
-            return x;
-        else
-            return belongs[x] = chk_belongs(belongs[x]);
-    }
-    /* 为多次运行准备的初始化函数 */
-    void init()
-    {
-        DFN.assign(N, 0);
-        LOW.assign(N, 0);
-        DFS_from.assign(N, 0);
-        belongs.assign(N, 0);
-        in_stack.assign(N, 0);
-        ts = 0;
-    }
+	/* 类并查集路径压缩寻找SCC代表节点 */
+	inline int chk_belongs(int x)
+	{
+		if (belongs[x] == x)
+			return x;
+		else
+			return belongs[x] = chk_belongs(belongs[x]);
+	}
+	/* 为多次运行准备的初始化函数 */
+	void init()
+	{
+		DFN.assign(N, 0);
+		LOW.assign(N, 0);
+		DFS_from.assign(N, 0);
+		belongs.assign(N, 0);
+		in_stack.assign(N, 0);
+		ts = 0;
+	}
 
-    /* 入口 */
-    void run()
-    {
-        init();
-        for (auto i : range(1, DFN.size()))
-            if (!DFN[i])
-                tarjan(i, i);
-        remaining_point_ctr = N - 1 - changed.size();
-    }
-    /* 内部用，x==f时表示本节点为根节点 */
-    inline void tarjan(int x, int f) // 本意是处理无向图
-    {
-        DFS_from[x] = f;
-        DFN[x] = LOW[x] = ++ts;
-        in_stack[x] = 1;
-        stk.push(x);
-        if (x == f) // 本节点为根
-        {
-            // set<int> realson;
-            for (auto &i : E[x])
-            {
-                if (!DFN[i])
-                {
-                    tarjan(i, x);
-                    LOW[x] = min(LOW[x], LOW[i]);
-                    // if (realson.size() < 2)
-                    // realson.insert(LOW[i]);
-                }
-                else if (in_stack[i])
-                    LOW[x] = min(LOW[x], DFN[i]);
-            }
-            // if (realson.size() >= 2)
-            // cut.insert(x);
-        }
-        else
-        {
-            for (auto &i : E[x])
-            {
-                // if (i != f) // 无向图这么写
-                if (1)
-                {
-                    if (!DFN[i])
-                    {
-                        tarjan(i, x);
-                        LOW[x] = min(LOW[x], LOW[i]);
-                        // if (LOW[i] >= DFN[x])
-                        // cut.insert(x);
-                    }
-                    else if (in_stack[i])
-                        LOW[x] = min(LOW[x], DFN[i]);
-                }
-            }
-        }
-        if (DFN[x] == LOW[x])
-        {
-            while (stk.size())
-            {
-                int tp = stk.top();
-                in_stack[tp] = 0;
-                stk.pop();
-                belongs[tp] = x;
-                if (x != tp)
-                    changed.push_back(tp);
-                if (tp == x)
-                    break;
-            }
-        }
-    }
-    /* 注意这步还没有完全更新边，遍历边时必须使用auto i: E[x], belongs[i]，或使用下面的合并边 */
-    void do_merge()
-    {
-        for (auto i : changed)
-        {
-            int fi = chk_belongs(i);
-            for (auto j : E[i])
-            {
-                int fj = chk_belongs(j);
-                if (fi != fj)
-                    E[fi].emplace_back(fj);
-            }
-            E[i].clear(); // 清掉已经被缩点的点上的边
-        }
-        changed.clear();
-    }
+	/* 入口 */
+	void run()
+	{
+		init();
+		for (auto i : range(1, DFN.size()))
+			if (!DFN[i])
+				tarjan(i, i);
+		remaining_point_ctr = N - 1 - changed.size();
+	}
+	/* 内部用，x==f时表示本节点为根节点 */
+	inline void tarjan(int x, int f) // 本意是处理无向图
+	{
+		DFS_from[x] = f;
+		DFN[x] = LOW[x] = ++ts;
+		in_stack[x] = 1;
+		stk.push(x);
+		if (x == f) // 本节点为根
+		{
+			// set<int> realson;
+			for (auto &i : E[x])
+			{
+				if (!DFN[i])
+				{
+					tarjan(i, x);
+					LOW[x] = min(LOW[x], LOW[i]);
+					// if (realson.size() < 2)
+					// realson.insert(LOW[i]);
+				}
+				else if (in_stack[i])
+					LOW[x] = min(LOW[x], DFN[i]);
+			}
+			// if (realson.size() >= 2)
+			// cut.insert(x);
+		}
+		else
+		{
+			for (auto &i : E[x])
+			{
+				// if (i != f) // 无向图这么写
+				if (1)
+				{
+					if (!DFN[i])
+					{
+						tarjan(i, x);
+						LOW[x] = min(LOW[x], LOW[i]);
+						// if (LOW[i] >= DFN[x])
+						// cut.insert(x);
+					}
+					else if (in_stack[i])
+						LOW[x] = min(LOW[x], DFN[i]);
+				}
+			}
+		}
+		if (DFN[x] == LOW[x])
+		{
+			while (stk.size())
+			{
+				int tp = stk.top();
+				in_stack[tp] = 0;
+				stk.pop();
+				belongs[tp] = x;
+				if (x != tp)
+					changed.push_back(tp);
+				if (tp == x)
+					break;
+			}
+		}
+	}
+	/* 注意这步还没有完全更新边，遍历边时必须使用auto i: E[x], belongs[i]，或使用下面的合并边 */
+	void do_merge()
+	{
+		for (auto i : changed)
+		{
+			int fi = chk_belongs(i);
+			for (auto j : E[i])
+			{
+				int fj = chk_belongs(j);
+				if (fi != fj)
+					E[fi].emplace_back(fj);
+			}
+			E[i].clear(); // 清掉已经被缩点的点上的边
+		}
+		changed.clear();
+	}
 
-    /* 主动将合并后的边整理并去重，多次使用可能TLE */
-    void handle_merged_edge()
-    {
-        for (auto i : range(1, N))
-        {
-            if (E[i].size())
-            {
-                update_point(i);
-            }
-        }
-    }
+	/* 主动将合并后的边整理并去重，多次使用可能TLE */
+	void handle_merged_edge()
+	{
+		for (auto i : range(1, N))
+		{
+			if (E[i].size())
+			{
+				update_point(i);
+			}
+		}
+	}
 
-    inline void update_point(int x)
-    {
-        std::unordered_set<int> tmpe;
-        for (auto j : E[x])
-        {
-            int fj = chk_belongs(j);
-            if (fj != x)
-                tmpe.emplace(fj);
-        }
-        E[x].clear();
-        for (auto j : tmpe)
-            E[x].emplace_back(j);
-        // swap(E[x], tmpe);
-    }
+	inline void update_point(int x)
+	{
+		std::unordered_set<int> tmpe;
+		for (auto j : E[x])
+		{
+			int fj = chk_belongs(j);
+			if (fj != x)
+				tmpe.emplace(fj);
+		}
+		E[x].clear();
+		for (auto j : tmpe)
+			E[x].emplace_back(j);
+		// swap(E[x], tmpe);
+	}
 
-    /* 仅加一条边的缩点，在已经跑过上面的缩点之后使用，为了保证复杂度实际上只维护了一个并查集 */
-    void single_edge_SCC(int u, int v)
-    {
-        u = chk_belongs(u);
-        v = chk_belongs(v);
-        int father;
-        while (u != v)
-        {
-            if (DFN[u] < DFN[v])
-                swap(u, v);
-            changed.push_back(u);
-            u = chk_belongs(DFS_from[u]);
-        }
-        for (auto i : changed)
-        {
-            belongs[i] = u;
-            // remaining_points.erase(i);
-        }
-        remaining_point_ctr -= changed.size();
-        // do_merge();
-        changed.clear();
-    }
+	/* 仅加一条边的缩点，在已经跑过上面的缩点之后使用，为了保证复杂度实际上只维护了一个并查集 */
+	void single_edge_SCC(int u, int v)
+	{
+		u = chk_belongs(u);
+		v = chk_belongs(v);
+		int father;
+		while (u != v)
+		{
+			if (DFN[u] < DFN[v])
+				swap(u, v);
+			changed.push_back(u);
+			u = chk_belongs(DFS_from[u]);
+		}
+		for (auto i : changed)
+		{
+			belongs[i] = u;
+			// remaining_points.erase(i);
+		}
+		remaining_point_ctr -= changed.size();
+		// do_merge();
+		changed.clear();
+	}
 };
 ```
 
@@ -794,123 +794,123 @@ template <typename T>
 struct MCMF // 费用流(Dinic)zkw板子
 {           // Based on Dinic (zkw)
 
-    typedef long long LL;
-    T INF;
-    int N = 1e5 + 5; // 最大点meta参数，要按需改
+	typedef long long LL;
+	T INF;
+	int N = 1e5 + 5; // 最大点meta参数，要按需改
 #define _N 10006
-    std::bitset<_N> vis; // 要一起改
-    std::vector<T> Dis;
-    int s, t;             // 源点，汇点需要外部写入
-    std::vector<int> Cur; // 当前弧优化用
-    T maxflow, mincost;   // 放最终答案
+	std::bitset<_N> vis; // 要一起改
+	std::vector<T> Dis;
+	int s, t;             // 源点，汇点需要外部写入
+	std::vector<int> Cur; // 当前弧优化用
+	T maxflow, mincost;   // 放最终答案
 
-    struct EdgeContent
-    {
-        int to;
-        T flow;
-        T cost;
-        int dualEdge;
-        EdgeContent(int a, T b, T c, int d) : to(a), flow(b), cost(c), dualEdge(d) {}
-    };
+	struct EdgeContent
+	{
+		int to;
+		T flow;
+		T cost;
+		int dualEdge;
+		EdgeContent(int a, T b, T c, int d) : to(a), flow(b), cost(c), dualEdge(d) {}
+	};
 
-    std::vector<std::vector<EdgeContent>> E;
+	std::vector<std::vector<EdgeContent>> E;
 
-    /* 构造函数，分配内存 */
-    MCMF(int n)
-    {
-        N = n;
-        E.assign(n + 1, std::vector<EdgeContent>());
-        Dis.assign(n + 1, 0);
-        Cur.assign(n + 1, 0);
-        maxflow = mincost = 0;
-        memset(&INF, 0x3f, sizeof(INF));
-    }
+	/* 构造函数，分配内存 */
+	MCMF(int n)
+	{
+		N = n;
+		E.assign(n + 1, std::vector<EdgeContent>());
+		Dis.assign(n + 1, 0);
+		Cur.assign(n + 1, 0);
+		maxflow = mincost = 0;
+		memset(&INF, 0x3f, sizeof(INF));
+	}
 
-    void add(int u, int v, T f, T w) // 加一条u到v流为f单位费为w的边
-    {
-        E[u].emplace_back(v, f, w, E[v].size());
-        E[v].emplace_back(u, 0, -w, E[u].size() - 1);
-    }
+	void add(int u, int v, T f, T w) // 加一条u到v流为f单位费为w的边
+	{
+		E[u].emplace_back(v, f, w, E[v].size());
+		E[v].emplace_back(u, 0, -w, E[u].size() - 1);
+	}
 
-    bool SPFA()
-    {
-        std::deque<int> Q;
-        Q.emplace_back(s);
-        // memset(Dis, INF, sizeof(T) * (N + 1));
-        Dis.assign(N + 1, INF);
-        Dis[s] = 0;
-        int k;
-        while (!Q.empty())
-        {
-            k = Q.front();
-            Q.pop_front();
-            vis.reset(k);
-            // for (auto [to, f, w, rev] : E[k])s
-            for (auto &i : E[k])
-            {
-                auto &to = i.to;
-                auto &f = i.flow;
-                auto &w = i.cost;
-                auto &rev = i.dualEdge;
-                if (f and Dis[k] + w < Dis[to])
-                {
-                    Dis[to] = Dis[k] + w;
-                    if (!vis.test(to))
-                    {
-                        if (Q.size() and Dis[Q.front()] > Dis[to])
-                        {
-                            Q.emplace_front(to);
-                        }
-                        else
-                            Q.emplace_back(to);
-                        vis.set(to);
-                    }
-                }
-            }
-        }
-        return Dis[t] != INF;
-    }
-    T DFS(int k, T flow)
-    {
-        if (k == t)
-        {
-            maxflow += flow;
-            return flow;
-        }
-        T sum = 0;
-        vis.set(k);
-        for (auto i = Cur[k]; i < E[k].size(); i++)
-        {
-            auto &to = E[k][i].to;
-            auto &f = E[k][i].flow;
-            auto &w = E[k][i].cost;
-            auto &rev = E[k][i].dualEdge;
-            // auto &[to, f, w, rev] = E[k][i];
-            if (!vis.test(to) and f and Dis[to] == Dis[k] + w)
-            {
-                Cur[k] = i;
-                T p = DFS(to, std::min(flow - sum, f));
-                sum += p;
-                f -= p;
-                E[to][rev].flow += p;
-                mincost += p * w;
-                if (sum == flow)
-                    break;
-            }
-        }
-        vis.reset(k);
-        return sum;
-    }
+	bool SPFA()
+	{
+		std::deque<int> Q;
+		Q.emplace_back(s);
+		// memset(Dis, INF, sizeof(T) * (N + 1));
+		Dis.assign(N + 1, INF);
+		Dis[s] = 0;
+		int k;
+		while (!Q.empty())
+		{
+			k = Q.front();
+			Q.pop_front();
+			vis.reset(k);
+			// for (auto [to, f, w, rev] : E[k])s
+			for (auto &i : E[k])
+			{
+				auto &to = i.to;
+				auto &f = i.flow;
+				auto &w = i.cost;
+				auto &rev = i.dualEdge;
+				if (f and Dis[k] + w < Dis[to])
+				{
+					Dis[to] = Dis[k] + w;
+					if (!vis.test(to))
+					{
+						if (Q.size() and Dis[Q.front()] > Dis[to])
+						{
+							Q.emplace_front(to);
+						}
+						else
+							Q.emplace_back(to);
+						vis.set(to);
+					}
+				}
+			}
+		}
+		return Dis[t] != INF;
+	}
+	T DFS(int k, T flow)
+	{
+		if (k == t)
+		{
+			maxflow += flow;
+			return flow;
+		}
+		T sum = 0;
+		vis.set(k);
+		for (auto i = Cur[k]; i < E[k].size(); i++)
+		{
+			auto &to = E[k][i].to;
+			auto &f = E[k][i].flow;
+			auto &w = E[k][i].cost;
+			auto &rev = E[k][i].dualEdge;
+			// auto &[to, f, w, rev] = E[k][i];
+			if (!vis.test(to) and f and Dis[to] == Dis[k] + w)
+			{
+				Cur[k] = i;
+				T p = DFS(to, std::min(flow - sum, f));
+				sum += p;
+				f -= p;
+				E[to][rev].flow += p;
+				mincost += p * w;
+				if (sum == flow)
+					break;
+			}
+		}
+		vis.reset(k);
+		return sum;
+	}
 
-    void Dinic() // 入口
-    {
-        while (SPFA())
-        {
-            // memset(Cur, 0, sizeof(int) * (N + 1));
-            Cur.assign(N + 1, 0);
-            DFS(s, INF);
-        }
-    }
+	void Dinic() // 入口
+	{
+		while (SPFA())
+		{
+			// memset(Cur, 0, sizeof(int) * (N + 1));
+			Cur.assign(N + 1, 0);
+			DFS(s, INF);
+		}
+	}
 };
 ```
 
@@ -922,8 +922,8 @@ struct MCMF // 费用流(Dinic)zkw板子
 
 ```cpp
 /* 
-    2021.10.26 原始对偶版本，除了第一次最短路外之后的最短路都运行在非负图上，可以使用dij 
-    但板题表现是始终使用SPFA+SLF最优    
+	2021.10.26 原始对偶版本，除了第一次最短路外之后的最短路都运行在非负图上，可以使用dij 
+	但板题表现是始终使用SPFA+SLF最优    
 */
 template <typename Cap, typename Cost = Cap>
 struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
@@ -996,18 +996,18 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 			int qsiz = N + 1;
 			std::vector<int> Q(qsiz);
 			int lptr = 0;
-            int rptr = 0;
+			int rptr = 0;
 
 			// Q.emplace_back(s);
 			Q[rptr++] = s;
 
 			inqueue[s] = 1;
 			while (lptr != rptr)
-            // while (Q.size())
+			// while (Q.size())
 			{
 				k = Q[lptr++];
-                if (lptr >= (qsiz))
-                    lptr = 0;
+				if (lptr >= (qsiz))
+					lptr = 0;
 				// k = Q.front();
 				// Q.pop();
 				// Q.pop_front();
@@ -1023,20 +1023,20 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 						if (!inqueue[to])
 						{
 							// if (Q.size() and Dis[Q.front()] >= Dis[to])
-                            if (lptr != rptr and Dis[Q[lptr]] >= Dis[to])
-                            {
-                                // Q.emplace_front(to);
-                                if (--lptr < 0)
-                                    lptr += qsiz;
-                                Q[lptr] = to;
-                            }
-                            else
-                            {
-                                // Q.emplace_back(to);
-                               	Q[rptr++] = to;
-                                if (rptr >= (qsiz))
-                                    rptr = 0;
-                            }
+							if (lptr != rptr and Dis[Q[lptr]] >= Dis[to])
+							{
+								// Q.emplace_front(to);
+								if (--lptr < 0)
+									lptr += qsiz;
+								Q[lptr] = to;
+							}
+							else
+							{
+								// Q.emplace_back(to);
+							   	Q[rptr++] = to;
+								if (rptr >= (qsiz))
+									rptr = 0;
+							}
 							// Q.emplace(to);
 							inqueue[to] = 1;
 						}
@@ -1084,9 +1084,9 @@ struct MCMFDUAL // 费用流(Dinic)zkw原始对偶板子
 			while (ato--)
 			{
 				// auto kpos = max_element(ato.begin(), ato.end(), [&](const int &a, const int &b) -> bool
-                //                     { return Dis[a] > Dis[b]; });
-                // int k = *kpos;
-                // ato.erase(kpos);
+				//                     { return Dis[a] > Dis[b]; });
+				// int k = *kpos;
+				// ato.erase(kpos);
 				int k = -1;
 				for (int i = 0; i <= N; ++i)
 					if (!dvis[i] and (k == -1 or Dis[i] < Dis[k]))
@@ -1397,7 +1397,7 @@ namespace Persistent_seg
 		}
 	};
 
-    /* 动态开点主席树 */
+	/* 动态开点主席树 */
 	template <class T>
 	struct PST_dynamic
 	{
@@ -1724,262 +1724,262 @@ namespace Tree
 #define Add0 0
 #define Mul1 1
 
-    // #define Add0 Geometry::Matrix<m998>(1, 3)
-    // #define Mul1 Geometry::SquareMatrix<m998>::eye(3)
-    template <typename T, typename Tadd = T, typename Tmul = T>
-    struct _iNode
-    {
-        Tadd lazy_add;
-        T sum_content;
-        Tmul lazy_mul;
-        // T max_content;
-        T min_content;
-        T sqrt_content;
-        _iNode() : lazy_add(Add0), sum_content(Add0), lazy_mul(Mul1), min_content(Add0), sqrt_content(Add0) {}
-    };
+	// #define Add0 Geometry::Matrix<m998>(1, 3)
+	// #define Mul1 Geometry::SquareMatrix<m998>::eye(3)
+	template <typename T, typename Tadd = T, typename Tmul = T>
+	struct _iNode
+	{
+		Tadd lazy_add;
+		T sum_content;
+		Tmul lazy_mul;
+		// T max_content;
+		T min_content;
+		T sqrt_content;
+		_iNode() : lazy_add(Add0), sum_content(Add0), lazy_mul(Mul1), min_content(Add0), sqrt_content(Add0) {}
+	};
 
-    template <typename T, typename Tadd = T, typename Tmul = T>
-    struct SegmentTree
-    {
-        using _Node = _iNode<T, Tadd, Tmul>;
-        int len;       // 线段树实际节点数
-        int valid_len; // 原有效数据长度
-        int QL, QR;    // 暂存询问避免递归下传
-        Tmul MTMP;
+	template <typename T, typename Tadd = T, typename Tmul = T>
+	struct SegmentTree
+	{
+		using _Node = _iNode<T, Tadd, Tmul>;
+		int len;       // 线段树实际节点数
+		int valid_len; // 原有效数据长度
+		int QL, QR;    // 暂存询问避免递归下传
+		Tmul MTMP;
 		Tadd ATMP;
-        std::vector<_Node> _D;
-        // template <typename AllocationPlaceType = void>
-        SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
-        {
-            valid_len = length;
-            len = 1 << 1 + (int)ceil(log2(length));
-            _D.resize(len);
-        }
+		std::vector<_Node> _D;
+		// template <typename AllocationPlaceType = void>
+		SegmentTree(int length, void *arr = nullptr) // 构造函数只分配内存
+		{
+			valid_len = length;
+			len = 1 << 1 + (int)ceil(log2(length));
+			_D.resize(len);
+		}
 
-        void show()
-        {
-            std::cout << '[';
-            for (_Node *i = _D.begin(); i != _D.end(); ++i)
-                std::cout << i->sum_content << ",]"[i == _D.end() - 1] << " \n"[i == _D.end() - 1];
-        }
+		void show()
+		{
+			std::cout << '[';
+			for (_Node *i = _D.begin(); i != _D.end(); ++i)
+				std::cout << i->sum_content << ",]"[i == _D.end() - 1] << " \n"[i == _D.end() - 1];
+		}
 
-        static int mid(int l, int r) { return l + r >> 1; }
+		static int mid(int l, int r) { return l + r >> 1; }
 
-        void update_mul(int node_l, int node_r, int x)
-        {
-            if (QL <= node_l and node_r <= QR)
-            {
-                _D[x].lazy_add *= MTMP;
-                _D[x].sum_content *= MTMP;
-                _D[x].lazy_mul *= MTMP;
-                _D[x].min_content *= MTMP;
+		void update_mul(int node_l, int node_r, int x)
+		{
+			if (QL <= node_l and node_r <= QR)
+			{
+				_D[x].lazy_add *= MTMP;
+				_D[x].sum_content *= MTMP;
+				_D[x].lazy_mul *= MTMP;
+				_D[x].min_content *= MTMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content * MTMP * MTMP;
-            }
-            else
-            {
-                push_down(x, node_l, node_r);
-                int mi = mid(node_l, node_r);
-                if (QL <= mi)
-                    update_mul(node_l, mi, x << 1);
-                if (QR > mi)
-                    update_mul(mi + 1, node_r, x << 1 | 1);
-                maintain(x);
-            }
-        }
+				_D[x].sqrt_content = _D[x].sqrt_content * MTMP * MTMP;
+			}
+			else
+			{
+				push_down(x, node_l, node_r);
+				int mi = mid(node_l, node_r);
+				if (QL <= mi)
+					update_mul(node_l, mi, x << 1);
+				if (QR > mi)
+					update_mul(mi + 1, node_r, x << 1 | 1);
+				maintain(x);
+			}
+		}
 
-        void update_add(int node_l, int node_r, int x)
-        {
-            if (QL <= node_l and node_r <= QR)
-            {
-                int my_length = node_r - node_l + 1;
-                _D[x].lazy_add += ATMP;
+		void update_add(int node_l, int node_r, int x)
+		{
+			if (QL <= node_l and node_r <= QR)
+			{
+				int my_length = node_r - node_l + 1;
+				_D[x].lazy_add += ATMP;
 
-                _D[x].sqrt_content = _D[x].sqrt_content + 2 * ATMP * _D[x].sum_content + (ATMP * ATMP * my_length);
+				_D[x].sqrt_content = _D[x].sqrt_content + 2 * ATMP * _D[x].sum_content + (ATMP * ATMP * my_length);
 
-                _D[x].sum_content += ATMP * my_length;
-                _D[x].min_content += ATMP;
-            }
-            else
-            {
-                push_down(x, node_l, node_r);
-                int mi = mid(node_l, node_r);
-                if (QL <= mi)
-                    update_add(node_l, mi, x << 1);
-                if (QR > mi)
-                    update_add(mi + 1, node_r, x << 1 | 1);
-                maintain(x);
-            }
-        }
+				_D[x].sum_content += ATMP * my_length;
+				_D[x].min_content += ATMP;
+			}
+			else
+			{
+				push_down(x, node_l, node_r);
+				int mi = mid(node_l, node_r);
+				if (QL <= mi)
+					update_add(node_l, mi, x << 1);
+				if (QR > mi)
+					update_add(mi + 1, node_r, x << 1 | 1);
+				maintain(x);
+			}
+		}
 
-        void range_mul(int l, int r, const Tmul &v)
-        {
-            QL = l;
-            QR = r;
-            MTMP = v;
-            update_mul(1, valid_len, 1);
-        }
+		void range_mul(int l, int r, const Tmul &v)
+		{
+			QL = l;
+			QR = r;
+			MTMP = v;
+			update_mul(1, valid_len, 1);
+		}
 
-        void range_add(int l, int r, const Tadd &v)
-        {
-            QL = l;
-            QR = r;
-            ATMP = v;
-            update_add(1, valid_len, 1);
-        }
+		void range_add(int l, int r, const Tadd &v)
+		{
+			QL = l;
+			QR = r;
+			ATMP = v;
+			update_add(1, valid_len, 1);
+		}
 
-        inline void maintain(int i)
-        {
-            int l = i << 1;
-            int r = l | 1;
-            _D[i].sum_content = (_D[l].sum_content + _D[r].sum_content);
-            _D[i].min_content = min(_D[l].min_content, _D[r].min_content);
-            _D[i].sqrt_content = (_D[l].sqrt_content + _D[r].sqrt_content);
-        }
+		inline void maintain(int i)
+		{
+			int l = i << 1;
+			int r = l | 1;
+			_D[i].sum_content = (_D[l].sum_content + _D[r].sum_content);
+			_D[i].min_content = min(_D[l].min_content, _D[r].min_content);
+			_D[i].sqrt_content = (_D[l].sqrt_content + _D[r].sqrt_content);
+		}
 
-        inline void push_down(int ind, int my_left_bound, int my_right_bound)
-        {
-            int l = ind << 1;
-            int r = l | 1;
-            int mi = mid(my_left_bound, my_right_bound);
-            int lson_length = (mi - my_left_bound + 1);
-            int rson_length = (my_right_bound - mi);
-            if (_D[ind].lazy_mul != Mul1)
-            {
-                // 区间和
-                _D[l].sum_content *= _D[ind].lazy_mul;
+		inline void push_down(int ind, int my_left_bound, int my_right_bound)
+		{
+			int l = ind << 1;
+			int r = l | 1;
+			int mi = mid(my_left_bound, my_right_bound);
+			int lson_length = (mi - my_left_bound + 1);
+			int rson_length = (my_right_bound - mi);
+			if (_D[ind].lazy_mul != Mul1)
+			{
+				// 区间和
+				_D[l].sum_content *= _D[ind].lazy_mul;
 
-                _D[r].sum_content *= _D[ind].lazy_mul;
+				_D[r].sum_content *= _D[ind].lazy_mul;
 
-                _D[l].lazy_mul *= _D[ind].lazy_mul;
-                _D[l].lazy_add *= _D[ind].lazy_mul;
+				_D[l].lazy_mul *= _D[ind].lazy_mul;
+				_D[l].lazy_add *= _D[ind].lazy_mul;
 
-                _D[r].lazy_mul *= _D[ind].lazy_mul;
-                _D[r].lazy_add *= _D[ind].lazy_mul;
+				_D[r].lazy_mul *= _D[ind].lazy_mul;
+				_D[r].lazy_add *= _D[ind].lazy_mul;
 
-                // RMQ
-                _D[l].min_content *= _D[ind].lazy_mul;
+				// RMQ
+				_D[l].min_content *= _D[ind].lazy_mul;
 
-                _D[r].min_content *= _D[ind].lazy_mul;
+				_D[r].min_content *= _D[ind].lazy_mul;
 
-                // 平方和，依赖区间和
-                _D[l].sqrt_content = _D[l].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
+				// 平方和，依赖区间和
+				_D[l].sqrt_content = _D[l].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
 
-                _D[r].sqrt_content = _D[r].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
+				_D[r].sqrt_content = _D[r].sqrt_content * _D[ind].lazy_mul * _D[ind].lazy_mul;
 
-                _D[ind].lazy_mul = Mul1;
-            }
-            if (_D[ind].lazy_add != Add0)
-            {
-                // 平方和，先于区间和处理
-                _D[l].sqrt_content = _D[l].sqrt_content + 2 * _D[ind].lazy_add * _D[l].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * lson_length;
+				_D[ind].lazy_mul = Mul1;
+			}
+			if (_D[ind].lazy_add != Add0)
+			{
+				// 平方和，先于区间和处理
+				_D[l].sqrt_content = _D[l].sqrt_content + 2 * _D[ind].lazy_add * _D[l].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * lson_length;
 
-                _D[r].sqrt_content = _D[r].sqrt_content + 2 * _D[ind].lazy_add * _D[r].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * rson_length;
+				_D[r].sqrt_content = _D[r].sqrt_content + 2 * _D[ind].lazy_add * _D[r].sum_content + _D[ind].lazy_add * _D[ind].lazy_add * rson_length;
 
-                _D[l].sum_content += _D[ind].lazy_add * lson_length;
-                _D[l].lazy_add += _D[ind].lazy_add;
-                _D[r].sum_content += _D[ind].lazy_add * rson_length;
-                _D[r].lazy_add += _D[ind].lazy_add;
+				_D[l].sum_content += _D[ind].lazy_add * lson_length;
+				_D[l].lazy_add += _D[ind].lazy_add;
+				_D[r].sum_content += _D[ind].lazy_add * rson_length;
+				_D[r].lazy_add += _D[ind].lazy_add;
 
-                _D[l].min_content += _D[ind].lazy_add;
-                _D[r].min_content += _D[ind].lazy_add;
-                _D[ind].lazy_add = Add0;
-            }
-        }
+				_D[l].min_content += _D[ind].lazy_add;
+				_D[r].min_content += _D[ind].lazy_add;
+				_D[ind].lazy_add = Add0;
+			}
+		}
 
-        void _query_sum(
-            T &res,
-            int node_l,
-            int node_r,
-            int x)
-        {
-            if (QL <= node_l and node_r <= QR)
-            {
-                res += _D[x].sum_content;
-            }
-            else
-            {
-                push_down(x, node_l, node_r);
-                int mi = mid(node_l, node_r);
-                if (QL <= mi)
-                    _query_sum(res, node_l, mi, x << 1);
-                if (QR > mi)
-                    _query_sum(res, mi + 1, node_r, x << 1 | 1);
-                maintain(x);
-            }
-        }
-        void _query_min(
-            T &res,
-            int node_l,
-            int node_r,
-            int x)
-        {
-            if (QL <= node_l and node_r <= QR)
-            {
-                res = min(res, _D[x].min_content);
-            }
-            else
-            {
-                push_down(x, node_l, node_r);
-                int mi = mid(node_l, node_r);
-                if (QL <= mi)
-                    _query_min(res, node_l, mi, x << 1);
-                if (QR > mi)
-                    _query_min(res, mi + 1, node_r, x << 1 | 1);
-                maintain(x);
-            }
-        }
+		void _query_sum(
+			T &res,
+			int node_l,
+			int node_r,
+			int x)
+		{
+			if (QL <= node_l and node_r <= QR)
+			{
+				res += _D[x].sum_content;
+			}
+			else
+			{
+				push_down(x, node_l, node_r);
+				int mi = mid(node_l, node_r);
+				if (QL <= mi)
+					_query_sum(res, node_l, mi, x << 1);
+				if (QR > mi)
+					_query_sum(res, mi + 1, node_r, x << 1 | 1);
+				maintain(x);
+			}
+		}
+		void _query_min(
+			T &res,
+			int node_l,
+			int node_r,
+			int x)
+		{
+			if (QL <= node_l and node_r <= QR)
+			{
+				res = min(res, _D[x].min_content);
+			}
+			else
+			{
+				push_down(x, node_l, node_r);
+				int mi = mid(node_l, node_r);
+				if (QL <= mi)
+					_query_min(res, node_l, mi, x << 1);
+				if (QR > mi)
+					_query_min(res, mi + 1, node_r, x << 1 | 1);
+				maintain(x);
+			}
+		}
 
-        void _query_sqrt(
-            T &res,
-            int node_l,
-            int node_r,
-            int x)
-        {
-            if (QL <= node_l and node_r <= QR)
-            {
-                res += _D[x].sqrt_content;
-            }
-            else
-            {
-                push_down(x, node_l, node_r);
-                int mi = mid(node_l, node_r);
-                if (QL <= mi)
-                    _query_sqrt(res, node_l, mi, x << 1);
-                if (QR > mi)
-                    _query_sqrt(res, mi + 1, node_r, x << 1 | 1);
-                maintain(x);
-            }
-        }
+		void _query_sqrt(
+			T &res,
+			int node_l,
+			int node_r,
+			int x)
+		{
+			if (QL <= node_l and node_r <= QR)
+			{
+				res += _D[x].sqrt_content;
+			}
+			else
+			{
+				push_down(x, node_l, node_r);
+				int mi = mid(node_l, node_r);
+				if (QL <= mi)
+					_query_sqrt(res, node_l, mi, x << 1);
+				if (QR > mi)
+					_query_sqrt(res, mi + 1, node_r, x << 1 | 1);
+				maintain(x);
+			}
+		}
 
-        T query_sum(int l, int r)
-        {
-            T res = Add0;
-            QL = l;
-            QR = r;
-            _query_sum(res, 1, valid_len, 1);
-            return res;
-        }
+		T query_sum(int l, int r)
+		{
+			T res = Add0;
+			QL = l;
+			QR = r;
+			_query_sum(res, 1, valid_len, 1);
+			return res;
+		}
 
-        T query_min(int l, int r)
-        {
-            T res;
-            memset(&res, 0x3f, sizeof(res));
-            QL = l;
-            QR = r;
-            _query_min(res, 1, valid_len, 1);
-            return res;
-        }
+		T query_min(int l, int r)
+		{
+			T res;
+			memset(&res, 0x3f, sizeof(res));
+			QL = l;
+			QR = r;
+			_query_min(res, 1, valid_len, 1);
+			return res;
+		}
 
-        T query_sqrt(int l, int r)
-        {
-            T res = Add0;
-            QL = l;
-            QR = r;
-            _query_sqrt(res, 1, valid_len, 1);
-            return res;
-        }
-    };
+		T query_sqrt(int l, int r)
+		{
+			T res = Add0;
+			QL = l;
+			QR = r;
+			_query_sqrt(res, 1, valid_len, 1);
+			return res;
+		}
+	};
 }
 
 ```
@@ -1989,71 +1989,71 @@ namespace Tree
 ```cpp
 struct HeavyDecomposition
 {
-    // 深度，父亲，重儿子，映射到数据结构上的编号(dfs序)，以该点为根子树大小，链顶编号
-    std::vector<int> dep, fa, hson, nid, sz, top;
-    const std::vector<std::vector<int>> &E; // 引用的边数组
-    int bp = 0;                             // 映射起点偏移量，若从1开始请设为1
-    /* s:问题规模，_E:树的边数组 */
-    HeavyDecomposition(int s,
-                       const std::vector<std::vector<int>> &_E)
-        : dep(s + 1),
-          fa(s + 1),
-          hson(s + 1, -1),
-          nid(s + 1),
-          sz(s + 1),
-          top(s + 1),
-          E(_E) {}
-    /* 处理深度，记父亲，子树大小，传入d是当前深度 */
-    void dfs1(int x, int f, int d)
-    {
-        dep[x] = d;
-        fa[x] = f;
-        sz[x] = 1;
-        int mxsonsize = -1;
-        for (auto i : E[x])
-            if (i != f)
-            {
-                dfs1(i, x, d + 1);
-                sz[x] += sz[i];
-                if (sz[i] > mxsonsize)
-                    mxsonsize = sz[i], hson[x] = i;
-            }
-    }
+	// 深度，父亲，重儿子，映射到数据结构上的编号(dfs序)，以该点为根子树大小，链顶编号
+	std::vector<int> dep, fa, hson, nid, sz, top;
+	const std::vector<std::vector<int>> &E; // 引用的边数组
+	int bp = 0;                             // 映射起点偏移量，若从1开始请设为1
+	/* s:问题规模，_E:树的边数组 */
+	HeavyDecomposition(int s,
+					   const std::vector<std::vector<int>> &_E)
+		: dep(s + 1),
+		  fa(s + 1),
+		  hson(s + 1, -1),
+		  nid(s + 1),
+		  sz(s + 1),
+		  top(s + 1),
+		  E(_E) {}
+	/* 处理深度，记父亲，子树大小，传入d是当前深度 */
+	void dfs1(int x, int f, int d)
+	{
+		dep[x] = d;
+		fa[x] = f;
+		sz[x] = 1;
+		int mxsonsize = -1;
+		for (auto i : E[x])
+			if (i != f)
+			{
+				dfs1(i, x, d + 1);
+				sz[x] += sz[i];
+				if (sz[i] > mxsonsize)
+					mxsonsize = sz[i], hson[x] = i;
+			}
+	}
 
-    void dfs2(int x, int tp)
-    {
-        top[x] = tp;
-        nid[x] = bp++;
-        if (hson[x] == -1)
-            return;
-        dfs2(hson[x], tp);
-        for (auto i : E[x])
-            if (fa[x] != i && hson[x] != i)
-                dfs2(i, i);
-    }
-    /* 预处理入口，处理完毕后直接访问nid[x]即可获得x的dfs序 */
-    inline void prework(int root)
-    {
-        dfs1(root, root, 0);
-        dfs2(root, root);
-    }
-    /* 获得树上u->v简单路径在序列上的区间映射，解析子树区间请直接用(nid[u], nid[u]+sz[u]-1) */
-    inline std::vector<std::pair<int, int>> resolve_path(int u, int v)
-    {
-        std::vector<std::pair<int, int>> R;
-        while (top[u] != top[v])
-        {
-            if (dep[top[u]] < dep[top[v]]) // 令u链顶为深度大的点
-                swap(u, v);
-            R.emplace_back(nid[top[u]], nid[u]); // 计入u的链顶到u的区间，然后令u向上爬
-            u = fa[top[u]];
-        }
-        // 此时u,v top相同，在同一条链上，令u更深，添加[v, u]区间
-        if (dep[u] < dep[v])
-            swap(u, v);
-        R.emplace_back(nid[v], nid[u]);
-        return R;
-    }
+	void dfs2(int x, int tp)
+	{
+		top[x] = tp;
+		nid[x] = bp++;
+		if (hson[x] == -1)
+			return;
+		dfs2(hson[x], tp);
+		for (auto i : E[x])
+			if (fa[x] != i && hson[x] != i)
+				dfs2(i, i);
+	}
+	/* 预处理入口，处理完毕后直接访问nid[x]即可获得x的dfs序 */
+	inline void prework(int root)
+	{
+		dfs1(root, root, 0);
+		dfs2(root, root);
+	}
+	/* 获得树上u->v简单路径在序列上的区间映射，解析子树区间请直接用(nid[u], nid[u]+sz[u]-1) */
+	inline std::vector<std::pair<int, int>> resolve_path(int u, int v)
+	{
+		std::vector<std::pair<int, int>> R;
+		while (top[u] != top[v])
+		{
+			if (dep[top[u]] < dep[top[v]]) // 令u链顶为深度大的点
+				swap(u, v);
+			R.emplace_back(nid[top[u]], nid[u]); // 计入u的链顶到u的区间，然后令u向上爬
+			u = fa[top[u]];
+		}
+		// 此时u,v top相同，在同一条链上，令u更深，添加[v, u]区间
+		if (dep[u] < dep[v])
+			swap(u, v);
+		R.emplace_back(nid[v], nid[u]);
+		return R;
+	}
 };
 ```
 
@@ -2595,75 +2595,75 @@ namespace BalancedTree
 /* 从1到n都可用，0是保留字 5b4026638a0f469f91d26a4ff0dee4bf */
 struct LCA
 {
-    std::vector<std::vector<int>> fa;
-    std::vector<int> dep, siz;
-    std::vector<std::vector<int>> &E;
+	std::vector<std::vector<int>> fa;
+	std::vector<int> dep, siz;
+	std::vector<std::vector<int>> &E;
 
-    /* 构造函数分配内存，传入边数组 */
-    LCA(int _siz, std::vector<std::vector<int>> &_E) : E(_E)
-    {
-        _siz++;
-        fa.assign(_siz, vector<int>(log2int(_siz) + 1, 0));
-        dep.assign(_siz, 0);
-        siz.assign(_siz, 0);
-    }
+	/* 构造函数分配内存，传入边数组 */
+	LCA(int _siz, std::vector<std::vector<int>> &_E) : E(_E)
+	{
+		_siz++;
+		fa.assign(_siz, vector<int>(log2int(_siz) + 1, 0));
+		dep.assign(_siz, 0);
+		siz.assign(_siz, 0);
+	}
 
-    void dfs(int x, int from)
-    {
-        fa[x][0] = from;
-        dep[x] = dep[from] + 1;
-        siz[x] = 1;
-        for (auto i : range(1, log2int(dep[x]) + 1))
-            fa[x][i] = fa[fa[x][i - 1]][i - 1];
-        for (auto &i : E[x])
-            if (i != from)
-            {
-                dfs(i, x);
-                siz[x] += siz[i];
-            }
-    }
+	void dfs(int x, int from)
+	{
+		fa[x][0] = from;
+		dep[x] = dep[from] + 1;
+		siz[x] = 1;
+		for (auto i : range(1, log2int(dep[x]) + 1))
+			fa[x][i] = fa[fa[x][i - 1]][i - 1];
+		for (auto &i : E[x])
+			if (i != from)
+			{
+				dfs(i, x);
+				siz[x] += siz[i];
+			}
+	}
 
-    /* 传入边 */
-    void prework(int root)
-    {
-        // dep[root] = 1;
-        dfs(root, 0);
-        siz[0] = siz[root];
-        // for (auto &i : E[root])
-        // dfs(i, root);
-    }
+	/* 传入边 */
+	void prework(int root)
+	{
+		// dep[root] = 1;
+		dfs(root, 0);
+		siz[0] = siz[root];
+		// for (auto &i : E[root])
+		// dfs(i, root);
+	}
 
-    /* LCA查找 */
-    int lca(int x, int y)
-    {
-        if (dep[x] < dep[y])
-            swap(x, y);
-        while (dep[x] > dep[y])
-            x = fa[x][log2int(dep[x] - dep[y])];
-        if (x == y)
-            return x;
-        for (auto k : range(log2int(dep[x]), -1, -1))
-            if (fa[x][k] != fa[y][k])
-                x = fa[x][k], y = fa[y][k];
-        return fa[x][0];
-    }
+	/* LCA查找 */
+	int lca(int x, int y)
+	{
+		if (dep[x] < dep[y])
+			swap(x, y);
+		while (dep[x] > dep[y])
+			x = fa[x][log2int(dep[x] - dep[y])];
+		if (x == y)
+			return x;
+		for (auto k : range(log2int(dep[x]), -1, -1))
+			if (fa[x][k] != fa[y][k])
+				x = fa[x][k], y = fa[y][k];
+		return fa[x][0];
+	}
 
-    /* 拿x所在father的子树的节点数 */
-    int subtree_size(int x, int father)
-    {
-        if (x == father)
-            return 0;
-        for (auto i : range(fa[x].size() - 1, -1, -1))
-            x = (dep[fa[x][i]] > dep[father] ? fa[x][i] : x);
-        return siz[x];
-    }
+	/* 拿x所在father的子树的节点数 */
+	int subtree_size(int x, int father)
+	{
+		if (x == father)
+			return 0;
+		for (auto i : range(fa[x].size() - 1, -1, -1))
+			x = (dep[fa[x][i]] > dep[father] ? fa[x][i] : x);
+		return siz[x];
+	}
 
-    /* 判断tobechk是否在from -> to的路径上 */
-    bool on_the_way(int from, int to, int tobechk)
-    {
-        int k = lca(from, to);
-        return ((lca(from, tobechk) == tobechk) or (lca(tobechk, to) == tobechk)) and lca(tobechk, k) == k;
-    }
+	/* 判断tobechk是否在from -> to的路径上 */
+	bool on_the_way(int from, int to, int tobechk)
+	{
+		int k = lca(from, to);
+		return ((lca(from, tobechk) == tobechk) or (lca(tobechk, to) == tobechk)) and lca(tobechk, k) == k;
+	}
 };
 ```
 
@@ -2673,36 +2673,36 @@ struct LCA
 template <typename INTEGER>
 struct STMax
 {
-    // 从0开始
-    std::vector<std::vector<INTEGER>> data;
-    STMax(int siz)
-    {
-        int upper_pow = clz(siz) + 1;
-        data.resize(upper_pow);
-        data.assign(upper_pow, vector<INTEGER>());
-        data[0].assign(siz, 0);
-    }
-    INTEGER &operator[](int where)
-    {
-        return data[0][where];
-    }
-    void generate_max()
-    {
-        for (auto j : range(1, data.size()))
-        {
-            data[j].assign(data[0].size(), 0);
-            for (long long i = 0; i + (1LL << j) - 1 < data[0].size(); i++)
-            {
-                data[j][i] = std::max(data[j - 1][i], data[j - 1][i + (1 << (j - 1))]);
-            }
-        }
-    }
-    /*闭区间[l, r]，注意有效位从0开始*/
-    INTEGER query_max(int l, int r)
-    {
-        int k = 31 - __builtin_clz(r - l + 1);
-        return std::max(data[k][l], data[k][r - (1 << k) + 1]);
-    }
+	// 从0开始
+	std::vector<std::vector<INTEGER>> data;
+	STMax(int siz)
+	{
+		int upper_pow = clz(siz) + 1;
+		data.resize(upper_pow);
+		data.assign(upper_pow, vector<INTEGER>());
+		data[0].assign(siz, 0);
+	}
+	INTEGER &operator[](int where)
+	{
+		return data[0][where];
+	}
+	void generate_max()
+	{
+		for (auto j : range(1, data.size()))
+		{
+			data[j].assign(data[0].size(), 0);
+			for (long long i = 0; i + (1LL << j) - 1 < data[0].size(); i++)
+			{
+				data[j][i] = std::max(data[j - 1][i], data[j - 1][i + (1 << (j - 1))]);
+			}
+		}
+	}
+	/*闭区间[l, r]，注意有效位从0开始*/
+	INTEGER query_max(int l, int r)
+	{
+		int k = 31 - __builtin_clz(r - l + 1);
+		return std::max(data[k][l], data[k][r - (1 << k) + 1]);
+	}
 };
 ```
 
@@ -2713,40 +2713,40 @@ struct STMax
 ```cpp
 namespace Geometry
 {
-    using FLOAT_ = double;
+	using FLOAT_ = double;
 
-    constexpr const FLOAT_ Infinity = INFINITY;
-    const FLOAT_ decimal_round = 1e-8; // 精度参数
+	constexpr const FLOAT_ Infinity = INFINITY;
+	const FLOAT_ decimal_round = 1e-8; // 精度参数
 
-    const FLOAT_ DEC = 1.0 / decimal_round;
+	const FLOAT_ DEC = 1.0 / decimal_round;
 
-    int intereps(FLOAT_ x)
-    {
-        if (x < -decimal_round)
-            return -1;
-        else if (x > decimal_round)
-            return 1;
-        return 0;
-    }
+	int intereps(FLOAT_ x)
+	{
+		if (x < -decimal_round)
+			return -1;
+		else if (x > decimal_round)
+			return 1;
+		return 0;
+	}
 
-    const FLOAT_ PI = acos(-1);
-    bool round_compare(FLOAT_ a, FLOAT_ b) { return round(DEC * a) == round(DEC * b); }
-    FLOAT_ Round(FLOAT_ a) { return round(DEC * a) / DEC; }
-    
-    /* 解一元二次方程，传出的x1为+delta，x2为-delta，如果无解返回两个nan */
-    std::pair<FLOAT_, FLOAT_> solveQuadraticEquation(FLOAT_ a, FLOAT_ b, FLOAT_ c)
-    {
-        FLOAT_ delta = pow(b, 2) - 4 * a * c;
-        if (delta < 0)
-            return std::make_pair(nan(""), nan(""));
-        else
-        {
-            delta = sqrt(delta);
-            FLOAT_ x1 = (-b + delta) / (2 * a);
-            FLOAT_ x2 = (-b - delta) / (2 * a);
-            return std::make_pair(x1, x2);
-        }
-    }
+	const FLOAT_ PI = acos(-1);
+	bool round_compare(FLOAT_ a, FLOAT_ b) { return round(DEC * a) == round(DEC * b); }
+	FLOAT_ Round(FLOAT_ a) { return round(DEC * a) / DEC; }
+	
+	/* 解一元二次方程，传出的x1为+delta，x2为-delta，如果无解返回两个nan */
+	std::pair<FLOAT_, FLOAT_> solveQuadraticEquation(FLOAT_ a, FLOAT_ b, FLOAT_ c)
+	{
+		FLOAT_ delta = pow(b, 2) - 4 * a * c;
+		if (delta < 0)
+			return std::make_pair(nan(""), nan(""));
+		else
+		{
+			delta = sqrt(delta);
+			FLOAT_ x1 = (-b + delta) / (2 * a);
+			FLOAT_ x2 = (-b - delta) / (2 * a);
+			return std::make_pair(x1, x2);
+		}
+	}
 
 	/* 
 	求极大值，浮点型三分，实际上是假三分，接近二分复杂度
@@ -2771,7 +2771,7 @@ namespace Geometry
 		return std::make_pair(mid, f(mid));
 	}
 
-    template <typename T>
+	template <typename T>
 	std::pair<LL, T> ternary_searchi(LL l, LL r, std::function<T(LL)> f)
 	{
 		while (l + 2 < r)
@@ -2801,78 +2801,78 @@ namespace Geometry
 template <typename PrecisionType = long long>
 struct Fraction
 {
-    PrecisionType upper, lower;
+	PrecisionType upper, lower;
 
-    Fraction(PrecisionType u = 0, PrecisionType l = 1)
-    {
-        upper = u;
-        lower = l;
-    }
-    void normalize()
-    {
-        if (upper)
-        {
-            PrecisionType g = abs(std::__gcd(upper, lower));
-            upper /= g;
-            lower /= g;
-        }
-        else
-            lower = 1;
-        if (lower < 0)
-        {
-            lower = -lower;
-            upper = -upper;
-        }
-    }
-    long double ToFloat() { return (long double)upper / (long double)lower; }
-    bool operator==(Fraction b) { return upper * b.lower == lower * b.upper; }
-    bool operator>(Fraction b) { return upper * b.lower > lower * b.upper; }
-    bool operator<(Fraction b) { return upper * b.lower < lower * b.upper; }
-    bool operator<=(Fraction b) { return !(*this > b); }
-    bool operator>=(Fraction b) { return !(*this < b); }
-    bool operator!=(Fraction b) { return !(*this == b); }
-    Fraction operator-() { return Fraction(-upper, lower); }
-    Fraction operator+(Fraction b) { return Fraction(upper * b.lower + b.upper * lower, lower * b.lower); }
-    Fraction operator-(Fraction b) { return (*this) + (-b); }
-    Fraction operator*(Fraction b) { return Fraction(upper * b.upper, lower * b.lower); }
-    Fraction operator/(Fraction b) { return Fraction(upper * b.lower, lower * b.upper); }
-    Fraction &operator+=(Fraction b)
-    {
-        *this = *this + b;
-        this->normalize();
-        return *this;
-    }
-    Fraction &operator-=(Fraction b)
-    {
-        *this = *this - b;
-        this->normalize();
-        return *this;
-    }
-    Fraction &operator*=(Fraction b)
-    {
-        *this = *this * b;
-        this->normalize();
-        return *this;
-    }
-    Fraction &operator/=(Fraction b)
-    {
-        *this = *this / b;
-        this->normalize();
-        return *this;
-    }
-    friend Fraction fabs(Fraction a) { return Fraction(abs(a.upper), abs(a.lower)); }
-    std::string to_string() { return lower == 1 ? std::to_string(upper) : std::to_string(upper) + '/' + std::to_string(lower); }
-    friend std::ostream &operator<<(std::ostream &o, Fraction a)
-    {
-        return o << "Fraction(" << std::to_string(a.upper) << ", " << std::to_string(a.lower) << ")";
-    }
-    friend std::istream &operator>>(std::istream &i, Fraction &a)
-    {
-        char slash;
-        return i >> a.upper >> slash >> a.lower;
-    }
-    friend isfinite(Fraction a) { return a.lower != 0; }
-    void set_value(PrecisionType u, PrecisionType d = 1) { upper = u, lower = d; }
+	Fraction(PrecisionType u = 0, PrecisionType l = 1)
+	{
+		upper = u;
+		lower = l;
+	}
+	void normalize()
+	{
+		if (upper)
+		{
+			PrecisionType g = abs(std::__gcd(upper, lower));
+			upper /= g;
+			lower /= g;
+		}
+		else
+			lower = 1;
+		if (lower < 0)
+		{
+			lower = -lower;
+			upper = -upper;
+		}
+	}
+	long double ToFloat() { return (long double)upper / (long double)lower; }
+	bool operator==(Fraction b) { return upper * b.lower == lower * b.upper; }
+	bool operator>(Fraction b) { return upper * b.lower > lower * b.upper; }
+	bool operator<(Fraction b) { return upper * b.lower < lower * b.upper; }
+	bool operator<=(Fraction b) { return !(*this > b); }
+	bool operator>=(Fraction b) { return !(*this < b); }
+	bool operator!=(Fraction b) { return !(*this == b); }
+	Fraction operator-() { return Fraction(-upper, lower); }
+	Fraction operator+(Fraction b) { return Fraction(upper * b.lower + b.upper * lower, lower * b.lower); }
+	Fraction operator-(Fraction b) { return (*this) + (-b); }
+	Fraction operator*(Fraction b) { return Fraction(upper * b.upper, lower * b.lower); }
+	Fraction operator/(Fraction b) { return Fraction(upper * b.lower, lower * b.upper); }
+	Fraction &operator+=(Fraction b)
+	{
+		*this = *this + b;
+		this->normalize();
+		return *this;
+	}
+	Fraction &operator-=(Fraction b)
+	{
+		*this = *this - b;
+		this->normalize();
+		return *this;
+	}
+	Fraction &operator*=(Fraction b)
+	{
+		*this = *this * b;
+		this->normalize();
+		return *this;
+	}
+	Fraction &operator/=(Fraction b)
+	{
+		*this = *this / b;
+		this->normalize();
+		return *this;
+	}
+	friend Fraction fabs(Fraction a) { return Fraction(abs(a.upper), abs(a.lower)); }
+	std::string to_string() { return lower == 1 ? std::to_string(upper) : std::to_string(upper) + '/' + std::to_string(lower); }
+	friend std::ostream &operator<<(std::ostream &o, Fraction a)
+	{
+		return o << "Fraction(" << std::to_string(a.upper) << ", " << std::to_string(a.lower) << ")";
+	}
+	friend std::istream &operator>>(std::istream &i, Fraction &a)
+	{
+		char slash;
+		return i >> a.upper >> slash >> a.lower;
+	}
+	friend isfinite(Fraction a) { return a.lower != 0; }
+	void set_value(PrecisionType u, PrecisionType d = 1) { upper = u, lower = d; }
 };
 ```
 
@@ -3540,44 +3540,44 @@ template <typename VALUETYPE = FLOAT_>
 struct SquareMatrix : Matrix<VALUETYPE>
 {
 
-    static SquareMatrix eye(int siz)
-    {
-        SquareMatrix ret(siz);
-        for (siz--; siz >= 0; siz--)
-            ret[siz][siz] = 1;
-        return ret;
-    }
+	static SquareMatrix eye(int siz)
+	{
+		SquareMatrix ret(siz);
+		for (siz--; siz >= 0; siz--)
+			ret[siz][siz] = 1;
+		return ret;
+	}
 
-    SquareMatrix quick_power(long long p, long long mod = 0)
-    {
-        SquareMatrix ans = eye(this->ROW);
-        SquareMatrix rhs(*this);
-        while (p)
-        {
-            if (p & 1)
-            {
-                ans = ans.dot(rhs, mod);
-            }
-            rhs = rhs.dot(rhs, mod);
-            p >>= 1;
-        }
-        return ans;
-    }
+	SquareMatrix quick_power(long long p, long long mod = 0)
+	{
+		SquareMatrix ans = eye(this->ROW);
+		SquareMatrix rhs(*this);
+		while (p)
+		{
+			if (p & 1)
+			{
+				ans = ans.dot(rhs, mod);
+			}
+			rhs = rhs.dot(rhs, mod);
+			p >>= 1;
+		}
+		return ans;
+	}
 
-    SquareMatrix inv(long long mod = 0)
-    {
-        Matrix<VALUETYPE> ret(*this);
-        ret.rconcat(eye(this->ROW));
-        ret.row_echelonify(mod); // 行最简形
-        // cerr << ret << endl;
-        for (int i = 0; i < this->ROW; i++)
-        {
-            if (ret[i][i] != 1)
-                throw "Error at matrix inverse: cannot identify extended matrix";
-        }
-        ret.lerase(this->ROW);
-        return ret;
-    }
+	SquareMatrix inv(long long mod = 0)
+	{
+		Matrix<VALUETYPE> ret(*this);
+		ret.rconcat(eye(this->ROW));
+		ret.row_echelonify(mod); // 行最简形
+		// cerr << ret << endl;
+		for (int i = 0; i < this->ROW; i++)
+		{
+			if (ret[i][i] != 1)
+				throw "Error at matrix inverse: cannot identify extended matrix";
+		}
+		ret.lerase(this->ROW);
+		return ret;
+	}
 };
 ```
 
@@ -3587,95 +3587,95 @@ struct SquareMatrix : Matrix<VALUETYPE>
 
 struct Line2
 {
-    FLOAT_ A, B, C;
-    /* 默认两点式，打false为点向式（先点后向） */
-    Line2(const Vector2 &u, const Vector2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
-    {
-        if (u == v)
-        {
-            if (u.x)
-            {
-                A = 1;
-                B = 0;
-                C = -u.x;
-            }
-            else if (u.y)
-            {
-                A = 0;
-                B = 1;
-                C = -u.y;
-            }
-            else
-            {
-                A = 1;
-                B = -1;
-                C = 0;
-            }
-        }
-        if (!two_point)
-        {
-            A = -v.y;
-            B = v.x;
-            C = -(A * u.x + B * u.y);
-        }
-    }
-    Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
-    
-    static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
-    FLOAT_ k() const { return -A / B; }
-    FLOAT_ b() const { return -C / B; }
-    FLOAT_ x(FLOAT_ y) const { return -(B * y + C) / A; }
-    FLOAT_ y(FLOAT_ x) const { return -(A * x + C) / B; }
-    /* 点到直线的距离 */
-    FLOAT_ distToPoint(const Vector2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
-    /* 直线距离公式，使用前先判平行 */
-    static FLOAT_ Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
-    /* 判断平行 */
-    static bool IsParallel(const Line2 &u, const Line2 &v)
-    {
-        bool f1 = round_compare(u.B, 0.0);
-        bool f2 = round_compare(v.B, 0.0);
-        if (f1 != f2)
-            return false;
-        return f1 or round_compare(u.A * v.B - v.A * u.B, 0);
-    }
+	FLOAT_ A, B, C;
+	/* 默认两点式，打false为点向式（先点后向） */
+	Line2(const Vector2 &u, const Vector2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
+	{
+		if (u == v)
+		{
+			if (u.x)
+			{
+				A = 1;
+				B = 0;
+				C = -u.x;
+			}
+			else if (u.y)
+			{
+				A = 0;
+				B = 1;
+				C = -u.y;
+			}
+			else
+			{
+				A = 1;
+				B = -1;
+				C = 0;
+			}
+		}
+		if (!two_point)
+		{
+			A = -v.y;
+			B = v.x;
+			C = -(A * u.x + B * u.y);
+		}
+	}
+	Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
+	
+	static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
+	FLOAT_ k() const { return -A / B; }
+	FLOAT_ b() const { return -C / B; }
+	FLOAT_ x(FLOAT_ y) const { return -(B * y + C) / A; }
+	FLOAT_ y(FLOAT_ x) const { return -(A * x + C) / B; }
+	/* 点到直线的距离 */
+	FLOAT_ distToPoint(const Vector2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
+	/* 直线距离公式，使用前先判平行 */
+	static FLOAT_ Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
+	/* 判断平行 */
+	static bool IsParallel(const Line2 &u, const Line2 &v)
+	{
+		bool f1 = round_compare(u.B, 0.0);
+		bool f2 = round_compare(v.B, 0.0);
+		if (f1 != f2)
+			return false;
+		return f1 or round_compare(u.A * v.B - v.A * u.B, 0);
+	}
 
-    /* 单位化（？） */
-    void normalize()
-    {
-        FLOAT_ su = sqrt(A * A + B * B + C * C);
-        if (A < 0)
-            su = -su;
-        else if (A == 0 and B < 0)
-            su = -su;
-        A /= su;
-        B /= su;
-        C /= su;
-    }
-    /* 返回单位化后的直线 */
-    Line2 normalized() const
-    {
-        Line2 t(*this);
-        t.normalize();
-        return t;
-    }
+	/* 单位化（？） */
+	void normalize()
+	{
+		FLOAT_ su = sqrt(A * A + B * B + C * C);
+		if (A < 0)
+			su = -su;
+		else if (A == 0 and B < 0)
+			su = -su;
+		A /= su;
+		B /= su;
+		C /= su;
+	}
+	/* 返回单位化后的直线 */
+	Line2 normalized() const
+	{
+		Line2 t(*this);
+		t.normalize();
+		return t;
+	}
 
-    bool operator==(const Line2 &v) const { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
-    bool operator!=(const Line2 &v) const { return !(*this == v); }
+	bool operator==(const Line2 &v) const { return round_compare(A, v.A) and round_compare(B, v.B) and round_compare(C, v.C); }
+	bool operator!=(const Line2 &v) const { return !(*this == v); }
 
-    /* 判断两直线是否是同一条直线 */
-    static bool IsSame(const Line2 &u, const Line2 &v)
-    {
-        return Line2::IsParallel(u, v) and round_compare(Distance(u.normalized(), v.normalized()), 0.0);
-    }
+	/* 判断两直线是否是同一条直线 */
+	static bool IsSame(const Line2 &u, const Line2 &v)
+	{
+		return Line2::IsParallel(u, v) and round_compare(Distance(u.normalized(), v.normalized()), 0.0);
+	}
 
-    /* 计算交点 */
-    static Vector2 Intersect(const Line2 &u, const Line2 &v)
-    {
-        FLOAT_ tx = (u.B * v.C - v.B * u.C) / (v.B * u.A - u.B * v.A);
-        FLOAT_ ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
-        return Vector2(tx, ty);
-    }
+	/* 计算交点 */
+	static Vector2 Intersect(const Line2 &u, const Line2 &v)
+	{
+		FLOAT_ tx = (u.B * v.C - v.B * u.C) / (v.B * u.A - u.B * v.A);
+		FLOAT_ ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
+		return Vector2(tx, ty);
+	}
 };
 ```
 
@@ -3684,43 +3684,43 @@ struct Line2
 ```cpp
 struct Segment2 : Line2 // 二维有向线段
 {
-    Vector2 from, to;
-    Segment2(Vector2 a, Vector2 b) : Line2(a, b), from(a), to(b) {}
-    Segment2(FLOAT_ x, FLOAT_ y, FLOAT_ X, FLOAT_ Y) : Line2(Vector2(x, y), Vector2(X, Y)), from(Vector2(x, y)), to(Vector2(X, Y)) {}
-    Vector2 toward() const { return to - from; }
-    /* 精度较低的判断点在线段上 */
-    bool is_online(Vector2 poi)
-    {
-        return round_compare((Vector2::Distance(poi, to) + Vector2::Distance(poi, from)), Vector2::Distance(from, to));
-    }
-    /* 判断本线段的射线方向与线段b的交点会不会落在b内，认为long double可以装下long long精度，如果seg2存的点是精确的，这么判断比求交点再online更精确 */
-    bool ray_in_range(const Segment2 &b) const
-    {
-        Vector2 p = to - from;
-        Vector2 pl = b.to - from;
-        Vector2 pr = b.from - from;
-        FLOAT_ c1 = Vector2::Cross(p, pl);
-        FLOAT_ c2 = Vector2::Cross(p, pr);
-        return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
-    }
+	Vector2 from, to;
+	Segment2(Vector2 a, Vector2 b) : Line2(a, b), from(a), to(b) {}
+	Segment2(FLOAT_ x, FLOAT_ y, FLOAT_ X, FLOAT_ Y) : Line2(Vector2(x, y), Vector2(X, Y)), from(Vector2(x, y)), to(Vector2(X, Y)) {}
+	Vector2 toward() const { return to - from; }
+	/* 精度较低的判断点在线段上 */
+	bool is_online(Vector2 poi)
+	{
+		return round_compare((Vector2::Distance(poi, to) + Vector2::Distance(poi, from)), Vector2::Distance(from, to));
+	}
+	/* 判断本线段的射线方向与线段b的交点会不会落在b内，认为long double可以装下long long精度，如果seg2存的点是精确的，这么判断比求交点再online更精确 */
+	bool ray_in_range(const Segment2 &b) const
+	{
+		Vector2 p = to - from;
+		Vector2 pl = b.to - from;
+		Vector2 pr = b.from - from;
+		FLOAT_ c1 = Vector2::Cross(p, pl);
+		FLOAT_ c2 = Vector2::Cross(p, pr);
+		return c1 >= 0 and c2 <= 0 or c1 <= 0 and c2 >= 0;
+	}
 	/* 判断相交 */
 	static bool IsIntersect(const Segment2 &u, const Segment2 &v)
 	{
 		return u.ray_in_range(v) && v.ray_in_range(u);
 	}
-    /* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
-    static bool IsParallel(const Segment2 &u, const Segment2 &v)
-    {
-        return (Vector2::Cross(u.to - u.from, v.to - v.from) == 0);
-    }
-    
-    /* 防止Line2精度不足的平行线距离，一次sqrt */
-    static FLOAT_ Distance(const Segment2 &a, const Segment2 &b)
-    {
-        return a.distToPoint(b.to);
-    }
-    /* 点到直线的距离，一次sqrt */
-    FLOAT_ distToPoint(const Vector2 &p) const { return abs(Vector2::Cross(p - from, toward()) / toward().magnitude()); }
+	/* 方向向量叉积判平行，比直线判平行更精确更快，按需使用eps */
+	static bool IsParallel(const Segment2 &u, const Segment2 &v)
+	{
+		return (Vector2::Cross(u.to - u.from, v.to - v.from) == 0);
+	}
+	
+	/* 防止Line2精度不足的平行线距离，一次sqrt */
+	static FLOAT_ Distance(const Segment2 &a, const Segment2 &b)
+	{
+		return a.distToPoint(b.to);
+	}
+	/* 点到直线的距离，一次sqrt */
+	FLOAT_ distToPoint(const Vector2 &p) const { return abs(Vector2::Cross(p - from, toward()) / toward().magnitude()); }
 };
 ```
 
@@ -3729,54 +3729,54 @@ struct Segment2 : Line2 // 二维有向线段
 ```cpp
 struct Polygon2
 {
-    std::vector<Vector2> points;
+	std::vector<Vector2> points;
 
 private:
-    Vector2 accordance;
+	Vector2 accordance;
 
 public:
-    inline Polygon2 ConvexHull()
-    {
-        Polygon2 ret;
-        std::sort(points.begin(), points.end());
-        std::vector<Vector2> &stk = ret.points;
+	inline Polygon2 ConvexHull()
+	{
+		Polygon2 ret;
+		std::sort(points.begin(), points.end());
+		std::vector<Vector2> &stk = ret.points;
 
-        std::vector<char> used(points.size(), 0);
-        std::vector<int> uid;
-        for (auto &i : points)
-        {
-            while (stk.size() >= 2 and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
-            {
-                used[uid.back()] = 0;
-                uid.pop_back();
-                stk.pop_back();
-            }
+		std::vector<char> used(points.size(), 0);
+		std::vector<int> uid;
+		for (auto &i : points)
+		{
+			while (stk.size() >= 2 and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+			{
+				used[uid.back()] = 0;
+				uid.pop_back();
+				stk.pop_back();
+			}
 
-            used[&i - &points.front()] = 1;
-            uid.emplace_back(&i - &points.front());
-            stk.emplace_back(i);
-        }
-        used[0] = 0;
-        int ts = stk.size();
-        for (auto ii = ++points.rbegin(); ii != points.rend(); ii++)
-        {
-            Vector2 &i = *ii;
-            if (!used[&i - &points.front()])
-            {
-                while (stk.size() > ts and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
-                {
-                    used[uid.back()] = 0;
-                    uid.pop_back();
-                    stk.pop_back();
-                }
-                used[&i - &points.front()] = 1;
-                uid.emplace_back(&i - &points.front());
-                stk.emplace_back(i);
-            }
-        }
-        stk.pop_back();
-        return ret;
-    }
+			used[&i - &points.front()] = 1;
+			uid.emplace_back(&i - &points.front());
+			stk.emplace_back(i);
+		}
+		used[0] = 0;
+		int ts = stk.size();
+		for (auto ii = ++points.rbegin(); ii != points.rend(); ii++)
+		{
+			Vector2 &i = *ii;
+			if (!used[&i - &points.front()])
+			{
+				while (stk.size() > ts and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+				{
+					used[uid.back()] = 0;
+					uid.pop_back();
+					stk.pop_back();
+				}
+				used[&i - &points.front()] = 1;
+				uid.emplace_back(&i - &points.front());
+				stk.emplace_back(i);
+			}
+		}
+		stk.pop_back();
+		return ret;
+	}
 
 	
 	/* log2(n)判断点在凸包内，要求逆时针序的凸包，即使用ConvexHull得到的多边形 */
@@ -3803,109 +3803,109 @@ public:
 	}
 
 	/* 凸包的闵可夫斯基和，支持long long */
-    inline static Polygon2 MinkowskiConvexHull(const Polygon2 &A, const Polygon2 &B)
-    {
-        Polygon2 Ad, Bd, ret;
-        for (int i = 0; i < A.points.size() - 1; ++i)
-            Ad.points.emplace_back(A.points[i + 1] - A.points[i]);
-        Ad.points.emplace_back(A.points.front() - A.points.back());
-        for (int i = 0; i < B.points.size() - 1; ++i)
-            Bd.points.emplace_back(B.points[i + 1] - B.points[i]);
-        Bd.points.emplace_back(B.points.front() - B.points.back());
-        ret.points.emplace_back(A.points.front() + B.points.front());
-        auto p1 = Ad.points.begin();
-        auto p2 = Bd.points.begin();
-        while (p1 != Ad.points.end() && p2 != Bd.points.end())
-            ret.points.emplace_back(ret.points.back() + (Vector2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
-        while (p1 != Ad.points.end())
-            ret.points.emplace_back(ret.points.back() + *(p1++));
-        while (p2 != Bd.points.end())
-            ret.points.emplace_back(ret.points.back() + *(p2++));
-        return ret.ConvexHull();
-    }
+	inline static Polygon2 MinkowskiConvexHull(const Polygon2 &A, const Polygon2 &B)
+	{
+		Polygon2 Ad, Bd, ret;
+		for (int i = 0; i < A.points.size() - 1; ++i)
+			Ad.points.emplace_back(A.points[i + 1] - A.points[i]);
+		Ad.points.emplace_back(A.points.front() - A.points.back());
+		for (int i = 0; i < B.points.size() - 1; ++i)
+			Bd.points.emplace_back(B.points[i + 1] - B.points[i]);
+		Bd.points.emplace_back(B.points.front() - B.points.back());
+		ret.points.emplace_back(A.points.front() + B.points.front());
+		auto p1 = Ad.points.begin();
+		auto p2 = Bd.points.begin();
+		while (p1 != Ad.points.end() && p2 != Bd.points.end())
+			ret.points.emplace_back(ret.points.back() + (Vector2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
+		while (p1 != Ad.points.end())
+			ret.points.emplace_back(ret.points.back() + *(p1++));
+		while (p2 != Bd.points.end())
+			ret.points.emplace_back(ret.points.back() + *(p2++));
+		return ret.ConvexHull();
+	}
 
-    /* 凸多边形用逆时针排序 */
-    inline void autoanticlockwiselize()
-    {
-        accordance = average();
-        anticlockwiselize();
-    }
+	/* 凸多边形用逆时针排序 */
+	inline void autoanticlockwiselize()
+	{
+		accordance = average();
+		anticlockwiselize();
+	}
 
-    inline void anticlockwiselize()
-    {
-        auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool
-        {
-            return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
-        };
-        std::sort(points.begin(), points.end(), anticlock_comparator);
-    }
+	inline void anticlockwiselize()
+	{
+		auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool
+		{
+			return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
+		};
+		std::sort(points.begin(), points.end(), anticlock_comparator);
+	}
 
-    inline Vector2 average() const
-    {
-        Vector2 avg(0, 0);
-        for (auto &i : points)
-        {
-            avg += i;
-        }
-        return avg / points.size();
-    }
+	inline Vector2 average() const
+	{
+		Vector2 avg(0, 0);
+		for (auto &i : points)
+		{
+			avg += i;
+		}
+		return avg / points.size();
+	}
 
-    /* 求周长 */
-    inline FLOAT_ perimeter() const
-    {
-        FLOAT_ ret = Vector2::Distance(points.front(), points.back());
-        for (int i = 1; i < points.size(); i++)
-            ret += Vector2::Distance(points[i], points[i - 1]);
-        return ret;
-    }
-    /* 面积 */
-    inline FLOAT_ area() const
-    {
-        FLOAT_ ret = Vector2::Cross(points.back(), points.front());
-        for (int i = 1; i < points.size(); i++)
-            ret = ret + Vector2::Cross(points[i - 1], points[i]);
-        return ret / 2;
-    }
-    /* 求几何中心（形心、重心） */
-    inline Vector2 center() const
-    {
-        Vector2 ret = (points.back() + points.front()) * Vector2::Cross(points.back(), points.front());
-        for (int i = 1; i < points.size(); i++)
-            ret = ret + (points[i - 1] + points[i]) * Vector2::Cross(points[i - 1], points[i]);
-        return ret / area() / 6;
-    }
-    /* 求边界整点数 */
-    inline long long boundary_points() const
-    {
-        long long b = 0;
-        for (int i = 0; i < points.size() - 1; i++)
-        {
-            b += std::__gcd((long long)abs(points[i + 1].x - points[i].x), (long long)abs(points[i + 1].y - points[i].y));
-        }
-        return b;
-    }
-    /* Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数 */
-    inline long long interior_points(FLOAT_ A = -1, long long b = -1) const
-    {
-        if (A < 0)
-            A = area();
-        if (b < 0)
-            b = boundary_points();
-        return (long long)A + 1 - (b / 2);
-    }
+	/* 求周长 */
+	inline FLOAT_ perimeter() const
+	{
+		FLOAT_ ret = Vector2::Distance(points.front(), points.back());
+		for (int i = 1; i < points.size(); i++)
+			ret += Vector2::Distance(points[i], points[i - 1]);
+		return ret;
+	}
+	/* 面积 */
+	inline FLOAT_ area() const
+	{
+		FLOAT_ ret = Vector2::Cross(points.back(), points.front());
+		for (int i = 1; i < points.size(); i++)
+			ret = ret + Vector2::Cross(points[i - 1], points[i]);
+		return ret / 2;
+	}
+	/* 求几何中心（形心、重心） */
+	inline Vector2 center() const
+	{
+		Vector2 ret = (points.back() + points.front()) * Vector2::Cross(points.back(), points.front());
+		for (int i = 1; i < points.size(); i++)
+			ret = ret + (points[i - 1] + points[i]) * Vector2::Cross(points[i - 1], points[i]);
+		return ret / area() / 6;
+	}
+	/* 求边界整点数 */
+	inline long long boundary_points() const
+	{
+		long long b = 0;
+		for (int i = 0; i < points.size() - 1; i++)
+		{
+			b += std::__gcd((long long)abs(points[i + 1].x - points[i].x), (long long)abs(points[i + 1].y - points[i].y));
+		}
+		return b;
+	}
+	/* Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数 */
+	inline long long interior_points(FLOAT_ A = -1, long long b = -1) const
+	{
+		if (A < 0)
+			A = area();
+		if (b < 0)
+			b = boundary_points();
+		return (long long)A + 1 - (b / 2);
+	}
 
-    inline bool is_inner(const Vector2 &p) const
-    {
-        bool res = false;
-        Vector2 j = points.back();
-        for (auto &i : points)
-        {
-            if ((i.y < p.y and j.y >= p.y or j.y < p.y and i.y >= p.y) and (i.x <= p.x or j.x <= p.x))
-                res ^= (i.x + (p.y - i.y) / (j.y - i.y) * (j.x - i.x) < p.x);
-            j = i;
-        }
-        return res;
-    }
+	inline bool is_inner(const Vector2 &p) const
+	{
+		bool res = false;
+		Vector2 j = points.back();
+		for (auto &i : points)
+		{
+			if ((i.y < p.y and j.y >= p.y or j.y < p.y and i.y >= p.y) and (i.x <= p.x or j.x <= p.x))
+				res ^= (i.x + (p.y - i.y) / (j.y - i.y) * (j.x - i.x) < p.x);
+			j = i;
+		}
+		return res;
+	}
 
 	/* 别人写的更快的板子，三角形面积并 */
 	static FLOAT_ triangles_area(std::vector<Polygon2> &P)
@@ -4206,7 +4206,7 @@ public:
 		}
 		return ans * 0.5;
 	}
-    
+	
 };
 
 /* 旋转卡壳用例
@@ -4216,17 +4216,17 @@ int jdx = 1;
 FLOAT_ dis = 0;
 for (auto &i : CV.points)
 {
-    // auto cdis = (i - CV.points.front()).sqrMagnitude();
-    int tj = (jdx + 1) % CV.points.size();
-    int ti = (idx + 1) % CV.points.size();
-    while (Vector2::Cross(CV.points[tj] - i, CV.points[ti] - i) < Vector2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
-    {
-        jdx = tj;
-        tj = (jdx + 1) % CV.points.size();
-    }
-    dis = max({dis, (CV.points[jdx] - i).sqrMagnitude(), (CV.points[jdx] - CV.points[ti]).sqrMagnitude()});
-    
-    ++idx;
+	// auto cdis = (i - CV.points.front()).sqrMagnitude();
+	int tj = (jdx + 1) % CV.points.size();
+	int ti = (idx + 1) % CV.points.size();
+	while (Vector2::Cross(CV.points[tj] - i, CV.points[ti] - i) < Vector2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
+	{
+		jdx = tj;
+		tj = (jdx + 1) % CV.points.size();
+	}
+	dis = max({dis, (CV.points[jdx] - i).sqrMagnitude(), (CV.points[jdx] - CV.points[ti]).sqrMagnitude()});
+	
+	++idx;
 }
 cout << dis << endl;
 
@@ -4262,70 +4262,70 @@ struct Face3 : std::array<Vector3, 3>
 /* 两点式空间直线，1 to 0 from */
 struct Segment3 : std::array<Vector3, 2>
 {
-    Segment3(const Vector3 &v0, const Vector3 &v1) : std::array<Vector3, 2>({v0, v1}) {}
-    template <typename... Args>
-    Segment3(bool super, Args &&...args) : std::array<Vector3, 2>(std::forward<Args>(args)...) {}
-    /* 方向向量，未经单位化 */
-    Vector3 toward() const { return at(1) - at(0); }
-    /* 点到空间直线的距离，一次sqrt */
-    FLOAT_ distance(const Vector3 &p) const
-    {
-        Vector3 p1 = toward();
-        Vector3 p2 = p - at(0);
-        Vector3 c = Vector3::Cross(p1, p2);
-        return sqrt(c.sqrMagnitude() / p1.sqrMagnitude()); // 损失精度的源泉：sqrt
-    }
-    /* 点到空间直线的垂足，无精度损失 */
-    Vector3 project(const Vector3 &p) const
-    {
-        Vector3 p1 = toward();
-        Vector3 p2 = p - at(0);
-        // cerr << cos(Vector3::Rad(p2, p1)) << endl;
-        // cerr << p1.normalized() << endl;
-        // FLOAT_ r = Vector3::Rad(p2, p1);
-        // Vector3 c = Vector3::Cross(p1, p2);
-        // c.len / p1.len * p1 / p1.len
-        // return at(0) + Vector3::Project(p2, p1);
-        return Vector3::Dot(p2, p1) * p1 / p1.sqrMagnitude() + at(0); // 无损的式子化简
+	Segment3(const Vector3 &v0, const Vector3 &v1) : std::array<Vector3, 2>({v0, v1}) {}
+	template <typename... Args>
+	Segment3(bool super, Args &&...args) : std::array<Vector3, 2>(std::forward<Args>(args)...) {}
+	/* 方向向量，未经单位化 */
+	Vector3 toward() const { return at(1) - at(0); }
+	/* 点到空间直线的距离，一次sqrt */
+	FLOAT_ distance(const Vector3 &p) const
+	{
+		Vector3 p1 = toward();
+		Vector3 p2 = p - at(0);
+		Vector3 c = Vector3::Cross(p1, p2);
+		return sqrt(c.sqrMagnitude() / p1.sqrMagnitude()); // 损失精度的源泉：sqrt
+	}
+	/* 点到空间直线的垂足，无精度损失 */
+	Vector3 project(const Vector3 &p) const
+	{
+		Vector3 p1 = toward();
+		Vector3 p2 = p - at(0);
+		// cerr << cos(Vector3::Rad(p2, p1)) << endl;
+		// cerr << p1.normalized() << endl;
+		// FLOAT_ r = Vector3::Rad(p2, p1);
+		// Vector3 c = Vector3::Cross(p1, p2);
+		// c.len / p1.len * p1 / p1.len
+		// return at(0) + Vector3::Project(p2, p1);
+		return Vector3::Dot(p2, p1) * p1 / p1.sqrMagnitude() + at(0); // 无损的式子化简
 		// return Vector3::Cos(p2, p1) * p1 * sqrt(p2.sqrMagnitude() / p1.sqrMagnitude()) + at(0); // 损失精度源：
-    }
-    /* 直线与平面交点，无损 */
-    Vector3 intersect(const Face3 &f) const
-    {
-        // FLOAT_ a0 = f.distanceS(at(0));
-        // FLOAT_ a1 = f.distanceS(at(1));
-        FLOAT_ a00 = Vector3::Dot(at(0) - f.at(0), f.normal());
-        FLOAT_ a11 = Vector3::Dot(at(1) - f.at(0), f.normal());
-        // Vector3 d0 = a0 * toward() / (a0 - a1); // 两个sqrt
-        Vector3 d0 = a00 * toward() / (a00 - a11); // 无损
+	}
+	/* 直线与平面交点，无损 */
+	Vector3 intersect(const Face3 &f) const
+	{
+		// FLOAT_ a0 = f.distanceS(at(0));
+		// FLOAT_ a1 = f.distanceS(at(1));
+		FLOAT_ a00 = Vector3::Dot(at(0) - f.at(0), f.normal());
+		FLOAT_ a11 = Vector3::Dot(at(1) - f.at(0), f.normal());
+		// Vector3 d0 = a0 * toward() / (a0 - a1); // 两个sqrt
+		Vector3 d0 = a00 * toward() / (a00 - a11); // 无损
 
-        return d0 + at(0);
-    }
-    /* 异面直线最近点对，无损 */
-    std::pair<Vector3, Vector3> nearest(const Segment3 &s) const
-    {
-        Vector3 p1 = toward();
-        Vector3 p2 = s.at(0) - at(0);
-        Vector3 p3 = s.at(1) - at(0);
+		return d0 + at(0);
+	}
+	/* 异面直线最近点对，无损 */
+	std::pair<Vector3, Vector3> nearest(const Segment3 &s) const
+	{
+		Vector3 p1 = toward();
+		Vector3 p2 = s.at(0) - at(0);
+		Vector3 p3 = s.at(1) - at(0);
 
-        Vector3 c = Vector3::Cross(p1, s.toward());
-        Face3 f(at(0), c + at(0), p1 + at(0));
+		Vector3 c = Vector3::Cross(p1, s.toward());
+		Face3 f(at(0), c + at(0), p1 + at(0));
 
-        Vector3 sret = s.intersect(f);
-        Vector3 pj = project(sret);
-        return std::make_pair(isnan(pj.x) ? sret : pj, sret);
-    }
-    /* 空间直线的距离，一次sqrt */
-    FLOAT_ distance(const Segment3 &s) const
-    {
-        if (Vector3::coplanar({at(1), at(0), s.at(1), s.at(0)}))
-            return distance(s.at(0));
-        Vector3 c = Vector3::Cross(toward(), s.toward());
-        c.Normalize();
-        return abs(Vector3::Dot(c, at(0) - s.at(0)));
-        // auto sol = nearest(s);
-        // return Vector3::Distance(sol.first, sol.second);
-    }
+		Vector3 sret = s.intersect(f);
+		Vector3 pj = project(sret);
+		return std::make_pair(isnan(pj.x) ? sret : pj, sret);
+	}
+	/* 空间直线的距离，一次sqrt */
+	FLOAT_ distance(const Segment3 &s) const
+	{
+		if (Vector3::coplanar({at(1), at(0), s.at(1), s.at(0)}))
+			return distance(s.at(0));
+		Vector3 c = Vector3::Cross(toward(), s.toward());
+		c.Normalize();
+		return abs(Vector3::Dot(c, at(0) - s.at(0)));
+		// auto sol = nearest(s);
+		// return Vector3::Distance(sol.first, sol.second);
+	}
 };
 ```
 
@@ -4390,123 +4390,123 @@ struct Polygon3
 ```c++
 namespace Geometry
 {
-    /* https://www.luogu.com.cn/record/51674409 模板题需要用long double */
-    struct Circle
-    {
-        Vector2 center;
-        FLOAT_ radius;
-        Circle(Vector2 c, FLOAT_ r) : center(c), radius(r) {}
-        Circle(FLOAT_ x, FLOAT_ y, FLOAT_ r) : center(x, y), radius(r) {}
-        Circle(Vector2 a, Vector2 b, Vector2 c)
-        {
-            Vector2 p1 = Vector2::LerpUnclamped(a, b, 0.5);
-            Vector2 v1 = b - a;
-            swap(v1.x, v1.y);
-            v1.x = -v1.x;
-            Vector2 p2 = Vector2::LerpUnclamped(b, c, 0.5);
-            Vector2 v2 = c - b;
-            swap(v2.x, v2.y);
-            v2.x = -v2.x;
+	/* https://www.luogu.com.cn/record/51674409 模板题需要用long double */
+	struct Circle
+	{
+		Vector2 center;
+		FLOAT_ radius;
+		Circle(Vector2 c, FLOAT_ r) : center(c), radius(r) {}
+		Circle(FLOAT_ x, FLOAT_ y, FLOAT_ r) : center(x, y), radius(r) {}
+		Circle(Vector2 a, Vector2 b, Vector2 c)
+		{
+			Vector2 p1 = Vector2::LerpUnclamped(a, b, 0.5);
+			Vector2 v1 = b - a;
+			swap(v1.x, v1.y);
+			v1.x = -v1.x;
+			Vector2 p2 = Vector2::LerpUnclamped(b, c, 0.5);
+			Vector2 v2 = c - b;
+			swap(v2.x, v2.y);
+			v2.x = -v2.x;
 
-            center = Line2::Intersect(Line2(p1, v1, false), Line2(p2, v2, false));
+			center = Line2::Intersect(Line2(p1, v1, false), Line2(p2, v2, false));
 
-            radius = (center - a).magnitude();
-        }
-        Vector2 fromRad(FLOAT_ A)
-        {
-            return Vector2(center.x + radius * cos(A), center.y + radius * sin(A));
-        }
-        std::pair<Vector2, Vector2> intersect_points(Line2 l)
-        {
-            FLOAT_ k = l.k();
-            // 特判
-            if (isnan(k))
-            {
-                FLOAT_ x = -l.C / l.A;
-                FLOAT_ rhs = pow(radius, 2) - pow(x - center.x, 2);
-                if (rhs < 0)
-                    return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
-                else
-                {
-                    rhs = sqrt(rhs);
-                    return make_pair(Vector2(x, rhs + radius), Vector2(x, -rhs + radius));
-                }
-            }
-            FLOAT_ lb = l.b();
-            FLOAT_ a = k * k + 1;
-            FLOAT_ b = 2 * k * (lb - center.y) - 2 * center.x;
-            FLOAT_ c = pow(lb - center.y, 2) + pow(center.x, 2) - pow(radius, 2);
-            FLOAT_ x1, x2;
-            std::tie(x1, x2) = solveQuadraticEquation(a, b, c);
-            if (isnan(x1))
-            {
-                return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
-            }
-            else
-            {
-                return make_pair(Vector2(x1, l.y(x1)), Vector2(x2, l.y(x2)));
-            }
-        }
-        /* 使用极角和余弦定理算交点，更稳，但没添加处理相离和相包含的情况 */
-        std::pair<Vector2, Vector2> intersect_points(Circle cir)
-        {
-            Vector2 distV = (cir.center - center);
-            FLOAT_ dist = distV.magnitude();
-            FLOAT_ ang = distV.toPolarAngle(false);
-            FLOAT_ dang = acos((pow(radius, 2) + pow(dist, 2) - pow(cir.radius, 2)) / (2 * radius * dist)); //余弦定理
-            return make_pair(fromRad(ang + dang), fromRad(ang - dang));
-        }
+			radius = (center - a).magnitude();
+		}
+		Vector2 fromRad(FLOAT_ A)
+		{
+			return Vector2(center.x + radius * cos(A), center.y + radius * sin(A));
+		}
+		std::pair<Vector2, Vector2> intersect_points(Line2 l)
+		{
+			FLOAT_ k = l.k();
+			// 特判
+			if (isnan(k))
+			{
+				FLOAT_ x = -l.C / l.A;
+				FLOAT_ rhs = pow(radius, 2) - pow(x - center.x, 2);
+				if (rhs < 0)
+					return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+				else
+				{
+					rhs = sqrt(rhs);
+					return make_pair(Vector2(x, rhs + radius), Vector2(x, -rhs + radius));
+				}
+			}
+			FLOAT_ lb = l.b();
+			FLOAT_ a = k * k + 1;
+			FLOAT_ b = 2 * k * (lb - center.y) - 2 * center.x;
+			FLOAT_ c = pow(lb - center.y, 2) + pow(center.x, 2) - pow(radius, 2);
+			FLOAT_ x1, x2;
+			std::tie(x1, x2) = solveQuadraticEquation(a, b, c);
+			if (isnan(x1))
+			{
+				return make_pair(Vector2(nan(""), nan("")), Vector2(nan(""), nan("")));
+			}
+			else
+			{
+				return make_pair(Vector2(x1, l.y(x1)), Vector2(x2, l.y(x2)));
+			}
+		}
+		/* 使用极角和余弦定理算交点，更稳，但没添加处理相离和相包含的情况 */
+		std::pair<Vector2, Vector2> intersect_points(Circle cir)
+		{
+			Vector2 distV = (cir.center - center);
+			FLOAT_ dist = distV.magnitude();
+			FLOAT_ ang = distV.toPolarAngle(false);
+			FLOAT_ dang = acos((pow(radius, 2) + pow(dist, 2) - pow(cir.radius, 2)) / (2 * radius * dist)); //余弦定理
+			return make_pair(fromRad(ang + dang), fromRad(ang - dang));
+		}
 
-        FLOAT_ area() { return PI * radius * radius; }
+		FLOAT_ area() { return PI * radius * radius; }
 
-        bool is_outside(Vector2 p)
-        {
-            return (p - center).magnitude() > radius;
-        }
-        bool is_inside(Vector2 p)
-        {
-            return intereps((p - center).magnitude() - radius) < 0;
-        }
-        static intersect_area(Circle A, Circle B)
-        {
-            Vector2 dis = A.center - B.center;
-            FLOAT_ sqrdis = dis.sqrMagnitude();
-            FLOAT_ cdis = sqrt(sqrdis);
-            if (sqrdis >= pow(A.radius + B.radius, 2))
-                return FLOAT_(0);
-            if (A.radius >= B.radius)
-                std::swap(A, B);
-            if (cdis + A.radius <= B.radius)
-                return PI * A.radius * A.radius;
-            if (sqrdis >= B.radius * B.radius)
-            {
-                FLOAT_ area = 0.0;
-                FLOAT_ ed = sqrdis;
-                FLOAT_ jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt((FLOAT_)ed));
-                jiao = acos(jiao);
-                jiao *= 2.0;
-                area += B.radius * B.radius * jiao / 2;
-                jiao = sin(jiao);
-                area -= B.radius * B.radius * jiao / 2;
-                jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt((FLOAT_)ed));
-                jiao = acos(jiao);
-                jiao *= 2;
-                area += A.radius * A.radius * jiao / 2;
-                jiao = sin(jiao);
-                area -= A.radius * A.radius * jiao / 2;
-                return area;
-            }
-            FLOAT_ area = 0.0;
-            FLOAT_ ed = sqrdis;
-            FLOAT_ jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt(ed));
-            jiao = acos(jiao);
-            area += A.radius * A.radius * jiao;
-            jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt(ed));
-            jiao = acos(jiao);
-            area += B.radius * B.radius * jiao - B.radius * sqrt(ed) * sin(jiao);
-            return area;
-        }
-    };
+		bool is_outside(Vector2 p)
+		{
+			return (p - center).magnitude() > radius;
+		}
+		bool is_inside(Vector2 p)
+		{
+			return intereps((p - center).magnitude() - radius) < 0;
+		}
+		static intersect_area(Circle A, Circle B)
+		{
+			Vector2 dis = A.center - B.center;
+			FLOAT_ sqrdis = dis.sqrMagnitude();
+			FLOAT_ cdis = sqrt(sqrdis);
+			if (sqrdis >= pow(A.radius + B.radius, 2))
+				return FLOAT_(0);
+			if (A.radius >= B.radius)
+				std::swap(A, B);
+			if (cdis + A.radius <= B.radius)
+				return PI * A.radius * A.radius;
+			if (sqrdis >= B.radius * B.radius)
+			{
+				FLOAT_ area = 0.0;
+				FLOAT_ ed = sqrdis;
+				FLOAT_ jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt((FLOAT_)ed));
+				jiao = acos(jiao);
+				jiao *= 2.0;
+				area += B.radius * B.radius * jiao / 2;
+				jiao = sin(jiao);
+				area -= B.radius * B.radius * jiao / 2;
+				jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt((FLOAT_)ed));
+				jiao = acos(jiao);
+				jiao *= 2;
+				area += A.radius * A.radius * jiao / 2;
+				jiao = sin(jiao);
+				area -= A.radius * A.radius * jiao / 2;
+				return area;
+			}
+			FLOAT_ area = 0.0;
+			FLOAT_ ed = sqrdis;
+			FLOAT_ jiao = ((FLOAT_)A.radius * A.radius + ed - B.radius * B.radius) / (2.0 * A.radius * sqrt(ed));
+			jiao = acos(jiao);
+			area += A.radius * A.radius * jiao;
+			jiao = ((FLOAT_)B.radius * B.radius + ed - A.radius * A.radius) / (2.0 * B.radius * sqrt(ed));
+			jiao = acos(jiao);
+			area += B.radius * B.radius * jiao - B.radius * sqrt(ed) * sin(jiao);
+			return area;
+		}
+	};
 }
 ```
 
@@ -4515,40 +4515,40 @@ namespace Geometry
 ```cpp
 struct Sphere
 {
-    FLOAT_ radius;
-    Vector3 center;
-    Sphere(Vector3 c, FLOAT_ r) : center(c), radius(r) {}
-    Sphere(FLOAT_ x, FLOAT_ y, FLOAT_ z, FLOAT_ r) : center(x, y, z), radius(r) {}
-    FLOAT_ volumn() { return 4.0 * PI * pow(radius, 3) / 3.0; }
-    FLOAT_ intersectVolumn(Sphere o)
-    {
-        Vector3 dist = o.center - center;
-        FLOAT_ distval = dist.magnitude();
-        if (distval > o.radius + radius)
-            return 0;
-        if (distval < abs(o.radius - radius))
-        {
-            return o.radius > radius ? volumn() : o.volumn();
-        }
-        FLOAT_ &d = distval;
-        //球心距
-        FLOAT_ t = (d * d + o.radius * o.radius - radius * radius) / (2.0 * d);
-        //h1=h2，球冠的高
-        FLOAT_ h = sqrt((o.radius * o.radius) - (t * t)) * 2;
-        FLOAT_ angle_a = 2 * acos((o.radius * o.radius + d * d - radius * radius) / (2.0 * o.radius * d)); //余弦公式计算r1对应圆心角，弧度
-        FLOAT_ angle_b = 2 * acos((radius * radius + d * d - o.radius * o.radius) / (2.0 * radius * d));   //余弦公式计算r2对应圆心角，弧度
-        FLOAT_ l1 = ((o.radius * o.radius - radius * radius) / d + d) / 2;
-        FLOAT_ l2 = d - l1;
-        FLOAT_ x1 = o.radius - l1, x2 = radius - l2;	//分别为两个球缺的高度
-        FLOAT_ v1 = PI * x1 * x1 * (o.radius - x1 / 3); //相交部分r1圆所对应的球缺部分体积
-        FLOAT_ v2 = PI * x2 * x2 * (radius - x2 / 3);	//相交部分r2圆所对应的球缺部分体积
-                                                        //相交部分体积
-        return v1 + v2;
-    }
-    FLOAT_ joinVolumn(Sphere o)
-    {
-        return volumn() + o.volumn() - intersectVolumn(o);
-    }
+	FLOAT_ radius;
+	Vector3 center;
+	Sphere(Vector3 c, FLOAT_ r) : center(c), radius(r) {}
+	Sphere(FLOAT_ x, FLOAT_ y, FLOAT_ z, FLOAT_ r) : center(x, y, z), radius(r) {}
+	FLOAT_ volumn() { return 4.0 * PI * pow(radius, 3) / 3.0; }
+	FLOAT_ intersectVolumn(Sphere o)
+	{
+		Vector3 dist = o.center - center;
+		FLOAT_ distval = dist.magnitude();
+		if (distval > o.radius + radius)
+			return 0;
+		if (distval < abs(o.radius - radius))
+		{
+			return o.radius > radius ? volumn() : o.volumn();
+		}
+		FLOAT_ &d = distval;
+		//球心距
+		FLOAT_ t = (d * d + o.radius * o.radius - radius * radius) / (2.0 * d);
+		//h1=h2，球冠的高
+		FLOAT_ h = sqrt((o.radius * o.radius) - (t * t)) * 2;
+		FLOAT_ angle_a = 2 * acos((o.radius * o.radius + d * d - radius * radius) / (2.0 * o.radius * d)); //余弦公式计算r1对应圆心角，弧度
+		FLOAT_ angle_b = 2 * acos((radius * radius + d * d - o.radius * o.radius) / (2.0 * radius * d));   //余弦公式计算r2对应圆心角，弧度
+		FLOAT_ l1 = ((o.radius * o.radius - radius * radius) / d + d) / 2;
+		FLOAT_ l2 = d - l1;
+		FLOAT_ x1 = o.radius - l1, x2 = radius - l2;	//分别为两个球缺的高度
+		FLOAT_ v1 = PI * x1 * x1 * (o.radius - x1 / 3); //相交部分r1圆所对应的球缺部分体积
+		FLOAT_ v2 = PI * x2 * x2 * (radius - x2 / 3);	//相交部分r2圆所对应的球缺部分体积
+														//相交部分体积
+		return v1 + v2;
+	}
+	FLOAT_ joinVolumn(Sphere o)
+	{
+		return volumn() + o.volumn() - intersectVolumn(o);
+	}
 };
 ```
 
@@ -4561,58 +4561,58 @@ using FT = long double;
 
 FT fun(FT angle) // 根据需要改 评估函数
 {
-    FT res = 0;
-    for (auto &[TT, SS, AA] : V)
-    {
-        FT deg = abs(angle - AA);
-        res += max(FT(0.0), TT - SS * (deg >= pi ? oneround - deg : deg));
-    }
+	FT res = 0;
+	for (auto &[TT, SS, AA] : V)
+	{
+		FT deg = abs(angle - AA);
+		res += max(FT(0.0), TT - SS * (deg >= pi ? oneround - deg : deg));
+	}
 
-    return res;
+	return res;
 }
 
 FT randreal(FT begin = -pi, FT end = pi)
 {
-    static std::default_random_engine eng(time(0));
-    std::uniform_real_distribution<FT> skip_rate(begin, end);
-    return skip_rate(eng);
+	static std::default_random_engine eng(time(0));
+	std::uniform_real_distribution<FT> skip_rate(begin, end);
+	return skip_rate(eng);
 }
 
 template <typename IT>
 IT randint(IT begin, IT end)
 {
-    static std::default_random_engine eng(time(0));
-    std::uniform_int_distribution<IT> skip_rate(begin, end);
-    return skip_rate(eng);
+	static std::default_random_engine eng(time(0));
+	std::uniform_int_distribution<IT> skip_rate(begin, end);
+	return skip_rate(eng);
 }
 
 void sa(FT temperature = 300, FT cooldown = 1e-14, FT cool = 0.986)
 {
-    FT cangle = randreal(0, oneround);
-    FT jbj = fun(cangle); // 局部解
-    MX = max(MX, jbj); // 全局解
+	FT cangle = randreal(0, oneround);
+	FT jbj = fun(cangle); // 局部解
+	MX = max(MX, jbj); // 全局解
 
-    while (temperature > cooldown) 
-    {
-        FT curangle = fmod(cangle + randreal(-1, 1) * temperature, oneround);
-        while (curangle < 0)
-            curangle += oneround;
+	while (temperature > cooldown) 
+	{
+		FT curangle = fmod(cangle + randreal(-1, 1) * temperature, oneround);
+		while (curangle < 0)
+			curangle += oneround;
 
-        FT energy = fun(curangle);
-        FT de = jbj - energy;
-        MX = max(jbj, MX);
-        if (de < 0)
-        {
-            cangle = curangle;
-            jbj = energy;
-        }
-        else if (exp(-de / (temperature)) > randreal(0, 1))
-        {
-            cangle = curangle;
-            jbj = energy;
-        }
-        temperature *= cool;
-    }
+		FT energy = fun(curangle);
+		FT de = jbj - energy;
+		MX = max(jbj, MX);
+		if (de < 0)
+		{
+			cangle = curangle;
+			jbj = energy;
+		}
+		else if (exp(-de / (temperature)) > randreal(0, 1))
+		{
+			cangle = curangle;
+			jbj = energy;
+		}
+		temperature *= cool;
+	}
 }
 
 ```
@@ -4626,46 +4626,46 @@ void sa(FT temperature = 300, FT cooldown = 1e-14, FT cool = 0.986)
 /* 解同余方程ax + by = c */
 void exgcd_solve()
 {
-    qr(a);
-    qr(b);
-    qr(c);
+	qr(a);
+	qr(b);
+	qr(c);
 
-    LL GCD = exgcd(a, b, x, y);
-    if (c % GCD != 0) // 无解
-    {
-        puts("-1");
-        return;
-    }
+	LL GCD = exgcd(a, b, x, y);
+	if (c % GCD != 0) // 无解
+	{
+		puts("-1");
+		return;
+	}
 
-    LL xishu = c / GCD;
+	LL xishu = c / GCD;
 
-    LL x1 = x * xishu;
-    LL y1 = y * xishu;
-    // 为了满足 a * (x1 + db) + b * (y1 - da) = c的形式
-    // x1, y1 是特解，通过枚举【实数】d可以得到通解
-    LL dx = b / GCD; // 构造 x = x1 + s * dx ，即a的系数
-    LL dy = a / GCD; // 构造 y = y1 - s * dy ，即b的系数
-                     // 这步的s就可以是整数了
-    // 限制 x>0 => x1 + s * dx > 0 => s > - x1 / dx (实数)
-    // 限制 y>0 => y1 - s * dy > 0 => s < y1 / dy (实数)
+	LL x1 = x * xishu;
+	LL y1 = y * xishu;
+	// 为了满足 a * (x1 + db) + b * (y1 - da) = c的形式
+	// x1, y1 是特解，通过枚举【实数】d可以得到通解
+	LL dx = b / GCD; // 构造 x = x1 + s * dx ，即a的系数
+	LL dy = a / GCD; // 构造 y = y1 - s * dy ，即b的系数
+					 // 这步的s就可以是整数了
+	// 限制 x>0 => x1 + s * dx > 0 => s > - x1 / dx (实数)
+	// 限制 y>0 => y1 - s * dy > 0 => s < y1 / dy (实数)
 
-    LL xlower = ceil(double(-x1 + 1) / dx); // s可能的最小值
-    LL yupper = floor(double(y1 - 1) / dy); // s可能的最大值
-    if (xlower > yupper)
-    {
-        LL xMin = x1 + xlower * dx;            // x的最小正整数解
-        LL yMin = y1 - yupper * dy;            // y的最小正整数解
-        printf("%lld %lld\n", xMin, yMin);
-    }
-    else
-    {
-        LL s_range = yupper - xlower + 1; // 正整数解个数
-        LL xMax = x1 + yupper * dx;       // x的最大正整数解
-        LL xMin = x1 + xlower * dx;       // x的最小正整数解
-        LL yMax = y1 - xlower * dy;       // y的最大正整数解
-        LL yMin = y1 - yupper * dy;       // y的最小正整数解
-        printf("%lld %lld %lld %lld %lld\n", s_range, xMin, yMin, xMax, yMax);
-    }
+	LL xlower = ceil(double(-x1 + 1) / dx); // s可能的最小值
+	LL yupper = floor(double(y1 - 1) / dy); // s可能的最大值
+	if (xlower > yupper)
+	{
+		LL xMin = x1 + xlower * dx;            // x的最小正整数解
+		LL yMin = y1 - yupper * dy;            // y的最小正整数解
+		printf("%lld %lld\n", xMin, yMin);
+	}
+	else
+	{
+		LL s_range = yupper - xlower + 1; // 正整数解个数
+		LL xMax = x1 + yupper * dx;       // x的最大正整数解
+		LL xMin = x1 + xlower * dx;       // x的最小正整数解
+		LL yMax = y1 - xlower * dy;       // y的最大正整数解
+		LL yMin = y1 - yupper * dy;       // y的最小正整数解
+		printf("%lld %lld %lld %lld %lld\n", s_range, xMin, yMin, xMax, yMax);
+	}
 }
 ```
 
@@ -4833,17 +4833,17 @@ struct Cipolla
 /* 取 l <= dx%m <= r 的最小非负x */
 LL modinq(LL m, LL d, LL l, LL r)
 {
-    // 0 <= l <= r < m, d < m, minimal non-negative solution
-    if (r < l)
-        return -1;
-    if (l == 0)
-        return 0;
-    if (d == 0)
-        return -1;
-    if ((r / d) * d >= l)
-        return (l - 1) / d + 1;
-    LL res = modinq(d, m % d, (d - r % d) % d, (d - l % d) % d);
-    return res == -1 ? -1 : (m * res + l - 1) / d + 1;
+	// 0 <= l <= r < m, d < m, minimal non-negative solution
+	if (r < l)
+		return -1;
+	if (l == 0)
+		return 0;
+	if (d == 0)
+		return -1;
+	if ((r / d) * d >= l)
+		return (l - 1) / d + 1;
+	LL res = modinq(d, m % d, (d - r % d) % d, (d - l % d) % d);
+	return res == -1 ? -1 : (m * res + l - 1) / d + 1;
 }
 ```
 
@@ -4862,35 +4862,35 @@ bool marked[ORAFM + 5];
 
 void ORAfliter(LL MX)
 {
-    mobius[1] = phi[1] = 1;
-    for (unsigned int i = 2; i <= MX; i++)
-    {
-        if (!marked[i])
-        {
-            prime[++prime_number] = i;
-            prv[i] = i;
-            phi[i] = i - 1;
-            mobius[i] = -1;
-        }
-        for (unsigned int j = 1; j <= prime_number && i * prime[j] <= MX; j++)
-        {
-            marked[i * prime[j]] = true;
-            prv[i * prime[j]] = prime[j];
-            if (i % prime[j] == 0)
-            {
-                phi[i * prime[j]] = prime[j] * phi[i];
-                break;
-            }
-            phi[i * prime[j]] = phi[prime[j]] * phi[i];
-            mobius[i * prime[j]] = -mobius[i]; // 平方因数不会被处理到，默认是0
-        }
-    }
-    // 这句话是做莫比乌斯函数和欧拉函数的前缀和
-    for (unsigned int i = 2; i <= MX; ++i)
-    {
-        mobius[i] += mobius[i - 1];
-        phi[i] += phi[i - 1];
-    }
+	mobius[1] = phi[1] = 1;
+	for (unsigned int i = 2; i <= MX; i++)
+	{
+		if (!marked[i])
+		{
+			prime[++prime_number] = i;
+			prv[i] = i;
+			phi[i] = i - 1;
+			mobius[i] = -1;
+		}
+		for (unsigned int j = 1; j <= prime_number && i * prime[j] <= MX; j++)
+		{
+			marked[i * prime[j]] = true;
+			prv[i * prime[j]] = prime[j];
+			if (i % prime[j] == 0)
+			{
+				phi[i * prime[j]] = prime[j] * phi[i];
+				break;
+			}
+			phi[i * prime[j]] = phi[prime[j]] * phi[i];
+			mobius[i * prime[j]] = -mobius[i]; // 平方因数不会被处理到，默认是0
+		}
+	}
+	// 这句话是做莫比乌斯函数和欧拉函数的前缀和
+	for (unsigned int i = 2; i <= MX; ++i)
+	{
+		mobius[i] += mobius[i - 1];
+		phi[i] += phi[i - 1];
+	}
 }
 ```
 
@@ -4898,60 +4898,60 @@ void ORAfliter(LL MX)
 ```cpp
 inline void prework(LL n)
 {
-    int tot = 0;
-    for (LL l = 1, r; l <= n; l = r + 1)
-    {
-        r = n / (n / l); // 数论分块？
-        w[++tot] = n / l;
-        // g1[tot] = w[tot] % mo;
-        // g2[tot] = (g1[tot] * (g1[tot] + 1) >> 1) % mo * ((g1[tot] << 1) + 1) % mo * inv3 % mo;
-        // g2[tot]--;
-        // g1[tot] = (g1[tot] * (g1[tot] + 1) >> 1) % mo - 1;
-        valposition(n / l, n) = tot;
-        g1[tot] = n / l - 1;
-        // g2[tot] = n / l - 1;
-    }
-    for (int i = 1; i <= prime_number; i++)
-    {
-        for (int j = 1; j <= tot and (LL) prime[i] * prime[i] <= w[j]; j++)
-        {
-            LL n_div_m_val = w[j] / prime[i];
-            if (n_div_m_val)
-            {
-                int n_div_m = valposition(n_div_m_val, n); // m: prime[i]
-                g1[j] -= g1[n_div_m] - (i - 1);            // 枚举第i个质数，所以可以直接减去i-1，这里无需记录sp
-            }
-            // g1[j] -= (LL)prime[i] * (g1[k] - sp1[i - 1] + mo) % mo;
-            // g2[j] -= (LL)prime[i] * prime[i] % mo * (g2[k] - sp2[i - 1] + mo) % mo;
-            // g1[j] %= mo,
-            //     g2[j] %= mo;
-            // if (g1[j] < 0)
-            //     g1[j] += mo;
-            // if (g2[j] < 0)
-            //     g2[j] += mo;
-        }
-    }
+	int tot = 0;
+	for (LL l = 1, r; l <= n; l = r + 1)
+	{
+		r = n / (n / l); // 数论分块？
+		w[++tot] = n / l;
+		// g1[tot] = w[tot] % mo;
+		// g2[tot] = (g1[tot] * (g1[tot] + 1) >> 1) % mo * ((g1[tot] << 1) + 1) % mo * inv3 % mo;
+		// g2[tot]--;
+		// g1[tot] = (g1[tot] * (g1[tot] + 1) >> 1) % mo - 1;
+		valposition(n / l, n) = tot;
+		g1[tot] = n / l - 1;
+		// g2[tot] = n / l - 1;
+	}
+	for (int i = 1; i <= prime_number; i++)
+	{
+		for (int j = 1; j <= tot and (LL) prime[i] * prime[i] <= w[j]; j++)
+		{
+			LL n_div_m_val = w[j] / prime[i];
+			if (n_div_m_val)
+			{
+				int n_div_m = valposition(n_div_m_val, n); // m: prime[i]
+				g1[j] -= g1[n_div_m] - (i - 1);            // 枚举第i个质数，所以可以直接减去i-1，这里无需记录sp
+			}
+			// g1[j] -= (LL)prime[i] * (g1[k] - sp1[i - 1] + mo) % mo;
+			// g2[j] -= (LL)prime[i] * prime[i] % mo * (g2[k] - sp2[i - 1] + mo) % mo;
+			// g1[j] %= mo,
+			//     g2[j] %= mo;
+			// if (g1[j] < 0)
+			//     g1[j] += mo;
+			// if (g2[j] < 0)
+			//     g2[j] += mo;
+		}
+	}
 }
 // 1~x中最小质因子大于y的函数值
 inline LL S_(LL x, int y)
 {
-    if (prime[y] >= x)
-        return 0;
-    int k = valposition(x, n);
-    // 此处g1、g2代表1、2次项
-    LL ans = (g2[k] - g1[k] + mo - (sp2[y] - sp1[y]) + mo) % mo;
-    // ans = (ans + mo) % mo;
-    for (int i = y + 1; i <= prime_number and prime[i] * prime[i] <= x; ++i)
-    {
-        LL pe = prime[i];
-        for (int e = 1; pe <= x; e++, pe *= prime[i])
-        {
-            LL xx = pe % mo;
-            // 大概这里改ans？原题求p^k*(p^k-1)
-            ans = (ans + xx * (xx - 1) % mo * (S_(x / pe, i) + (e != 1))) % mo;
-        }
-    }
-    return ans % mo;
+	if (prime[y] >= x)
+		return 0;
+	int k = valposition(x, n);
+	// 此处g1、g2代表1、2次项
+	LL ans = (g2[k] - g1[k] + mo - (sp2[y] - sp1[y]) + mo) % mo;
+	// ans = (ans + mo) % mo;
+	for (int i = y + 1; i <= prime_number and prime[i] * prime[i] <= x; ++i)
+	{
+		LL pe = prime[i];
+		for (int e = 1; pe <= x; e++, pe *= prime[i])
+		{
+			LL xx = pe % mo;
+			// 大概这里改ans？原题求p^k*(p^k-1)
+			ans = (ans + xx * (xx - 1) % mo * (S_(x / pe, i) + (e != 1))) % mo;
+		}
+	}
+	return ans % mo;
 }
 
 
@@ -4964,58 +4964,58 @@ vector<vector<pair<LL, LL>>> QUERY(17, vector<pair<LL, LL>>());
 
 unsigned gfi(unsigned n, int j)
 {
-    unsigned mpk = unsigned(j) * 1000000001 + n;
-    if (IM.count(mpk))
-        return IM[mpk];
-    else
-    {
-        LL ret;
-        if (n < 2)
-            ret = 0;
-        else if (n == 2)
-            ret = 1;
-        else if (j < 1)
-            ret = n - 1;
-        else if (prime[j] * prime[j] > n)
-            ret = gfi(n, j - 1);
-        else
-            ret = gfi(n, j - 1) - (gfi(n / prime[j], j - 1) - (j - 1));
-        // if (n < 1e9)
-        //     return UM[mpk] = ret;
-        return ret;
-    }
+	unsigned mpk = unsigned(j) * 1000000001 + n;
+	if (IM.count(mpk))
+		return IM[mpk];
+	else
+	{
+		LL ret;
+		if (n < 2)
+			ret = 0;
+		else if (n == 2)
+			ret = 1;
+		else if (j < 1)
+			ret = n - 1;
+		else if (prime[j] * prime[j] > n)
+			ret = gfi(n, j - 1);
+		else
+			ret = gfi(n, j - 1) - (gfi(n / prime[j], j - 1) - (j - 1));
+		// if (n < 1e9)
+		//     return UM[mpk] = ret;
+		return ret;
+	}
 }
 
 LL gf(LL n, LL j)
 {
-    if (n < 1e9)
-        return gfi(unsigned(n), j);
-    ULL mpk = ULL(j) * 1000000000000000001 + n;
-    if (UM.count(mpk))
-        return UM[mpk];
-    else
-    {
-        LL ret;
-        if (n < 2)
-            ret = 0;
-        else if (n == 2)
-            ret = 1;
-        else if (j < 1)
-            ret = n - 1;
-        else if (prime[j] * prime[j] > n)
-            ret = gf(n, j - 1);
-        else
-        {
-            // ret = gf(n, j - 1) -  (gf(n / prime[j], j - 1)) - (j - 1);
-            ret = gf(n, j - 1);
-            LL dv = n / prime[j];
-            LL ret2 = (n < 1e9 ? gfi(dv, j - 1) : gf(dv, j - 1)) - (j - 1);
-            ret -= ret2;
-        }
-        // if (n < 1e9)
-        //     return UM[mpk] = ret;
-        return UM[mpk] = ret;
-    }
+	if (n < 1e9)
+		return gfi(unsigned(n), j);
+	ULL mpk = ULL(j) * 1000000000000000001 + n;
+	if (UM.count(mpk))
+		return UM[mpk];
+	else
+	{
+		LL ret;
+		if (n < 2)
+			ret = 0;
+		else if (n == 2)
+			ret = 1;
+		else if (j < 1)
+			ret = n - 1;
+		else if (prime[j] * prime[j] > n)
+			ret = gf(n, j - 1);
+		else
+		{
+			// ret = gf(n, j - 1) -  (gf(n / prime[j], j - 1)) - (j - 1);
+			ret = gf(n, j - 1);
+			LL dv = n / prime[j];
+			LL ret2 = (n < 1e9 ? gfi(dv, j - 1) : gf(dv, j - 1)) - (j - 1);
+			ret -= ret2;
+		}
+		// if (n < 1e9)
+		//     return UM[mpk] = ret;
+		return UM[mpk] = ret;
+	}
 }
 
 ```
@@ -5028,19 +5028,19 @@ LL fact[LUCASM];
 
 inline void get_fact(LL fact[], LL length, LL mo) // 预处理阶乘
 {
-    fact[0] = 1;
-    fact[1] = 1;
-    for (auto i = 2; i < length; i++)
-        fact[i] = fact[i - 1] * i % mo;
+	fact[0] = 1;
+	fact[1] = 1;
+	for (auto i = 2; i < length; i++)
+		fact[i] = fact[i - 1] * i % mo;
 }
 // 需要先预处理出fact[]，即阶乘
 inline LL C(LL m, LL n, LL p)
 {
-    return m < n ? 0 : fact[m] * inv(fact[n], p) % p * inv(fact[m - n], p) % p;
+	return m < n ? 0 : fact[m] * inv(fact[n], p) % p * inv(fact[m - n], p) % p;
 }
 inline LL lucas(LL m, LL n, LL p) // 求解大数组合数C(m,n) % p,传入依次是下面那个m和上面那个n和模数p（得是质数
 {
-    return n == 0 ? 1 % p : lucas(m / p, n / p, p) * C(m % p, n % p, p) % p;
+	return n == 0 ? 1 % p : lucas(m / p, n / p, p) * C(m % p, n % p, p) % p;
 }
 ```
 
@@ -5049,25 +5049,25 @@ inline LL lucas(LL m, LL n, LL p) // 求解大数组合数C(m,n) % p,传入依�
 ```cpp
 inline LL EXCRT(LL factors[], LL remains[], LL length) // 传入除数表，剩余表和两表的长度，若没有解，返回-1，否则返回合适的最小解
 {
-    bool valid = true;
-    for (auto i = 1; i < length; i++)
-    {
-        LL GCD = gcd(factors[i], factors[i - 1]);
-        LL M1 = factors[i];
-        LL M2 = factors[i - 1];
-        LL C1 = remains[i];
-        LL C2 = remains[i - 1];
-        LL LCM = M1 * M2 / GCD;
-        if ((C1 - C2) % GCD != 0)
-        {
-            valid = false;
-            break;
-        }
-        factors[i] = LCM;
-        remains[i] = (inv(M2 / GCD, M1 / GCD) * (C1 - C2) / GCD) % (M1 / GCD) * M2 + C2; // 对应合并公式
-        remains[i] = (remains[i] % factors[i] + factors[i]) % factors[i];                // 转正
-    }
-    return valid ? remains[length - 1] : -1;
+	bool valid = true;
+	for (auto i = 1; i < length; i++)
+	{
+		LL GCD = gcd(factors[i], factors[i - 1]);
+		LL M1 = factors[i];
+		LL M2 = factors[i - 1];
+		LL C1 = remains[i];
+		LL C2 = remains[i - 1];
+		LL LCM = M1 * M2 / GCD;
+		if ((C1 - C2) % GCD != 0)
+		{
+			valid = false;
+			break;
+		}
+		factors[i] = LCM;
+		remains[i] = (inv(M2 / GCD, M1 / GCD) * (C1 - C2) / GCD) % (M1 / GCD) * M2 + C2; // 对应合并公式
+		remains[i] = (remains[i] % factors[i] + factors[i]) % factors[i];                // 转正
+	}
+	return valid ? remains[length - 1] : -1;
 }
 ```
 
@@ -5076,20 +5076,20 @@ inline LL EXCRT(LL factors[], LL remains[], LL length) // 传入除数表，剩�
 ```cpp
 inline void exgcd(LL a, LL b, LL &x, LL &y)
 {
-    if (!b)
-    {
-        x = 1;
-        y = 0;
-        return;
-    }
-    exgcd(b, a % b, y, x);
-    y -= a / b * x;
+	if (!b)
+	{
+		x = 1;
+		y = 0;
+		return;
+	}
+	exgcd(b, a % b, y, x);
+	y -= a / b * x;
 }
 inline LL inv(LL a, LL mo)
 {
-    LL x, y;
-    exgcd(a, mo, x, y);
-    return x >= 0 ? x : x + mo;
+	LL x, y;
+	exgcd(a, mo, x, y);
+	return x >= 0 ? x : x + mo;
 }
 ```
 
@@ -5099,11 +5099,11 @@ inline LL inv(LL a, LL mo)
 //递推求法
 std::vector<LL> getInvRecursion(LL upp, LL mod)
 {
-    std::vector<LL> vinv(1, 0);
-    vinv.emplace_back(1);
-    for (LL i = 2; i <= upp; i++)
-        vinv.emplace_back((mod - mod / i) * vinv[mod % i] % mod);
-    return vinv;
+	std::vector<LL> vinv(1, 0);
+	vinv.emplace_back(1);
+	for (LL i = 2; i <= upp; i++)
+		vinv.emplace_back((mod - mod / i) * vinv[mod % i] % mod);
+	return vinv;
 }
 ```
 
@@ -5757,35 +5757,35 @@ struct Polynomial
 template <typename T>
 struct Complex
 {
-    T re_al, im_ag;
-    inline T &real() { return re_al; }
-    inline T &imag() { return im_ag; }
-    Complex() { re_al = im_ag = 0; }
-    Complex(T x) : re_al(x), im_ag(0) {}
-    Complex(T x, T y) : re_al(x), im_ag(y) {}
-    inline Complex conj() { return Complex(re_al, -im_ag); }
-    inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
-    inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
-    inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
-                                                                 im_ag * rhs.re_al + re_al * rhs.im_ag); }
-    inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
-    //(a+bi)(c+di) = (ac-bd) + (bc+ad)i
-    friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
-    inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
-    inline Complex operator/=(T x) { return (*this) = (*this) / x; }
-    friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
-    inline Complex operator/(Complex rhs) const
-    {
-        return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
-    }
-    inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
-    inline Complex operator=(T x)
-    {
-        this->im_ag = 0;
-        this->re_al = x;
-        return *this;
-    }
-    inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
+	T re_al, im_ag;
+	inline T &real() { return re_al; }
+	inline T &imag() { return im_ag; }
+	Complex() { re_al = im_ag = 0; }
+	Complex(T x) : re_al(x), im_ag(0) {}
+	Complex(T x, T y) : re_al(x), im_ag(y) {}
+	inline Complex conj() { return Complex(re_al, -im_ag); }
+	inline Complex operator+(Complex rhs) const { return Complex(re_al + rhs.re_al, im_ag + rhs.im_ag); }
+	inline Complex operator-(Complex rhs) const { return Complex(re_al - rhs.re_al, im_ag - rhs.im_ag); }
+	inline Complex operator*(Complex rhs) const { return Complex(re_al * rhs.re_al - im_ag * rhs.im_ag,
+																 im_ag * rhs.re_al + re_al * rhs.im_ag); }
+	inline Complex operator*=(Complex rhs) { return (*this) = (*this) * rhs; }
+	//(a+bi)(c+di) = (ac-bd) + (bc+ad)i
+	friend inline Complex operator*(T x, Complex cp) { return Complex(x * cp.re_al, x * cp.im_ag); }
+	inline Complex operator/(T x) const { return Complex(re_al / x, im_ag / x); }
+	inline Complex operator/=(T x) { return (*this) = (*this) / x; }
+	friend inline Complex operator/(T x, Complex cp) { return x * cp.conj() / (cp.re_al * cp.re_al - cp.im_ag * cp.im_ag); }
+	inline Complex operator/(Complex rhs) const
+	{
+		return (*this) * rhs.conj() / (rhs.re_al * rhs.re_al - rhs.im_ag * rhs.im_ag);
+	}
+	inline Complex operator/=(Complex rhs) { return (*this) = (*this) / rhs; }
+	inline Complex operator=(T x)
+	{
+		this->im_ag = 0;
+		this->re_al = x;
+		return *this;
+	}
+	inline T length() { return sqrt(re_al * re_al + im_ag * im_ag); }
 };
 using _MTT = Complex<double>;
 using _NTT = long long;
@@ -5799,27 +5799,27 @@ using _NTT = long long;
 ### 自然数幂和表
 ```py
 MP = {
-    0:"1 1 0",
-    1:"2 1 1 0",
-    2:"6 2 3 1 0",
-    3:"4 1 2 1 0 0",
-    4:"30 6 15 10 0 -1 0",
-    5:"12 2 6 5 0 -1 0 0",
-    6:"42 6 21 21 0 -7 0 1 0",
-    7:"24 3 12 14 0 -7 0 2 0 0",
-    8:"90 10 45 60 0 -42 0 20 0 -3 0",
-    9:"20 2 10 15 0 -14 0 10 0 -3 0 0",
-    10:"66 6 33 55 0 -66 0 66 0 -33 0 5 0",
-    11:"24 2 12 22 0 -33 0 44 0 -33 0 10 0 0",
-    12:"2730 210 1365 2730 0 -5005 0 8580 0 -9009 0 4550 0 -691 0",
-    13:"420 30 210 455 0 -1001 0 2145 0 -3003 0 2275 0 -691 0 0",
-    14:"90 6 45 105 0 -273 0 715 0 -1287 0 1365 0 -691 0 105 0",
-    15:"48 3 24 60 0 -182 0 572 0 -1287 0 1820 0 -1382 0 420 0 0",
-    16:"510 30 255 680 0 -2380 0 8840 0 -24310 0 44200 0 -46988 0 23800 0 -3617 0",
-    17:"180 10 90 255 0 -1020 0 4420 0 -14586 0 33150 0 -46988 0 35700 0 -10851 0 0",
-    18:"3990 210 1995 5985 0 -27132 0 135660 0 -529074 0 1469650 0 -2678316 0 2848860 0 -1443183 0 219335 0",
-    19:"840 42 420 1330 0 -6783 0 38760 0 -176358 0 587860 0 -1339158 0 1899240 0 -1443183 0 438670 0 0",
-    20:"6930 330 3465 11550 0 -65835 0 426360 0 -2238390 0 8817900 0 -24551230 0 44767800 0 -47625039 0 24126850 0 -3666831 0"
+	0:"1 1 0",
+	1:"2 1 1 0",
+	2:"6 2 3 1 0",
+	3:"4 1 2 1 0 0",
+	4:"30 6 15 10 0 -1 0",
+	5:"12 2 6 5 0 -1 0 0",
+	6:"42 6 21 21 0 -7 0 1 0",
+	7:"24 3 12 14 0 -7 0 2 0 0",
+	8:"90 10 45 60 0 -42 0 20 0 -3 0",
+	9:"20 2 10 15 0 -14 0 10 0 -3 0 0",
+	10:"66 6 33 55 0 -66 0 66 0 -33 0 5 0",
+	11:"24 2 12 22 0 -33 0 44 0 -33 0 10 0 0",
+	12:"2730 210 1365 2730 0 -5005 0 8580 0 -9009 0 4550 0 -691 0",
+	13:"420 30 210 455 0 -1001 0 2145 0 -3003 0 2275 0 -691 0 0",
+	14:"90 6 45 105 0 -273 0 715 0 -1287 0 1365 0 -691 0 105 0",
+	15:"48 3 24 60 0 -182 0 572 0 -1287 0 1820 0 -1382 0 420 0 0",
+	16:"510 30 255 680 0 -2380 0 8840 0 -24310 0 44200 0 -46988 0 23800 0 -3617 0",
+	17:"180 10 90 255 0 -1020 0 4420 0 -14586 0 33150 0 -46988 0 35700 0 -10851 0 0",
+	18:"3990 210 1995 5985 0 -27132 0 135660 0 -529074 0 1469650 0 -2678316 0 2848860 0 -1443183 0 219335 0",
+	19:"840 42 420 1330 0 -6783 0 38760 0 -176358 0 587860 0 -1339158 0 1899240 0 -1443183 0 438670 0 0",
+	20:"6930 330 3465 11550 0 -65835 0 426360 0 -2238390 0 8817900 0 -24551230 0 44767800 0 -47625039 0 24126850 0 -3666831 0"
 }
 ```
 
@@ -5827,74 +5827,74 @@ MP = {
 
 ```py
 def A072233_list(n: int, m: int, mod=0) -> list:
-    """n个无差别球塞进m个无差别盒子方案数"""
-    mod = int(mod)
-    f = [[0] * (m + 1)] * (n + 1)
-    f[0][0] = 1
-    for i in range(1, n+1):
-        for j in range(1, min(i+1, m+1)): # 只是求到m了话没必要打更大的
-            f[i][j] = f[i-1][j-1] + f[i-j][j]
-            if mod: f[i][j] %= mod
-    return f
+	"""n个无差别球塞进m个无差别盒子方案数"""
+	mod = int(mod)
+	f = [[0] * (m + 1)] * (n + 1)
+	f[0][0] = 1
+	for i in range(1, n+1):
+		for j in range(1, min(i+1, m+1)): # 只是求到m了话没必要打更大的
+			f[i][j] = f[i-1][j-1] + f[i-j][j]
+			if mod: f[i][j] %= mod
+	return f
 
 def A048993_list(n: int, m: int, mod=0) -> list:
-    """第二类斯特林数"""
-    mod = int(mod)
-    f = [1] + [0] * m
-    for i in range(1, n+1):
-        for j in range(min(m, i), 0, -1):
-            f[j] = f[j-1] + f[j] * j
-            if mod: f[j] %= mod
-        f[0] = 0
-    return f
+	"""第二类斯特林数"""
+	mod = int(mod)
+	f = [1] + [0] * m
+	for i in range(1, n+1):
+		for j in range(min(m, i), 0, -1):
+			f[j] = f[j-1] + f[j] * j
+			if mod: f[j] %= mod
+		f[0] = 0
+	return f
 
 
 def A000110_list(m, mod=0):
-    """集合划分方案总和，或者叫贝尔数"""
-    mod = int(mod)
-    A = [0 for i in range(m)]
-    # m -= 1
-    A[0] = 1
-    # R = [1, 1]
-    for n in range(1, m):
-        A[n] = A[0]
-        for k in range(n, 0, -1):
-            A[k-1] += A[k]
-            if mod: A[k-1] %= mod
-        # R.append(A[0])
-    # return R
-    return A[0]
+	"""集合划分方案总和，或者叫贝尔数"""
+	mod = int(mod)
+	A = [0 for i in range(m)]
+	# m -= 1
+	A[0] = 1
+	# R = [1, 1]
+	for n in range(1, m):
+		A[n] = A[0]
+		for k in range(n, 0, -1):
+			A[k-1] += A[k]
+			if mod: A[k-1] %= mod
+		# R.append(A[0])
+	# return R
+	return A[0]
 
 async def 球盒(*attrs, kwargs={}):
-    """求解把n个球放进m个盒子里面有多少种方案的问题。
+	"""求解把n个球放进m个盒子里面有多少种方案的问题。
 必须指定盒子和球以及允不允许为空三个属性。
 用法：
-    #球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
+	#球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
 用例：
-    #球盒 110 20 5
-    上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
-    # 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
-    if len(attrs)!=3:
-        return '不是这么用的！请输入#h #球盒'
-    n, m = map(int, attrs[1:3])
-    if attrs[0] == '110':
-        f = A072233_list(n, m)
-        return f[n][m]
-    elif attrs[0] == '111':
-        f = A072233_list(n, m)
-        return sum(f[-1])
-    elif attrs[0] == '100':
-        return A048993_list(n, m)[-1]
-    elif attrs[0] == '101':
-        return sum(A048993_list(n, m))
-    elif attrs[0] == '010':
-        return comb(n-1, m-1)
-    elif attrs[0] == '011':
-        return comb(n+m-1, m-1)
-    elif attrs[0] == '000': # 求两个集合的满射函数的个数可以用
-        return A048993_list(n, m)[-1] * math.factorial(m)
-    elif attrs[0] == '001':
-        return m**n
+	#球盒 110 20 5
+	上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
+	# 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
+	if len(attrs)!=3:
+		return '不是这么用的！请输入#h #球盒'
+	n, m = map(int, attrs[1:3])
+	if attrs[0] == '110':
+		f = A072233_list(n, m)
+		return f[n][m]
+	elif attrs[0] == '111':
+		f = A072233_list(n, m)
+		return sum(f[-1])
+	elif attrs[0] == '100':
+		return A048993_list(n, m)[-1]
+	elif attrs[0] == '101':
+		return sum(A048993_list(n, m))
+	elif attrs[0] == '010':
+		return comb(n-1, m-1)
+	elif attrs[0] == '011':
+		return comb(n+m-1, m-1)
+	elif attrs[0] == '000': # 求两个集合的满射函数的个数可以用
+		return A048993_list(n, m)[-1] * math.factorial(m)
+	elif attrs[0] == '001':
+		return m**n
 
 ```
 
@@ -6094,16 +6094,16 @@ int main()
 		{
 			if(a[pro+2]<a[pro]) continue;
 			a[pro+1]+=a[pro];
-            ans+=a[pro+1];ll k;
+			ans+=a[pro+1];ll k;
 			for(k=pro;k>now;k--) a[k]=a[k-1]; 
-            now++; k=pro+1;
+			now++; k=pro+1;
 			while(now<k&&a[k-1]<a[k]) {a[k]^=a[k-1]^=a[k]^=a[k-1];k--;}
 			break;
 		}
 		if(pro==n-1) {a[n-1]+=a[n];ans+=a[n-1];n--;}
 	}
 	if(now==n-1) ans+=(a[n-1]+a[n]); 
-    printf("%lld\n",ans);
+	printf("%lld\n",ans);
 	return 0;
 }
 ```
@@ -6158,9 +6158,9 @@ std::chrono::_V2::steady_clock::time_point C = chrono::steady_clock::now();
 std::chrono::duration<double> D;
 void gt(string s = "")
 {
-    cerr << s << endl;
-    cerr << setprecision(12) << fixed << '\t' << (D = chrono::steady_clock::now() - C).count() << "s" << endl;
-    C = chrono::steady_clock::now();
+	cerr << s << endl;
+	cerr << setprecision(12) << fixed << '\t' << (D = chrono::steady_clock::now() - C).count() << "s" << endl;
+	C = chrono::steady_clock::now();
 }
 ```
 
