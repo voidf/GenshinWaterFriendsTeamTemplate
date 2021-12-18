@@ -53,6 +53,7 @@ namespace Geometry
 		inline vec2 operator-() const { return vec2(-x, -y); }
 
 		inline friend std::ostream &operator<<(std::ostream &o, const vec2 &v) { return o << v.ToString(); }
+		inline friend std::istream &operator>>(std::istream &i, const vec2 &v) { return i >> v.x >> v.y; }
 		inline vec2 &operator+=(const vec2 &b)
 		{
 			x += b.x, y += b.y;

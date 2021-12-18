@@ -47,6 +47,7 @@ namespace Geometry
             }
         }
         inline friend std::ostream &operator<<(std::ostream &o, const vec3 &v) { return o << v.ToString(); }
+        inline friend std::istream &operator>>(std::istream &i, vec3 &v) { return i >> v.x >> v.y >> v.z; }
         inline vec3 &operator+=(const vec3 &b)
         {
             x += b.x, y += b.y, z += b.z;
@@ -87,6 +88,8 @@ namespace Geometry
             x /= n, y /= n, z /= n;
             return (*this);
         }
+        inline vec3 operator-() const { return vec3(-x, -y, -z); }
+
         inline vec3 operator+(const vec3 &b) const { return vec3(*this) += b; }
         inline vec3 operator-(const vec3 &b) const { return vec3(*this) -= b; }
         inline vec3 operator*(const vec3 &b) const { return vec3(*this) *= b; }
@@ -102,8 +105,12 @@ namespace Geometry
 
         /* 向量的平方模 */
         inline fl sqrMagnitude() const { return x * x + y * y + z * z; }
+        inline fl mag2() const { return sqrMagnitude(); }
+
         /* 向量的模，一次sqrt */
         inline fl magnitude() const { return sqrt(this->sqrMagnitude()); }
+        inline fl mag() const { return magnitude(); }
+
         /* 判等 */
         inline bool equals(const vec3 &b) const { return (*this) == b; }
         /* 向量单位化，一次sqrt */
@@ -142,8 +149,11 @@ namespace Geometry
 
         /* 点积 */
         inline static fl Dot(const vec3 &lhs, const vec3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
+        inline fl dot(const vec3 &b) const { return Dot(*this, b); }
+
         /* 叉积 */
         inline static vec3 Cross(const vec3 &lhs, const vec3 &rhs) { return vec3(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x); }
+        inline vec3 cross(const vec3 &b) const { return Cross(*this, b); }
 
         /* 无符号夹角cos值，一次sqrt */
         inline static fl Cos(const vec3 &from, const vec3 &to) { return Dot(from, to) / sqrt(from.sqrMagnitude() * to.sqrMagnitude()); }

@@ -6,14 +6,16 @@
 
 namespace Geometry
 {
+
 	struct Face3 : std::array<vec3, 3>
 	{
+		/* 根据法向构造坐标系向量 */
 		inline void constructCoordinate(const vec3 &z, vec3 &x, vec3 &y)
 		{
 			if (std::abs(z.x) > std::abs(z.y))
 				y = vec3(z.z, 0, -z.x);
 			else
-				y = vec3(0, z, z, -z, y);
+				y = vec3(0, z.z, -z.y);
 			x = vec3::Cross(y, z);
 		}
 		Face3(const vec3 &normal, const vec3 &offset)

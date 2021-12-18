@@ -44,9 +44,15 @@ namespace Geometry
 		{
 			return volumn() + o.volumn() - intersectVolumn(o);
 		}
+		/* 直线与圆的交点，求出参数t，交点即为s[0] + s.toward() * t */
 		std::pair<fl, fl> intersectT(const Segment3 &s) const
 		{
-
+			vec3 tw = s.toward();
+			vec3 dt = s.at(0) - center;
+			fl a = tw.mag2();
+			fl b = dt.dot(tw) * fl(2);
+			fl c = dt.mag2() - radius * radius;
+			return solveQuadraticEquation(a, b, c);
 		}
 	};
 
