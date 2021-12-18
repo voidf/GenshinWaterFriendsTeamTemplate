@@ -1,3 +1,6 @@
+#ifndef Geo_Simpson_H
+#define Geo_Simpson_H
+
 #include "Geo_Base.cpp"
 
 namespace Geometry
@@ -6,25 +9,25 @@ namespace Geometry
 
     struct Simpson
     {
-        std::function<FLOAT_(FLOAT_)> F;
-        Simpson(std::function<FLOAT_(FLOAT_)> _f) : F(_f) {}
-        inline FLOAT_ simpson(FLOAT_ l, FLOAT_ r)
+        std::function<fl(fl)> F;
+        Simpson(std::function<fl(fl)> _f) : F(_f) {}
+        inline fl simpson(fl l, fl r)
         {
             return (F(l) + 4 * F((l + r) / 2) + F(r)) * (r - l) / 6;
         }
-        inline FLOAT_ adaptive(FLOAT_ l, FLOAT_ r, FLOAT_ eps, FLOAT_ ans)
+        inline fl adaptive(fl l, fl r, fl eps, fl ans)
         {
-            FLOAT_ mid = (l + r) / 2;
-            FLOAT_ _l = simpson(l, mid), _r = simpson(mid, r);
+            fl mid = (l + r) / 2;
+            fl _l = simpson(l, mid), _r = simpson(mid, r);
             if (abs(_l + _r - ans) <= 15 * eps)
                 return (_l + _r - ans) / 15 + _l + _r;
             return adaptive(l, mid, eps / 2, _l) + adaptive(mid, r, eps / 2, _r);
         }
-        FLOAT_ adaptive(FLOAT_ l, FLOAT_ r, FLOAT_ eps)
+        fl adaptive(fl l, fl r, fl eps)
         {
             return adaptive(l, r, eps, simpson(l, r));
         }
     };
 
 }
-
+#endif

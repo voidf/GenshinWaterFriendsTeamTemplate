@@ -1,14 +1,17 @@
+#ifndef Geo_Line2_H
+#define Geo_Line2_H
+
 #include "Geo_Base.cpp"
-#include "Geo_Vector2.cpp"
+#include "Geo_vec2.cpp"
 
 namespace Geometry
 {
 
     struct Line2
     {
-        FLOAT_ A, B, C;
+        fl A, B, C;
         /* 默认两点式，打false为点向式（先点后向） */
-        Line2(const Vector2 &u, const Vector2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
+        Line2(const vec2 &u, const vec2 &v, bool two_point = true) : A(u.y - v.y), B(v.x - u.x), C(u.y * (u.x - v.x) - u.x * (u.y - v.y))
         {
             if (u == v)
             {
@@ -38,7 +41,7 @@ namespace Geometry
                 C = -(A * u.x + B * u.y);
             }
         }
-        Line2(FLOAT_ a, FLOAT_ b, FLOAT_ c) : A(a), B(b), C(c) {}
+        Line2(fl a, fl b, fl c) : A(a), B(b), C(c) {}
         std::string ToString() const
         {
             std::ostringstream ostr;
@@ -50,15 +53,15 @@ namespace Geometry
             o << v.ToString();
             return o;
         }
-        static FLOAT_ getk(Vector2 &u, Vector2 &v) { return (v.y - u.y) / (v.x - u.x); }
-        FLOAT_ k() const { return -A / B; }
-        FLOAT_ b() const { return -C / B; }
-        FLOAT_ x(FLOAT_ y) const { return -(B * y + C) / A; }
-        FLOAT_ y(FLOAT_ x) const { return -(A * x + C) / B; }
+        static fl getk(vec2 &u, vec2 &v) { return (v.y - u.y) / (v.x - u.x); }
+        fl k() const { return -A / B; }
+        fl b() const { return -C / B; }
+        fl x(fl y) const { return -(B * y + C) / A; }
+        fl y(fl x) const { return -(A * x + C) / B; }
         /* 点到直线的距离 */
-        FLOAT_ distToPoint(const Vector2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
+        fl distToPoint(const vec2 &p) const { return abs(A * p.x + B * p.y + C / sqrt(A * A + B * B)); }
         /* 直线距离公式，使用前先判平行 */
-        static FLOAT_ Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
+        static fl Distance(const Line2 &a, const Line2 &b) { return abs(a.C - b.C) / sqrt(a.A * a.A + a.B * a.B); }
         /* 判断平行 */
         static bool IsParallel(const Line2 &u, const Line2 &v)
         {
@@ -72,7 +75,7 @@ namespace Geometry
         /* 单位化（？） */
         void normalize()
         {
-            FLOAT_ su = sqrt(A * A + B * B + C * C);
+            fl su = sqrt(A * A + B * B + C * C);
             if (A < 0)
                 su = -su;
             else if (A == 0 and B < 0)
@@ -99,15 +102,17 @@ namespace Geometry
         }
 
         /* 计算交点 */
-        static Vector2 Intersect(const Line2 &u, const Line2 &v)
+        static vec2 Intersect(const Line2 &u, const Line2 &v)
         {
-            FLOAT_ tx = (u.B * v.C - v.B * u.C) / (v.B * u.A - u.B * v.A);
-            FLOAT_ ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
-            return Vector2(tx, ty);
+            fl tx = (u.B * v.C - v.B * u.C) / (v.B * u.A - u.B * v.A);
+            fl ty = (u.B != 0.0 ? (-u.A * tx - u.C) / u.B : (-v.A * tx - v.C) / v.B);
+            return vec2(tx, ty);
         }
     };
 
 }
+
+#endif
 
 /* 旋转坐标系求最小三角形
 
@@ -123,7 +128,7 @@ void solve()
 {
     qr(n);
     using namespace Geometry;
-    vector<Vector2> points;
+    vector<vec2> points;
     points.reserve(n);
 
     vector<lineinfo> lines;
@@ -136,7 +141,7 @@ void solve()
         qr(y);
         points.emplace_back(x, y);
     }
-    FLOAT_ ans = 0x3f3f3f3f3f3f3f3f;
+    fl ans = 0x3f3f3f3f3f3f3f3f;
 
     sort(points.begin(), points.end());
     for (auto i : range(n))
@@ -172,9 +177,9 @@ void solve()
         if (rka > rkb)
             swap(rka, rkb);
         if (rka > 0)
-            ans = min(ans, abs(Vector2::Cross(points[A] - points[B], points[rank2index[rka - 1]] - points[B])));
+            ans = min(ans, abs(vec2::Cross(points[A] - points[B], points[rank2index[rka - 1]] - points[B])));
         if (rkb < n - 1)
-            ans = min(ans, abs(Vector2::Cross(points[A] - points[B], points[rank2index[rkb + 1]] - points[B])));
+            ans = min(ans, abs(vec2::Cross(points[A] - points[B], points[rank2index[rkb + 1]] - points[B])));
 
         if (ans == 0.0)
             break;

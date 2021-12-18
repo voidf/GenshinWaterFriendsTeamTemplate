@@ -1,11 +1,11 @@
 #include "Geo_Base.cpp"
-#include "Geo_VectorN.cpp"
+#include "Geo_vec.cpp"
 #include "Geo_Matrix.cpp"
 
 namespace Geometry
 {
     
-    template <typename VALUETYPE = FLOAT_>
+    template <typename VALUETYPE = fl>
     struct SquareMatrix : Matrix<VALUETYPE>
     {
         SquareMatrix(int siz, const VALUETYPE &default_val = 0) : Matrix<VALUETYPE>(siz, siz, default_val) {}

@@ -1,11 +1,14 @@
+#ifndef Geo_Matrix_H
+#define Geo_Matrix_H
+
 #include "Geo_Base.cpp"
-#include "Geo_VectorN.cpp"
+#include "Geo_vec.cpp"
 
 namespace Geometry
 {
 
-    template <typename VALUETYPE = FLOAT_>
-    struct Matrix : VectorN<VectorN<VALUETYPE>>
+    template <typename VALUETYPE = fl>
+    struct Matrix : vec<vec<VALUETYPE>>
     {
         int ROW, COL;
 
@@ -21,7 +24,7 @@ namespace Geometry
 
         inline friend std::ostream &operator<<(std::ostream &o, const Matrix &m) { return o << m.ToString(); }
 
-        Matrix(const VectorN<VectorN<VALUETYPE>> &v) : VectorN<VectorN<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
+        Matrix(const vec<vec<VALUETYPE>> &v) : vec<vec<VALUETYPE>>(v), ROW(v.size()), COL(v.front().size()) {}
 
         Matrix(int r, int c, const VALUETYPE &default_val = 0) : ROW(r), COL(c)
         {
@@ -194,3 +197,4 @@ namespace Geometry
     };
 
 }
+#endif
