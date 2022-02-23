@@ -2,18 +2,18 @@
 #define Geo_Polygon3_H
 
 #include "Geo_Base.cpp"
-#include "Geo_Vector3.cpp"
+#include "Geo_vec3.cpp"
 #include "Geo_Face3.cpp"
 
 namespace Geometry
 {
     struct Polygon3
 	{
-		std::vector<Vector3> points;
+		std::vector<vec3> points;
 
-		inline Vector3 average()
+		inline vec3 average()
 		{
-			Vector3 avg(0);
+			vec3 avg(0);
 			for (auto i : points)
 				avg += i;
 			return avg / points.size();

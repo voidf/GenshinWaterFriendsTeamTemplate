@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Geo_Base_H
+#define Geo_Base_H
 
 #include "Headers.cpp"
 
@@ -8,39 +9,51 @@
 
 namespace Geometry
 {
-    using FLOAT_ = double;
+    using fl = double;
     template <class T>
     T gcd(T a, T b) { return !b ? a : gcd(b, a % b); }
 
-    constexpr const FLOAT_ Infinity = INFINITY;
-    const FLOAT_ decimal_round = 1e-8; // 精度参数
+    constexpr const fl Infinity = INFINITY;
+    const fl eps = 1e-8; // 精度参数
 
-    const FLOAT_ DEC = 1.0 / decimal_round;
+    const fl DEC = 1.0 / eps;
 
-    int intereps(FLOAT_ x)
+    int intereps(fl x)
     {
-        if (x < -decimal_round)
+        if (x < -eps)
             return -1;
-        else if (x > decimal_round)
+        else if (x > eps)
             return 1;
         return 0;
     }
+    #define E		2.7182818284590452354
+    #define LOG2E		1.4426950408889634074
+    #define LOG10E	0.43429448190325182765
+    #define LN2		0.69314718055994530942
+    #define LN10		2.30258509299404568402
+    #define PI		3.14159265358979323846
+    #define PI_2		1.57079632679489661923
+    #define PI_4		0.78539816339744830962
+    // #define 1_PI		0.31830988618379067154
+    // #define 2_PI		0.63661977236758134308
+    // #define 2_SQRTPI	1.12837916709551257390
+    #define SQRT2		1.41421356237309504880
+    #define SQRT1_2	0.70710678118654752440
 
-    const FLOAT_ PI = acos(-1);
-    bool round_compare(FLOAT_ a, FLOAT_ b) { return round(DEC * a) == round(DEC * b); }
-    FLOAT_ Round(FLOAT_ a) { return round(DEC * a) / DEC; }
+    bool round_compare(fl a, fl b) { return round(DEC * a) == round(DEC * b); }
+    fl Round(fl a) { return round(DEC * a) / DEC; }
 
     /* 解一元二次方程，传出的x1为+delta，x2为-delta，如果无解返回两个nan */
-    std::pair<FLOAT_, FLOAT_> solveQuadraticEquation(FLOAT_ a, FLOAT_ b, FLOAT_ c)
+    std::pair<fl, fl> solveQuadraticEquation(fl a, fl b, fl c)
     {
-        FLOAT_ delta = pow(b, 2) - 4 * a * c;
+        fl delta = pow(b, 2) - 4 * a * c;
         if (delta < 0)
             return std::make_pair(nan(""), nan(""));
         else
         {
             delta = sqrt(delta);
-            FLOAT_ x1 = (-b + delta) / (2 * a);
-            FLOAT_ x2 = (-b - delta) / (2 * a);
+            fl x1 = (-b + delta) / (2 * a);
+            fl x2 = (-b - delta) / (2 * a);
             return std::make_pair(x1, x2);
         }
     }
@@ -51,20 +64,20 @@ namespace Geometry
 	若落在[ml, mr]内，随便丢一边都不会丢掉极值
 	*/
 	template <typename T>
-	std::pair<FLOAT_, T> ternary_searchf(FLOAT_ l, FLOAT_ r, std::function<T(FLOAT_)> f, FLOAT_ eps = 1e-6)
+	std::pair<fl, T> ternary_searchf(fl l, fl r, std::function<T(fl)> f, fl eps = 1e-6)
 	{
-		FLOAT_ ee = eps / 3;
+		fl ee = eps / 3;
 		while (l + eps < r)
 		{
-			FLOAT_ mid = (l + r) / 2;
-			FLOAT_ ml = mid - ee;
-			FLOAT_ mr = mid + ee;
+			fl mid = (l + r) / 2;
+			fl ml = mid - ee;
+			fl mr = mid + ee;
 			if (f(ml) > f(mr)) // 改小于号变求极小值
 				r = mr;
 			else
 				l = ml;
 		}
-		FLOAT_ mid = (l + r) / 2;
+		fl mid = (l + r) / 2;
 		return std::make_pair(mid, f(mid));
 	}
 
@@ -112,3 +125,5 @@ namespace Geometry
         return V;
     }
 }
+
+#endif

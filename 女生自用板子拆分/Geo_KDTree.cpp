@@ -1,5 +1,5 @@
-#ifndef Geo_Face3_H
-#define Geo_Face3_H
+#ifndef Geo_KDTree_H
+#define Geo_KDTree_H
 
 #include "Geo_Base.cpp"
 
@@ -49,9 +49,9 @@ namespace Geometry
 
 		KDTree(int siz, std::vector<std::array<T, K>> &_E) : E(_E) { D.reserve(siz); }
 
-		FLOAT_ gans;
-		Segment2 gquery = Segment2(Vector2(0.0), Vector2(0));
-		FLOAT_ mn[K], mx[K];
+		fl gans;
+		Segment2 gquery = Segment2(vec2(0.0), vec2(0));
+		fl mn[K], mx[K];
 		void _query(P cur, int k)
 		{
 			if (k == K)
@@ -60,7 +60,7 @@ namespace Geometry
 				return;
 			auto &CN = D[cur];
 			std::array<T, K> &karr = *CN.elem;
-			Vector2 cv(karr[0], karr[1]);
+			vec2 cv(karr[0], karr[1]);
 			if (cv != gquery.from && cv != gquery.to)
 				gans = min(gans, gquery.distToPointS(cv));
 			if (karr[k] < mn[k])
@@ -82,7 +82,7 @@ namespace Geometry
 			}
 		}
 
-		FLOAT_ query(const Segment2 &s)
+		fl query(const Segment2 &s)
 		{
 			// gans = INFINITY;
 			gquery = s;

@@ -1,5 +1,8 @@
+#ifndef Geo_Polygon2_H
+#define Geo_Polygon2_H
+
 #include "Geo_Base.cpp"
-#include "Geo_Vector2.cpp"
+#include "Geo_vec2.cpp"
 #include "Geo_Segment2.cpp"
 
 namespace Geometry
@@ -7,10 +10,10 @@ namespace Geometry
 
     struct Polygon2
     {
-        std::vector<Vector2> points;
+        std::vector<vec2> points;
 
     private:
-        Vector2 accordance;
+        vec2 accordance;
 
     public:
         /* 求凸包 */
@@ -18,13 +21,13 @@ namespace Geometry
         {
             Polygon2 ret;
             std::sort(points.begin(), points.end());
-            std::vector<Vector2> &stk = ret.points;
+            std::vector<vec2> &stk = ret.points;
 
             std::vector<char> used(points.size(), 0);
             std::vector<int> uid;
             for (auto &i : points)
             {
-                while (stk.size() >= 2 and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+                while (stk.size() >= 2 and vec2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
                 {
                     used[uid.back()] = 0;
                     uid.pop_back();
@@ -39,10 +42,10 @@ namespace Geometry
             int ts = stk.size();
             for (auto ii = ++points.rbegin(); ii != points.rend(); ii++)
             {
-                Vector2 &i = *ii;
+                vec2 &i = *ii;
                 if (!used[&i - &points.front()])
                 {
-                    while (stk.size() > ts and Vector2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
+                    while (stk.size() > ts and vec2::Cross(stk.back() - stk[stk.size() - 2], i - stk.back()) <= 0)
                     {
                         used[uid.back()] = 0;
                         uid.pop_back();
@@ -58,17 +61,17 @@ namespace Geometry
         }
 
         /* log2(n)判断点在凸包内，要求逆时针序的凸包，即使用ConvexHull得到的多边形 */
-        inline bool is_inner_convexhull(const Vector2 &p) const
+        inline bool is_inner_convexhull(const vec2 &p) const
         {
             int l = 1, r = points.size() - 2;
             while (l <= r)
             {
                 int mid = l + r >> 1;
-                FLOAT_ a1 = Vector2::Cross(points[mid] - points[0], p - points[0]);
-                FLOAT_ a2 = Vector2::Cross(points[mid + 1] - points[0], p - points[0]);
+                fl a1 = vec2::Cross(points[mid] - points[0], p - points[0]);
+                fl a2 = vec2::Cross(points[mid + 1] - points[0], p - points[0]);
                 if (a1 >= 0 && a2 <= 0)
                 {
-                    if (Vector2::Cross(points[mid + 1] - points[mid], p - points[mid]) >= 0)
+                    if (vec2::Cross(points[mid + 1] - points[mid], p - points[mid]) >= 0)
                         return 1;
                     return 0;
                 }
@@ -94,7 +97,7 @@ namespace Geometry
 			auto p1 = Ad.points.begin();
 			auto p2 = Bd.points.begin();
 			while (p1 != Ad.points.end() && p2 != Bd.points.end())
-				ret.points.emplace_back(ret.points.back() + (Vector2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
+				ret.points.emplace_back(ret.points.back() + (vec2::Cross(*p1, *p2) >= 0 ? *(p1++) : *(p2++)));
 			while (p1 != Ad.points.end())
 				ret.points.emplace_back(ret.points.back() + *(p1++));
 			while (p2 != Bd.points.end())
@@ -111,43 +114,43 @@ namespace Geometry
 
         inline void anticlockwiselize()
         {
-            auto anticlock_comparator = [&](Vector2 &a, Vector2 &b) -> bool
+            auto anticlock_comparator = [&](vec2 &a, vec2 &b) -> bool
             {
                 return (a - accordance).toPolarCoordinate(false).y < (b - accordance).toPolarCoordinate(false).y;
             };
             std::sort(points.begin(), points.end(), anticlock_comparator);
         }
 
-        inline Vector2 average() const
+        inline vec2 average() const
         {
-            Vector2 avg(0, 0);
+            vec2 avg(0, 0);
             for (auto &i : points)
                 avg += i;
             return avg / points.size();
         }
 
         /* 求周长 */
-        inline FLOAT_ perimeter() const
+        inline fl perimeter() const
         {
-            FLOAT_ ret = Vector2::Distance(points.front(), points.back());
+            fl ret = vec2::Distance(points.front(), points.back());
             for (int i = 1; i < points.size(); i++)
-                ret += Vector2::Distance(points[i], points[i - 1]);
+                ret += vec2::Distance(points[i], points[i - 1]);
             return ret;
         }
         /* 面积 */
-        inline FLOAT_ area() const
+        inline fl area() const
         {
-            FLOAT_ ret = Vector2::Cross(points.back(), points.front());
+            fl ret = vec2::Cross(points.back(), points.front());
             for (int i = 1; i < points.size(); i++)
-                ret = ret + Vector2::Cross(points[i - 1], points[i]);
+                ret = ret + vec2::Cross(points[i - 1], points[i]);
             return ret / 2;
         }
         /* 求几何中心（形心、重心） */
-        inline Vector2 center() const
+        inline vec2 center() const
         {
-            Vector2 ret = (points.back() + points.front()) * Vector2::Cross(points.back(), points.front());
+            vec2 ret = (points.back() + points.front()) * vec2::Cross(points.back(), points.front());
             for (int i = 1; i < points.size(); i++)
-                ret = ret + (points[i - 1] + points[i]) * Vector2::Cross(points[i - 1], points[i]);
+                ret = ret + (points[i - 1] + points[i]) * vec2::Cross(points[i - 1], points[i]);
             return ret / area() / 6;
         }
         /* 求边界整点数 */
@@ -159,7 +162,7 @@ namespace Geometry
             return b;
         }
         /* Pick定理：多边形面积=内部整点数+边界上的整点数/2-1；求内部整点数 */
-        inline long long interior_points(FLOAT_ A = -1, long long b = -1) const
+        inline long long interior_points(fl A = -1, long long b = -1) const
         {
             if (A < 0)
                 A = area();
@@ -168,10 +171,10 @@ namespace Geometry
             return (long long)A + 1 - (b / 2);
         }
 
-        inline bool is_inner(const Vector2 &p) const
+        inline bool is_inner(const vec2 &p) const
         {
             bool res = false;
-            Vector2 j = points.back();
+            vec2 j = points.back();
             for (auto &i : points)
             {
                 if ((i.y < p.y and j.y >= p.y or j.y < p.y and i.y >= p.y) and (i.x <= p.x or j.x <= p.x))
@@ -182,27 +185,27 @@ namespace Geometry
         }
 
         /* 别人写的更快的板子 */
-        static FLOAT_ triangles_area(std::vector<Polygon2> &P)
+        static fl triangles_area(std::vector<Polygon2> &P)
         {
             int pos = 0;
             for (auto &i : P)
             {
-                if (abs(Vector2::Cross(i.points[1] - i.points[0], i.points[2] - i.points[0])) < 1e-12)
+                if (abs(vec2::Cross(i.points[1] - i.points[0], i.points[2] - i.points[0])) < 1e-12)
                     continue;
                 P[pos++] = i;
             }
-            FLOAT_ ans = 0;
+            fl ans = 0;
             for (int i = 0; i < P.size(); ++i)
                 for (int j = 0; j < 3; ++j)
                 {
-                    std::vector<pair<FLOAT_, int>> ev({make_pair(0, 1), make_pair(1, -1)});
-                    Vector2 s = P[i].points[j], t = P[i].points[(j + 1) % 3], r = P[i].points[(j + 2) % 3];
+                    std::vector<pair<fl, int>> ev({make_pair(0, 1), make_pair(1, -1)});
+                    vec2 s = P[i].points[j], t = P[i].points[(j + 1) % 3], r = P[i].points[(j + 2) % 3];
                     if (abs(s.x - t.x) <= 1e-12)
                         continue;
                     if (s.x > t.x)
                         swap(s, t);
-                    int flag = Vector2::Cross(r - s, t - s) < 0 ? -1 : 1;
-                    FLOAT_ stdis = (t - s).sqrMagnitude();
+                    int flag = vec2::Cross(r - s, t - s) < 0 ? -1 : 1;
+                    fl stdis = (t - s).sqrMagnitude();
                     for (int i1 = 0; i1 < P.size(); ++i1)
                         if (i1 != i)
                         {
@@ -210,8 +213,8 @@ namespace Geometry
                             int cnt[3] = {};
                             for (int j1 = 0; j1 < 3; ++j1)
                             {
-                                const Vector2 &p = P[i1].points[j1];
-                                FLOAT_ area = Vector2::Cross(p - s, t - s);
+                                const vec2 &p = P[i1].points[j1];
+                                fl area = vec2::Cross(p - s, t - s);
                                 if (area * area * 1e12 < stdis)
                                     pos[j1] = 0; // online
                                 else
@@ -220,22 +223,22 @@ namespace Geometry
                             }
                             if (cnt[1] == 2)
                             {
-                                FLOAT_ l = 1, r = 0;
+                                fl l = 1, r = 0;
                                 int _j = -1;
                                 for (int j1 = 0; j1 < 3; ++j1)
                                     if (pos[j1] == 0)
                                     {
-                                        const Vector2 &p = P[i1].points[j1];
-                                        FLOAT_ now = Vector2::Dot(p - s, t - s) / stdis;
+                                        const vec2 &p = P[i1].points[j1];
+                                        fl now = vec2::Dot(p - s, t - s) / stdis;
                                         l = min(l, now);
                                         r = max(r, now);
                                         if (pos[(j1 + 1) % 3] == 0)
                                             _j = j1;
                                     }
-                                Vector2 _s = P[i1].points[_j], _t = P[i1].points[(_j + 1) % 3], _r = P[i1].points[(_j + 2) % 3];
+                                vec2 _s = P[i1].points[_j], _t = P[i1].points[(_j + 1) % 3], _r = P[i1].points[(_j + 2) % 3];
                                 if (_s.x > _t.x)
                                     swap(_s, _t);
-                                int _flag = Vector2::Cross(_r - _s, _t - _s) < 0 ? -1 : 1;
+                                int _flag = vec2::Cross(_r - _s, _t - _s) < 0 ? -1 : 1;
                                 if (i1 > i && flag == _flag)
                                     continue;
                                 l = max(l, 0.0);
@@ -249,19 +252,19 @@ namespace Geometry
                             }
                             if (!cnt[0] || !cnt[2]) // 不过这条线
                                 continue;
-                            FLOAT_ l = 1, r = 0;
+                            fl l = 1, r = 0;
                             for (int j1 = 0; j1 < 3; ++j1)
                                 if (pos[j1] == 0) // 在线上
                                 {
-                                    const Vector2 &p = P[i1].points[j1];
-                                    FLOAT_ now = Vector2::Dot(p - s, t - s) / stdis;
+                                    const vec2 &p = P[i1].points[j1];
+                                    fl now = vec2::Dot(p - s, t - s) / stdis;
                                     l = min(l, now);
                                     r = max(r, now);
                                 }
                                 else if (pos[j1] * pos[(j1 + 1) % 3] < 0) // 穿过
                                 {
-                                    Vector2 p0 = P[i1].points[j1], p1 = P[i1].points[(j1 + 1) % 3];
-                                    FLOAT_ now = Vector2::Cross(p0 - s, p1 - p0) / Vector2::Cross(t - s, p1 - p0);
+                                    vec2 p0 = P[i1].points[j1], p1 = P[i1].points[(j1 + 1) % 3];
+                                    fl now = vec2::Cross(p0 - s, p1 - p0) / vec2::Cross(t - s, p1 - p0);
                                     l = min(l, now);
                                     r = max(r, now);
                                 }
@@ -274,12 +277,12 @@ namespace Geometry
                             }
                         }
                     sort(ev.begin(), ev.end());
-                    FLOAT_ la = 0;
+                    fl la = 0;
                     int sum = 0;
-                    Vector2 a = t - s;
+                    vec2 a = t - s;
                     for (auto p : ev)
                     {
-                        FLOAT_ t;
+                        fl t;
                         int v;
                         tie(t, v) = p;
                         if (sum > 0)
@@ -291,9 +294,9 @@ namespace Geometry
             return ans;
         }
         /* 点光源在多边形上的照明段，点严格在多边形内，n^2极坐标扫描线 */
-        std::vector<std::pair<Vector2, Vector2>> project_on_poly(const Vector2 &v)
+        std::vector<std::pair<vec2, vec2>> project_on_poly(const vec2 &v)
         {
-            std::vector<std::pair<Vector2, Vector2>> ret;
+            std::vector<std::pair<vec2, vec2>> ret;
             int pvno = -1;
             Polygon2 p(*this);
             for (auto &i : p.points)
@@ -305,21 +308,21 @@ namespace Geometry
 
             for (int i = 0; i < p.points.size(); ++i) // x轴正向开始逆时针序
             {
-                const Vector2 &p1 = p.points[i];
-                const Vector2 &p2 = p.points[(i + 1) % p.points.size()];
-                if (Vector2::Cross(p1, p2) == 0) // 共线，即使有投影，三角形也会退化成一条线，故忽略
+                const vec2 &p1 = p.points[i];
+                const vec2 &p2 = p.points[(i + 1) % p.points.size()];
+                if (vec2::Cross(p1, p2) == 0) // 共线，即使有投影，三角形也会退化成一条线，故忽略
                     continue;
-                Vector2 mid = Vector2::SlerpUnclamped(p1, p2, 0.5);
+                vec2 mid = vec2::SlerpUnclamped(p1, p2, 0.5);
                 Segment2 midseg(0, mid);
-                FLOAT_ nearest = -1;
+                fl nearest = -1;
                 int sid = -1;
                 for (int j = 0; j < relative.size(); ++j)
                     if (midseg.ray_in_range(relative[j]))
                     {
-                        Vector2 its = Line2::Intersect(midseg, relative[j]);
-                        if (Vector2::Dot(its, mid) > 0)
+                        vec2 its = Line2::Intersect(midseg, relative[j]);
+                        if (vec2::Dot(its, mid) > 0)
                         {
-                            FLOAT_ d = its.sqrMagnitude();
+                            fl d = its.sqrMagnitude();
                             if (nearest == -1 || nearest > d)
                             {
                                 nearest = d;
@@ -341,24 +344,24 @@ namespace Geometry
         }
 
         /* 三角形面积并，只能处理三角形数组 */
-        static FLOAT_ triangles_area_s(const std::vector<Polygon2> &P)
+        static fl triangles_area_s(const std::vector<Polygon2> &P)
         {
-            std::vector<FLOAT_> events;
+            std::vector<fl> events;
             events.reserve(P.size() * P.size() * 9);
-            FLOAT_ ans = 0;
+            fl ans = 0;
             for (int i = 0; i < P.size(); ++i)
             {
                 for (int it = 0; it < 3; ++it)
                 {
-                    const Vector2 &ip1 = P[i].points[it];
+                    const vec2 &ip1 = P[i].points[it];
                     events.emplace_back(ip1.x);
-                    const Vector2 &ip2 = P[i].points[it ? it - 1 : 2];
+                    const vec2 &ip2 = P[i].points[it ? it - 1 : 2];
                     for (int j = i + 1; j < P.size(); ++j)
 
                         for (int jt = 0; jt < 3; ++jt)
                         {
-                            const Vector2 &jp1 = P[j].points[jt];
-                            const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+                            const vec2 &jp1 = P[j].points[jt];
+                            const vec2 &jp2 = P[j].points[jt ? jt - 1 : 2];
                             Segment2 si(ip1, ip2);
                             Segment2 sj(jp1, jp2);
                             if (Segment2::IsIntersect(si, sj) && !Segment2::IsParallel(si, sj))
@@ -368,10 +371,10 @@ namespace Geometry
             }
             std::sort(events.begin(), events.end());
             events.resize(std::unique(events.begin(), events.end()) - events.begin());
-            FLOAT_ bck = 0;
-            std::map<FLOAT_, FLOAT_> M;
-            FLOAT_ cur = 0;
-            auto mergeseg = [](FLOAT_ l, FLOAT_ r, std::map<FLOAT_, FLOAT_> &M, FLOAT_ &cur)
+            fl bck = 0;
+            std::map<fl, fl> M;
+            fl cur = 0;
+            auto mergeseg = [](fl l, fl r, std::map<fl, fl> &M, fl &cur)
             {
                 auto pos = M.upper_bound(r);
 
@@ -400,7 +403,7 @@ namespace Geometry
                         break;
                     }
             };
-            std::vector<std::pair<FLOAT_, FLOAT_>> leftborder, rightborder;
+            std::vector<std::pair<fl, fl>> leftborder, rightborder;
             leftborder.reserve(P.size() * P.size() * 9);
             rightborder.reserve(P.size() * P.size() * 9);
             for (int i = 0; i < events.size(); ++i)
@@ -408,21 +411,21 @@ namespace Geometry
                 leftborder.clear();
                 rightborder.clear();
                 cur = 0;
-                FLOAT_ dx = i > 0 ? events[i] - events[i - 1] : 0;
-                FLOAT_ cx = events[i];
+                fl dx = i > 0 ? events[i] - events[i - 1] : 0;
+                fl cx = events[i];
                 M.clear();
 
                 for (int j = 0; j < P.size(); ++j)
                 {
-                    // std::vector<FLOAT_> its;
+                    // std::vector<fl> its;
                     int itsctr = 0;
-                    FLOAT_ lb = INFINITY;
-                    FLOAT_ rb = -INFINITY;
-                    // FLOAT_ rb = *std::max_element(its.begin(), its.end());
+                    fl lb = INFINITY;
+                    fl rb = -INFINITY;
+                    // fl rb = *std::max_element(its.begin(), its.end());
                     for (int jt = 0; jt < 3; ++jt)
                     {
-                        const Vector2 &jp1 = P[j].points[jt];
-                        const Vector2 &jp2 = P[j].points[jt ? jt - 1 : 2];
+                        const vec2 &jp1 = P[j].points[jt];
+                        const vec2 &jp2 = P[j].points[jt ? jt - 1 : 2];
                         bool fg = 1;
                         if (jp1.x == cx)
                             ++itsctr, lb = min(lb, jp1.y), rb = max(rb, jp1.y), fg = 0;
@@ -431,7 +434,7 @@ namespace Geometry
                         if (fg && ((jp1.x < cx) ^ (cx < jp2.x)) == 0)
                         {
                             Segment2 sj(jp1, jp2);
-                            FLOAT_ cxy = sj.y(cx);
+                            fl cxy = sj.y(cx);
                             ++itsctr, lb = min(lb, cxy), rb = max(rb, cxy);
                         }
                     }
@@ -481,9 +484,9 @@ namespace Geometry
         }
     };
     /* 对接图形库的转换成vec3 float序列 */
-    inline std::vector<FLOAT_> to_vec3_array() const
+    inline std::vector<fl> to_vec3_array() const
     {
-        std::vector<FLOAT_> ret;
+        std::vector<fl> ret;
         ret.reserve(3 * points.size());
         for (auto &i : points)
         {
@@ -494,46 +497,47 @@ namespace Geometry
         return ret;
     }
     /* 极坐标割圆术返回一个细分subdivision个顶点近似的圆 */
-    inline static Polygon2 cyclotomic(Vector2 center = 0, FLOAT_ radius = 1, int subdivision = 40)
+    inline static Polygon2 cyclotomic(vec2 center = 0, fl radius = 1, int subdivision = 40)
     {
         Polygon2 ret;
         ret.points.reserve(subdivision);
-        FLOAT_ step = 2 * PI / subdivision, cur = 0;
+        fl step = 2 * PI / subdivision, cur = 0;
         while (subdivision--)
         {
-            ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(radius, cur), false));
+            ret.points.emplace_back(center + vec2::fromPolarCoordinate(vec2(radius, cur), false));
             cur += step;
         }
         return ret;
     }
 
     /* 割圆星型 */
-    inline static Polygon2 cyclotomic_star(Vector2 center = 0, FLOAT_ inner_radius = 1, FLOAT_ outer_radius = 3, int subdivision = 5)
+    inline static Polygon2 cyclotomic_star(vec2 center = 0, fl inner_radius = 1, fl outer_radius = 3, int subdivision = 5)
     {
         Polygon2 ret;
         ret.points.reserve(subdivision * 2);
-        FLOAT_ step = 2 * PI / subdivision, cur = 0;
+        fl step = 2 * PI / subdivision, cur = 0;
         while (subdivision--)
         {
-            ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(outer_radius, cur), false));
-            ret.points.emplace_back(center + Vector2::fromPolarCoordinate(Vector2(inner_radius, cur + step / 2), false));
+            ret.points.emplace_back(center + vec2::fromPolarCoordinate(vec2(outer_radius, cur), false));
+            ret.points.emplace_back(center + vec2::fromPolarCoordinate(vec2(inner_radius, cur + step / 2), false));
             cur += step;
         }
         return ret;
     }
 }
+#endif
 
 /* 旋转卡壳用例
 auto CV = P.ConvexHull();
 int idx = 0;
 int jdx = 1;
-FLOAT_ dis = 0;
+fl dis = 0;
 for (auto &i : CV.points)
 {
     // auto cdis = (i - CV.points.front()).sqrMagnitude();
     int tj = (jdx + 1) % CV.points.size();
     int ti = (idx + 1) % CV.points.size();
-    while (Vector2::Cross(CV.points[tj] - i, CV.points[ti] - i) < Vector2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
+    while (vec2::Cross(CV.points[tj] - i, CV.points[ti] - i) < vec2::Cross(CV.points[jdx] - i, CV.points[ti] - i))
     {
         jdx = tj;
         tj = (jdx + 1) % CV.points.size();
