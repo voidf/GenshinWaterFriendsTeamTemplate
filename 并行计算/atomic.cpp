@@ -44,7 +44,8 @@ void f(int x)
 {
     while(A!=x)
     {
-        std::this_thread::sleep_for(std::chrono::microseconds(rd(eg)));
+        // std::this_thread::sleep_for(std::chrono::microseconds(rd(eg)));
+        std::this_thread::yield(); // 让出时间片
     }
     std::cerr << x << std::endl;
     A.fetch_add(1);
